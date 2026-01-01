@@ -42,8 +42,6 @@ struct Expression {
 
   std::string to_string() const;
 
-  void normalize();
-
   Expression& operator+=(const complex_type& value);
   Expression& operator-=(const complex_type& value);
   Expression& operator*=(const complex_type& value);

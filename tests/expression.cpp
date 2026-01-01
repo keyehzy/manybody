@@ -28,14 +28,6 @@ TEST(expression_initializer_list_combines_terms) {
   EXPECT_EQ(expr.size(), 0u);
 }
 
-TEST(expression_normalize_removes_zero_terms) {
-  Expression expr;
-  Expression::container_type empty{};
-  expr.hashmap.emplace(empty, Expression::complex_type(0.0f, 0.0f));
-  expr.normalize();
-  EXPECT_EQ(expr.size(), 0u);
-}
-
 TEST(expression_adjoint_conjugates_and_reverses) {
   Operator a = Operator::creation(Operator::Spin::Up, 1);
   Operator b = Operator::annihilation(Operator::Spin::Down, 4);

@@ -12,21 +12,21 @@ CXX_FLAGS = ["-std=c++20", "-O2", "-Wall", "-Wextra"]
 INCLUDES = [ "src", "third-party" ]
 LIBRARIES = []
 
-TESTS = [ "tests/operator.cpp", "tests/static_vector.cpp", "tests/term.cpp",
-          "tests/expression.cpp" ]
+TESTS = [ "tests/operator.cpp", "tests/static_vector.cpp", "tests/term.cpp", "tests/expression.cpp" ]
 
-BUILD_DIR = "build"
 TARGETS = [
-    ("src/main.cpp", [ "src/operator.h" ], os.path.join(BUILD_DIR, "main")),
-    ("tests/main.cpp", [ "tests/framework.h", *TESTS ], os.path.join(BUILD_DIR, "tests")),
+    (["src/main.cpp", "src/expression.cpp"], [ "src/operator.h", "src/term.h", "src/expression.h" ], "build/main"),
+    (["tests/main.cpp", "src/expression.cpp"], [ "tests/framework.h", *TESTS ], "build/tests"),
 ]
 
-def build_target(source_file, dependencies, output_file):
-    if should_rebuild(source_file, dependencies, output_file):
+BUILD_DIR = "build"
+
+def build_target(source_files, dependencies, output_file):
+    if should_rebuild(source_files, dependencies, output_file):
         print(f"Building {output_file}...")
         includes = ["-I" + include for include in INCLUDES]
         libraries = ["-L" + library for library in LIBRARIES]
-        cmd = [CXX_COMPILER, *CXX_FLAGS, *includes, "-o", output_file, source_file, *libraries]
+        cmd = [CXX_COMPILER, *CXX_FLAGS, *includes, "-o", output_file, *source_files, *libraries]
         subprocess.run(cmd, check=True)
         print(f"Successfully built {output_file}")
         return True
@@ -35,13 +35,13 @@ def build_target(source_file, dependencies, output_file):
         return True
 
 
-def should_rebuild(source_file, dependencies, output_file):
+def should_rebuild(source_files, dependencies, output_file):
     if not os.path.exists(output_file):
         return True
 
     output_mtime = os.path.getmtime(output_file)
-    source_files = [source_file] + dependencies
-    for src in source_files:
+    inputs = list(source_files) + dependencies
+    for src in inputs:
         if os.path.exists(src) and os.path.getmtime(src) > output_mtime:
             return True
     return False
@@ -92,7 +92,7 @@ if __name__ == "__main__":
         INCLUDES.extend(args.includes.split())
 
     if args.libs:
-        LIBRARIES.extend(args.libraries.split())
+        LIBRARIES.extend(args.libs.split())
 
     try:
         if args.format:
