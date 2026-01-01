@@ -81,4 +81,40 @@ struct Term {
     return *this;
   }
 };
+
+inline constexpr Term operator*(const Term& a, const Term& b) noexcept {
+  Term result(a);
+  result *= b;
+  return result;
+}
+
+inline constexpr Term operator*(const Term& a, Operator b) noexcept {
+  Term result(a);
+  result *= b;
+  return result;
+}
+
+inline constexpr Term operator*(const Term& a, Term::complex_type b) noexcept {
+  Term result(a);
+  result *= b;
+  return result;
+}
+
+inline constexpr Term operator/(const Term& a, Term::complex_type b) noexcept {
+  Term result(a);
+  result /= b;
+  return result;
+}
+
+inline constexpr Term operator*(Term::complex_type a, const Term& b) noexcept {
+  Term result(a);
+  result *= b;
+  return result;
+}
+
+inline constexpr Term operator*(Operator a, const Term& b) noexcept {
+  Term result(a);
+  result *= b;
+  return result;
+}
 static_assert(sizeof(Term) == term_size);
