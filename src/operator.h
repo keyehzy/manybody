@@ -51,5 +51,13 @@ struct Operator {
 
   constexpr explicit Operator(ubyte x) noexcept : data(x) {}
 
+  constexpr static Operator creation(Spin spin, size_t value) noexcept {
+    return Operator(Type::Creation, spin, value);
+  }
+
+  constexpr static Operator annihilation(Spin spin, size_t value) noexcept {
+    return Operator(Type::Annihilation, spin, value);
+  }
+
   ubyte data{};
 };
