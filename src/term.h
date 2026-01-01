@@ -1,13 +1,11 @@
 #pragma once
 
-#include <array>
-#include <cassert>
 #include <complex>
 #include <cstddef>
 #include <cstdint>
-#include <iterator>
 
 #include "operator.h"
+#include "static_vector.h"
 
 constexpr size_t term_size = 16;
 
@@ -17,66 +15,7 @@ struct Term {
   static constexpr size_t static_vector_size =
       (term_size - sizeof(complex_type)) / sizeof(Operator) - 1;
 
-  template <size_t N>
-  struct static_operator_vector {
-    std::array<Operator, N> data{};
-    uint8_t size_ = 0;
-
-    constexpr static_operator_vector() noexcept = default;
-    constexpr static_operator_vector(
-        std::initializer_list<Operator> init) noexcept {
-      append_range(init.begin(), init.end());
-    }
-
-    constexpr size_t size() const noexcept { return size_; }
-
-    constexpr Operator* begin() noexcept { return data.data(); }
-    constexpr const Operator* begin() const noexcept { return data.data(); }
-    constexpr Operator* end() noexcept { return data.data() + size_; }
-    constexpr const Operator* end() const noexcept {
-      return data.data() + size_;
-    }
-
-    constexpr auto rbegin() noexcept {
-      return std::reverse_iterator<Operator*>(end());
-    }
-    constexpr auto rbegin() const noexcept {
-      return std::reverse_iterator<const Operator*>(end());
-    }
-    constexpr auto rend() noexcept {
-      return std::reverse_iterator<Operator*>(begin());
-    }
-    constexpr auto rend() const noexcept {
-      return std::reverse_iterator<const Operator*>(begin());
-    }
-
-    constexpr void push_back(Operator value) noexcept {
-      assert(size_ < N);
-      data[size_++] = value;
-    }
-
-    template <typename It>
-    constexpr void append_range(It first, It last) noexcept {
-      for (; first != last; ++first) {
-        push_back(*first);
-      }
-    }
-
-    constexpr bool operator==(
-        const static_operator_vector& other) const noexcept {
-      if (size_ != other.size_) {
-        return false;
-      }
-      for (size_t i = 0; i < size_; ++i) {
-        if (!(data[i] == other.data[i])) {
-          return false;
-        }
-      }
-      return true;
-    }
-  };
-
-  using container_type = static_operator_vector<static_vector_size>;
+  using container_type = static_vector<Operator, static_vector_size, uint8_t>;
 
   complex_type c{1.0f, 0.0f};
   container_type operators{};
