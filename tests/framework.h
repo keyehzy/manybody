@@ -52,23 +52,28 @@ struct TestRegistrar {
   } while (0)
 
 inline int run_all_tests() {
+  constexpr const char* kGreen = "\033[32m";
+  constexpr const char* kRed = "\033[31m";
+  constexpr const char* kReset = "\033[0m";
   int failed_tests = 0;
   for (const auto& test : test_registry()) {
     const int failures_before = test_failures();
     try {
       test.fn();
     } catch (const std::exception& ex) {
-      std::cerr << "FAIL " << test.name << " threw: " << ex.what() << "\n";
+      std::cerr << kRed << "FAIL " << kReset << test.name
+                << " threw: " << ex.what() << "\n";
       test_failures()++;
     } catch (...) {
-      std::cerr << "FAIL " << test.name << " threw unknown exception\n";
+      std::cerr << kRed << "FAIL " << kReset << test.name
+                << " threw unknown exception\n";
       test_failures()++;
     }
 
     if (test_failures() > failures_before) {
       failed_tests++;
     } else {
-      std::cerr << "PASSED " << test.name << "\n";
+      std::cerr << kGreen << "PASSED " << kReset << test.name << "\n";
     }
   }
 
