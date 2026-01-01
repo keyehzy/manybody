@@ -1,6 +1,7 @@
 #include "static_vector.h"
 
 #include <array>
+#include <unordered_set>
 
 #include "framework.h"
 #include "operator.h"
@@ -72,4 +73,24 @@ TEST(static_vector_equality) {
 
   EXPECT_TRUE(lhs == rhs);
   EXPECT_TRUE(!(lhs == different));
+}
+
+TEST(static_vector_hash_matches_equal) {
+  static_vector<int, 4> lhs({1, 2, 3});
+  static_vector<int, 4> rhs({1, 2, 3});
+  std::hash<static_vector<int, 4>> hasher;
+  EXPECT_EQ(hasher(lhs), hasher(rhs));
+}
+
+TEST(static_vector_hash_works_in_unordered_set) {
+  std::unordered_set<static_vector<int, 4>> values;
+  static_vector<int, 4> a({1, 2});
+  static_vector<int, 4> b({1, 2});
+  static_vector<int, 4> c({2, 1});
+
+  values.insert(a);
+  values.insert(c);
+
+  EXPECT_TRUE(values.find(b) != values.end());
+  EXPECT_TRUE(values.find(c) != values.end());
 }

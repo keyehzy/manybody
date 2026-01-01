@@ -9,7 +9,7 @@ from multiprocessing import Pool
 CXX_COMPILER = "/opt/homebrew/opt/llvm/bin/clang++"
 CXX_FLAGS = ["-std=c++20", "-O2", "-Wall", "-Wextra"]
 
-INCLUDES = [ "src" ]
+INCLUDES = [ "src", "third-party" ]
 LIBRARIES = []
 
 TESTS = [ "tests/operator.cpp", "tests/static_vector.cpp", "tests/term.cpp" ]
@@ -53,13 +53,21 @@ def build_all():
         pool.starmap(build_target, TARGETS)
 
 
+EXCLUDE_DIRS = {"third-party"}
+
+
+def is_excluded(path):
+    parts = os.path.normpath(path).split(os.sep)
+    return parts and parts[0] in EXCLUDE_DIRS
+
+
 def find_cpp_files():
     extensions = ['*.cpp', '*.h', '*.hpp', '*.cc', '*.cxx']
     files = []
     for ext in extensions:
         files.extend(glob.glob(ext))
         files.extend(glob.glob(f'**/{ext}', recursive=True))
-    return list(set(files))
+    return [file for file in set(files) if not is_excluded(file)]
 
 def format_code():
     for file in find_cpp_files():

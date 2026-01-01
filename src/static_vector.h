@@ -3,8 +3,17 @@
 #include <array>
 #include <cassert>
 #include <cstddef>
+#include <functional>
 #include <initializer_list>
 #include <iterator>
+#include <type_traits>
+
+#include "xxhash.h"
+
+#define XXH_STATIC_LINKING_ONLY
+#define XXH_IMPLEMENTATION
+#define XXH_INLINE_ALL
+#include "xxhash.h"
 
 template <typename T, size_t N, typename SizeType = std::size_t>
 struct static_vector {
@@ -41,6 +50,13 @@ struct static_vector {
     return data[index];
   }
 
+  size_t hash() const noexcept {
+    static_assert(std::is_trivially_copyable_v<T>,
+                  "static_vector::hash requires trivially copyable elements");
+    const XXH64_hash_t seed = XXH64(&size_, sizeof(size_), 0);
+    return static_cast<size_t>(XXH64(data.data(), size() * sizeof(T), seed));
+  }
+
   constexpr auto rbegin() noexcept { return std::reverse_iterator<T*>(end()); }
   constexpr auto rbegin() const noexcept {
     return std::reverse_iterator<const T*>(end());
@@ -72,5 +88,12 @@ struct static_vector {
       }
     }
     return true;
+  }
+};
+
+template <typename T, size_t N, typename SizeType>
+struct std::hash<static_vector<T, N, SizeType>> {
+  size_t operator()(const static_vector<T, N, SizeType>& value) const noexcept {
+    return value.hash();
   }
 };
