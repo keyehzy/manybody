@@ -12,7 +12,7 @@ CXX_FLAGS = ["-std=c++20", "-O2", "-Wall", "-Wextra"]
 INCLUDES = [ "src" ]
 LIBRARIES = []
 
-TESTS = [ "tests/operator.cpp" ]
+TESTS = [ "tests/operator.cpp", "tests/term.cpp" ]
 
 BUILD_DIR = "build"
 TARGETS = [
