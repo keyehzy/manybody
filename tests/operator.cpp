@@ -1,5 +1,7 @@
 #include "operator.h"
 
+#include <unordered_set>
+
 #include "framework.h"
 
 TEST(operator_bits_roundtrip) {
@@ -71,4 +73,22 @@ TEST(operator_ordering_uses_packed_bits) {
 
   EXPECT_TRUE(create_up_1 < create_up_2);
   EXPECT_TRUE(create_up_1 < annihilate_up_1);
+}
+
+TEST(operator_hash_matches_data) {
+  Operator op = Operator::annihilation(Operator::Spin::Down, 31);
+  std::hash<Operator> hasher;
+  EXPECT_EQ(hasher(op), static_cast<size_t>(op.data));
+}
+
+TEST(operator_hash_works_in_unordered_set) {
+  std::unordered_set<Operator> ops;
+  Operator a = Operator::creation(Operator::Spin::Up, 2);
+  Operator b = Operator::annihilation(Operator::Spin::Down, 2);
+
+  ops.insert(a);
+  ops.insert(b);
+
+  EXPECT_TRUE(ops.find(a) != ops.end());
+  EXPECT_TRUE(ops.find(b) != ops.end());
 }

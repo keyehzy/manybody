@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <string>
 
 struct Operator {
   using ubyte = uint8_t;
@@ -60,4 +61,12 @@ struct Operator {
   }
 
   ubyte data{};
+};
+static_assert(sizeof(Operator) == 1);
+
+template <>
+struct std::hash<Operator> {
+  [[nodiscard]] constexpr std::size_t operator()(Operator op) const noexcept {
+    return op.data;
+  }
 };
