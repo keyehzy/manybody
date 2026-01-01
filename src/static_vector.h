@@ -23,6 +23,24 @@ struct static_vector {
   constexpr T* end() noexcept { return data.data() + size(); }
   constexpr const T* end() const noexcept { return data.data() + size(); }
 
+  constexpr T& operator[](size_t index) noexcept {
+    assert(index < size());
+    return data[index];
+  }
+  constexpr const T& operator[](size_t index) const noexcept {
+    assert(index < size());
+    return data[index];
+  }
+
+  constexpr T& at(size_t index) noexcept {
+    assert(index < size());
+    return data[index];
+  }
+  constexpr const T& at(size_t index) const noexcept {
+    assert(index < size());
+    return data[index];
+  }
+
   constexpr auto rbegin() noexcept { return std::reverse_iterator<T*>(end()); }
   constexpr auto rbegin() const noexcept {
     return std::reverse_iterator<const T*>(end());

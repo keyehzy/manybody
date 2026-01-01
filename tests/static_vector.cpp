@@ -40,6 +40,28 @@ TEST(static_vector_reverse_iterators) {
   EXPECT_EQ(*it++, 2);
 }
 
+TEST(static_vector_index_access) {
+  static_vector<int, 4> vec({1, 2, 3});
+  vec[1] = 5;
+  EXPECT_EQ(vec[0], 1);
+  EXPECT_EQ(vec[1], 5);
+  EXPECT_EQ(vec[2], 3);
+
+  const static_vector<int, 4> const_vec({4, 6, 8});
+  EXPECT_EQ(const_vec[1], 6);
+}
+
+TEST(static_vector_at_access) {
+  static_vector<int, 4> vec({10, 20, 30});
+  vec.at(2) = 40;
+  EXPECT_EQ(vec.at(0), 10);
+  EXPECT_EQ(vec.at(1), 20);
+  EXPECT_EQ(vec.at(2), 40);
+
+  const static_vector<int, 4> const_vec({11, 22, 33});
+  EXPECT_EQ(const_vec.at(2), 33);
+}
+
 TEST(static_vector_equality) {
   Operator a = Operator::creation(Operator::Spin::Up, 1);
   Operator b = Operator::annihilation(Operator::Spin::Down, 2);
