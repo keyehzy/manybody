@@ -52,6 +52,8 @@ struct Operator {
     return Operator(Type::Annihilation, spin, value);
   }
 
+  constexpr static size_t max_index() noexcept { return kValueMask; }
+
   ubyte data{};
 };
 static_assert(sizeof(Operator) == 1);

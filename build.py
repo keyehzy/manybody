@@ -13,7 +13,9 @@ INCLUDES = [ "src", "third-party" ]
 LIBRARIES = []
 
 TESTS = [ "tests/operator.cpp", "tests/static_vector.cpp", "tests/term.cpp",
-          "tests/expression.cpp", "tests/normal_order.cpp" ]
+          "tests/expression.cpp", "tests/normal_order.cpp", "tests/basis.cpp",
+          "tests/basis.h", "tests/basis_test.cpp", "tests/indexed_hash_set.cpp",
+          "tests/indexed_hash_set.h" ]
 
 TARGETS = [
     (["src/main.cpp", "src/expression.cpp"], [ "src/operator.h", "src/term.h", "src/expression.h" ], "build/main"),

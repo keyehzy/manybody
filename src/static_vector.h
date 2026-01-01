@@ -27,6 +27,7 @@ struct static_vector {
   }
 
   constexpr size_t size() const noexcept { return static_cast<size_t>(size_); }
+  constexpr bool empty() const noexcept { return size_ == 0; }
 
   constexpr T* begin() noexcept { return data.data(); }
   constexpr const T* begin() const noexcept { return data.data(); }
@@ -51,6 +52,15 @@ struct static_vector {
     return data[index];
   }
 
+  constexpr T& back() noexcept {
+    assert(size_ > 0);
+    return data[size_ - 1];
+  }
+  constexpr const T& back() const noexcept {
+    assert(size_ > 0);
+    return data[size_ - 1];
+  }
+
   size_t hash() const noexcept {
     static_assert(std::is_trivially_copyable_v<T>,
                   "static_vector::hash requires trivially copyable elements");
@@ -66,6 +76,11 @@ struct static_vector {
   constexpr void push_back(const T& value) noexcept {
     assert(size_ < N);
     data[size_++] = value;
+  }
+
+  constexpr void pop_back() noexcept {
+    assert(size_ > 0);
+    --size_;
   }
 
   template <typename It>
