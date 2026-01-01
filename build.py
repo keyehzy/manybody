@@ -9,11 +9,16 @@ from multiprocessing import Pool
 CXX_COMPILER = "/opt/homebrew/opt/llvm/bin/clang++"
 CXX_FLAGS = ["-std=c++20", "-O2", "-Wall", "-Wextra"]
 
-INCLUDES = []
+INCLUDES = [ "src" ]
 LIBRARIES = []
 
+TESTS = [ "tests/operator.cpp" ]
+
 BUILD_DIR = "build"
-TARGETS = [ ("src/main.cpp", [ "src/operator.h" ], os.path.join(BUILD_DIR, "main")) ]
+TARGETS = [
+    ("src/main.cpp", [ "src/operator.h" ], os.path.join(BUILD_DIR, "main")),
+    ("tests/main.cpp", [ "tests/framework.h", *TESTS ], os.path.join(BUILD_DIR, "tests")),
+]
 
 def build_target(source_file, dependencies, output_file):
     if should_rebuild(source_file, dependencies, output_file):
