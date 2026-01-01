@@ -47,6 +47,20 @@ TEST(operator_adjoint_involution) {
   EXPECT_EQ(b, a);
 }
 
+TEST(operator_flip) {
+  Operator a = Operator::creation(Operator::Spin::Up, 4);
+  Operator b = a.flip();
+  EXPECT_EQ(b.type(), Operator::Type::Creation);
+  EXPECT_EQ(b.spin(), Operator::Spin::Down);
+  EXPECT_EQ(b.value(), 4u);
+}
+
+TEST(operator_flip_involution) {
+  Operator a = Operator::annihilation(Operator::Spin::Down, 13);
+  Operator b = a.flip().flip();
+  EXPECT_EQ(b, a);
+}
+
 TEST(operator_commutes) {
   Operator create_up = Operator::creation(Operator::Spin::Up, 1);
   Operator annihilate_up = Operator::annihilation(Operator::Spin::Up, 1);

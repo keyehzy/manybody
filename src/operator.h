@@ -18,6 +18,8 @@ struct Operator {
   enum class Type : ubyte { Creation = 0, Annihilation = 1 };
   enum class Spin : ubyte { Up = 0, Down = 1 };
 
+  constexpr Operator() noexcept = default;
+
   constexpr explicit Operator(Type type, Spin spin, size_t value) noexcept
       : data(static_cast<ubyte>((static_cast<ubyte>(type) << kTypeShift) |
                                 (static_cast<ubyte>(spin) << kSpinShift) |
@@ -45,6 +47,8 @@ struct Operator {
   constexpr Operator adjoint() const noexcept {
     return Operator(data ^ kTypeBit);
   }
+
+  constexpr Operator flip() const noexcept { return Operator(data ^ kSpinBit); }
 
   constexpr bool commutes(Operator other) const noexcept {
     return (data ^ other.data) != kTypeBit;
