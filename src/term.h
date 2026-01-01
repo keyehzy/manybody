@@ -15,7 +15,8 @@ struct Term {
   static constexpr size_t static_vector_size =
       (term_size - sizeof(complex_type)) / sizeof(Operator) - 1;
 
-  using container_type = static_vector<Operator, static_vector_size, uint8_t>;
+  using container_type =
+      static_vector<Operator, static_vector_size, Operator::ubyte>;
 
   complex_type c{1.0f, 0.0f};
   container_type operators{};
