@@ -117,4 +117,35 @@ inline constexpr Term operator*(Operator a, const Term& b) noexcept {
   result *= b;
   return result;
 }
+
+inline constexpr Term creation(Operator::Spin spin, size_t orbital) noexcept {
+  return Term({Operator::creation(spin, orbital)});
+}
+
+inline constexpr Term annihilation(Operator::Spin spin,
+                                   size_t orbital) noexcept {
+  return Term({Operator::annihilation(spin, orbital)});
+}
+
+inline constexpr Term one_body(Operator::Spin s1, size_t o1, Operator::Spin s2,
+                               size_t o2) noexcept {
+  return Term({Operator::creation(s1, o1), Operator::annihilation(s2, o2)});
+}
+
+inline constexpr Term two_body(Operator::Spin s1, size_t o1, Operator::Spin s2,
+                               size_t o2, Operator::Spin s3, size_t o3,
+                               Operator::Spin s4, size_t o4) noexcept {
+  return Term({Operator::creation(s1, o1), Operator::creation(s2, o2),
+               Operator::annihilation(s3, o3), Operator::annihilation(s4, o4)});
+}
+
+inline constexpr Term density(Operator::Spin s, size_t o) noexcept {
+  return Term({Operator::creation(s, o), Operator::annihilation(s, o)});
+}
+
+inline constexpr Term density_density(Operator::Spin s1, size_t i,
+                                      Operator::Spin s2, size_t j) noexcept {
+  return density(s1, i) * density(s2, j);
+}
+
 static_assert(sizeof(Term) == term_size);

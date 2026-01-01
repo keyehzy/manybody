@@ -154,3 +154,65 @@ TEST(term_binary_operator_term_divide) {
   EXPECT_EQ(result.size(), 1u);
   EXPECT_EQ(*result.operators.begin(), a);
 }
+
+TEST(term_creation_helper) {
+  Term term = creation(Operator::Spin::Up, 3);
+
+  EXPECT_EQ(term.c, Term::complex_type(1.0f, 0.0f));
+  EXPECT_EQ(term.size(), 1u);
+  EXPECT_EQ(*term.operators.begin(), Operator::creation(Operator::Spin::Up, 3));
+}
+
+TEST(term_annihilation_helper) {
+  Term term = annihilation(Operator::Spin::Down, 5);
+
+  EXPECT_EQ(term.c, Term::complex_type(1.0f, 0.0f));
+  EXPECT_EQ(term.size(), 1u);
+  EXPECT_EQ(*term.operators.begin(),
+            Operator::annihilation(Operator::Spin::Down, 5));
+}
+
+TEST(term_one_body_helper) {
+  Term term = one_body(Operator::Spin::Up, 1, Operator::Spin::Down, 2);
+
+  EXPECT_EQ(term.c, Term::complex_type(1.0f, 0.0f));
+  EXPECT_EQ(term.size(), 2u);
+  auto it = term.operators.begin();
+  EXPECT_EQ(*it++, Operator::creation(Operator::Spin::Up, 1));
+  EXPECT_EQ(*it++, Operator::annihilation(Operator::Spin::Down, 2));
+}
+
+TEST(term_two_body_helper) {
+  Term term = two_body(Operator::Spin::Up, 1, Operator::Spin::Down, 2,
+                       Operator::Spin::Up, 3, Operator::Spin::Down, 4);
+
+  EXPECT_EQ(term.c, Term::complex_type(1.0f, 0.0f));
+  EXPECT_EQ(term.size(), 4u);
+  auto it = term.operators.begin();
+  EXPECT_EQ(*it++, Operator::creation(Operator::Spin::Up, 1));
+  EXPECT_EQ(*it++, Operator::creation(Operator::Spin::Down, 2));
+  EXPECT_EQ(*it++, Operator::annihilation(Operator::Spin::Up, 3));
+  EXPECT_EQ(*it++, Operator::annihilation(Operator::Spin::Down, 4));
+}
+
+TEST(term_density_helper) {
+  Term term = density(Operator::Spin::Down, 7);
+
+  EXPECT_EQ(term.c, Term::complex_type(1.0f, 0.0f));
+  EXPECT_EQ(term.size(), 2u);
+  auto it = term.operators.begin();
+  EXPECT_EQ(*it++, Operator::creation(Operator::Spin::Down, 7));
+  EXPECT_EQ(*it++, Operator::annihilation(Operator::Spin::Down, 7));
+}
+
+TEST(term_density_density_helper) {
+  Term term = density_density(Operator::Spin::Up, 1, Operator::Spin::Down, 2);
+
+  EXPECT_EQ(term.c, Term::complex_type(1.0f, 0.0f));
+  EXPECT_EQ(term.size(), 4u);
+  auto it = term.operators.begin();
+  EXPECT_EQ(*it++, Operator::creation(Operator::Spin::Up, 1));
+  EXPECT_EQ(*it++, Operator::annihilation(Operator::Spin::Up, 1));
+  EXPECT_EQ(*it++, Operator::creation(Operator::Spin::Down, 2));
+  EXPECT_EQ(*it++, Operator::annihilation(Operator::Spin::Down, 2));
+}
