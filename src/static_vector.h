@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <cstddef>
@@ -97,3 +98,10 @@ struct std::hash<static_vector<T, N, SizeType>> {
     return value.hash();
   }
 };
+
+template <typename T, size_t N, typename SizeType>
+constexpr bool has_consecutive_elements(
+    const static_vector<T, N, SizeType>& container) noexcept {
+  return std::adjacent_find(container.begin(), container.end()) !=
+         container.end();
+}
