@@ -62,7 +62,7 @@ Expression::Expression(complex_type c) {
 
 Expression::Expression(Operator op) {
   container_type ops{op};
-  hashmap.emplace(std::move(ops), complex_type{1.0f, 0.0f});
+  hashmap.emplace(std::move(ops), complex_type{1.0, 0.0});
 }
 
 Expression::Expression(const Term& term) {
@@ -78,11 +78,11 @@ Expression::Expression(Term&& term) {
 }
 
 Expression::Expression(const container_type& container) {
-  hashmap.emplace(container, complex_type{1.0f, 0.0f});
+  hashmap.emplace(container, complex_type{1.0, 0.0});
 }
 
 Expression::Expression(container_type&& container) {
-  hashmap.emplace(std::move(container), complex_type{1.0f, 0.0f});
+  hashmap.emplace(std::move(container), complex_type{1.0, 0.0});
 }
 
 Expression::Expression(std::initializer_list<Term> lst) {
