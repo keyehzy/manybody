@@ -161,8 +161,7 @@ TEST(term_annihilation_helper) {
 
   EXPECT_EQ(term.c, Term::complex_type(1.0, 0.0));
   EXPECT_EQ(term.size(), 1u);
-  EXPECT_EQ(*term.operators.begin(),
-            Operator::annihilation(Operator::Spin::Down, 5));
+  EXPECT_EQ(*term.operators.begin(), Operator::annihilation(Operator::Spin::Down, 5));
 }
 
 TEST(term_one_body_helper) {
@@ -175,8 +174,8 @@ TEST(term_one_body_helper) {
 }
 
 TEST(term_two_body_helper) {
-  Term term = two_body(Operator::Spin::Up, 1, Operator::Spin::Down, 2,
-                       Operator::Spin::Up, 3, Operator::Spin::Down, 4);
+  Term term = two_body(Operator::Spin::Up, 1, Operator::Spin::Down, 2, Operator::Spin::Up, 3,
+                       Operator::Spin::Down, 4);
 
   EXPECT_EQ(term.c, Term::complex_type(1.0, 0.0));
   EXPECT_EQ(term.size(), 4u);

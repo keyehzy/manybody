@@ -59,13 +59,9 @@ struct static_vector {
   }
 
   constexpr auto rbegin() noexcept { return std::reverse_iterator<T*>(end()); }
-  constexpr auto rbegin() const noexcept {
-    return std::reverse_iterator<const T*>(end());
-  }
+  constexpr auto rbegin() const noexcept { return std::reverse_iterator<const T*>(end()); }
   constexpr auto rend() noexcept { return std::reverse_iterator<T*>(begin()); }
-  constexpr auto rend() const noexcept {
-    return std::reverse_iterator<const T*>(begin());
-  }
+  constexpr auto rend() const noexcept { return std::reverse_iterator<const T*>(begin()); }
 
   constexpr void push_back(const T& value) noexcept {
     assert(size_ < N);
@@ -100,8 +96,6 @@ struct std::hash<static_vector<T, N, SizeType>> {
 };
 
 template <typename T, size_t N, typename SizeType>
-constexpr bool has_consecutive_elements(
-    const static_vector<T, N, SizeType>& container) noexcept {
-  return std::adjacent_find(container.begin(), container.end()) !=
-         container.end();
+constexpr bool has_consecutive_elements(const static_vector<T, N, SizeType>& container) noexcept {
+  return std::adjacent_find(container.begin(), container.end()) != container.end();
 }

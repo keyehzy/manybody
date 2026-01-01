@@ -2,12 +2,9 @@
 
 #include <utility>
 
-bool Expression::is_zero(const complex_type& value) {
-  return value == complex_type{};
-}
+bool Expression::is_zero(const complex_type& value) { return value == complex_type{}; }
 
-bool Expression::less_ops(const container_type& left,
-                          const container_type& right) {
+bool Expression::less_ops(const container_type& left, const container_type& right) {
   if (left.size() != right.size()) {
     return left.size() < right.size();
   }
@@ -38,8 +35,7 @@ void Expression::add_to_map(map_type& target, const container_type& ops,
   }
 }
 
-void Expression::add_to_map(map_type& target, container_type&& ops,
-                            const complex_type& coeff) {
+void Expression::add_to_map(map_type& target, container_type&& ops, const complex_type& coeff) {
   if (is_zero(coeff)) {
     return;
   }

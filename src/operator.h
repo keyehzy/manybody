@@ -27,32 +27,20 @@ struct Operator {
     assert(value <= kValueMask);
   }
 
-  constexpr Type type() const noexcept {
-    return static_cast<Type>(data >> kTypeShift);
-  }
+  constexpr Type type() const noexcept { return static_cast<Type>(data >> kTypeShift); }
 
-  constexpr Spin spin() const noexcept {
-    return static_cast<Spin>((data >> kSpinShift) & 1);
-  }
+  constexpr Spin spin() const noexcept { return static_cast<Spin>((data >> kSpinShift) & 1); }
 
   constexpr size_t value() const noexcept { return data & kValueMask; }
 
-  constexpr bool operator<(Operator other) const noexcept {
-    return data < other.data;
-  }
-  constexpr bool operator==(Operator other) const noexcept {
-    return data == other.data;
-  }
+  constexpr bool operator<(Operator other) const noexcept { return data < other.data; }
+  constexpr bool operator==(Operator other) const noexcept { return data == other.data; }
 
-  constexpr Operator adjoint() const noexcept {
-    return Operator(data ^ kTypeBit);
-  }
+  constexpr Operator adjoint() const noexcept { return Operator(data ^ kTypeBit); }
 
   constexpr Operator flip() const noexcept { return Operator(data ^ kSpinBit); }
 
-  constexpr bool commutes(Operator other) const noexcept {
-    return (data ^ other.data) != kTypeBit;
-  }
+  constexpr bool commutes(Operator other) const noexcept { return (data ^ other.data) != kTypeBit; }
 
   constexpr explicit Operator(ubyte x) noexcept : data(x) {}
 
@@ -70,7 +58,5 @@ static_assert(sizeof(Operator) == 1);
 
 template <>
 struct std::hash<Operator> {
-  [[nodiscard]] constexpr std::size_t operator()(Operator op) const noexcept {
-    return op.data;
-  }
+  [[nodiscard]] constexpr std::size_t operator()(Operator op) const noexcept { return op.data; }
 };

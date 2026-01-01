@@ -6,8 +6,7 @@
 
 constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
-Expression NormalOrderer::normal_order(const complex_type& c,
-                                       const container_type& ops) {
+Expression NormalOrderer::normal_order(const complex_type& c, const container_type& ops) {
   if (std::norm(c) < tolerance * tolerance) {
     return {};
   }
@@ -61,8 +60,7 @@ Expression NormalOrderer::normal_order_recursive(container_type ops) {
   return Expression(phase, std::move(ops));
 }
 
-Expression NormalOrderer::handle_non_commuting(container_type ops,
-                                               size_t index) {
+Expression NormalOrderer::handle_non_commuting(container_type ops, size_t index) {
   container_type contracted;
   contracted.append_range(ops.begin(), ops.begin() + index);
   contracted.append_range(ops.begin() + index + 2, ops.end());

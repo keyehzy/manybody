@@ -21,9 +21,7 @@ inline int& test_failures() {
 }
 
 struct TestRegistrar {
-  TestRegistrar(const char* name, void (*fn)()) {
-    test_registry().push_back({name, fn});
-  }
+  TestRegistrar(const char* name, void (*fn)()) { test_registry().push_back({name, fn}); }
 };
 
 #define TEST(name)                                    \
@@ -31,24 +29,22 @@ struct TestRegistrar {
   static TestRegistrar name##_registrar(#name, name); \
   static void name()
 
-#define EXPECT_TRUE(cond)                                 \
-  do {                                                    \
-    if (!(cond)) {                                        \
-      std::cerr << "FAIL " << __FILE__ << ":" << __LINE__ \
-                << " expected true for " #cond "\n";      \
-      test_failures()++;                                  \
-    }                                                     \
+#define EXPECT_TRUE(cond)                                                                      \
+  do {                                                                                         \
+    if (!(cond)) {                                                                             \
+      std::cerr << "FAIL " << __FILE__ << ":" << __LINE__ << " expected true for " #cond "\n"; \
+      test_failures()++;                                                                       \
+    }                                                                                          \
   } while (0)
 
-#define EXPECT_EQ(lhs, rhs)                               \
-  do {                                                    \
-    const auto& lhs_val = (lhs);                          \
-    const auto& rhs_val = (rhs);                          \
-    if (!(lhs_val == rhs_val)) {                          \
-      std::cerr << "FAIL " << __FILE__ << ":" << __LINE__ \
-                << " expected " #lhs " == " #rhs "\n";    \
-      test_failures()++;                                  \
-    }                                                     \
+#define EXPECT_EQ(lhs, rhs)                                                                      \
+  do {                                                                                           \
+    const auto& lhs_val = (lhs);                                                                 \
+    const auto& rhs_val = (rhs);                                                                 \
+    if (!(lhs_val == rhs_val)) {                                                                 \
+      std::cerr << "FAIL " << __FILE__ << ":" << __LINE__ << " expected " #lhs " == " #rhs "\n"; \
+      test_failures()++;                                                                         \
+    }                                                                                            \
   } while (0)
 
 inline int run_all_tests() {
@@ -61,12 +57,10 @@ inline int run_all_tests() {
     try {
       test.fn();
     } catch (const std::exception& ex) {
-      std::cerr << kRed << "FAIL " << kReset << test.name
-                << " threw: " << ex.what() << "\n";
+      std::cerr << kRed << "FAIL " << kReset << test.name << " threw: " << ex.what() << "\n";
       test_failures()++;
     } catch (...) {
-      std::cerr << kRed << "FAIL " << kReset << test.name
-                << " threw unknown exception\n";
+      std::cerr << kRed << "FAIL " << kReset << test.name << " threw unknown exception\n";
       test_failures()++;
     }
 

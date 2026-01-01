@@ -60,9 +60,7 @@ struct Expression {
 
   static bool less_ops(const container_type& left, const container_type& right);
 
-  static void add_to_map(map_type& target, const container_type& ops,
-                         const complex_type& coeff);
+  static void add_to_map(map_type& target, const container_type& ops, const complex_type& coeff);
 
-  static void add_to_map(map_type& target, container_type&& ops,
-                         const complex_type& coeff);
+  static void add_to_map(map_type& target, container_type&& ops, const complex_type& coeff);
 };
