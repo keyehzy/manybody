@@ -12,7 +12,8 @@ CXX_FLAGS = ["-std=c++20", "-O2", "-Wall", "-Wextra"]
 INCLUDES = [ "src", "third-party" ]
 LIBRARIES = []
 
-TESTS = [ "tests/operator.cpp", "tests/static_vector.cpp", "tests/term.cpp" ]
+TESTS = [ "tests/operator.cpp", "tests/static_vector.cpp", "tests/term.cpp",
+          "tests/expression.cpp" ]
 
 BUILD_DIR = "build"
 TARGETS = [

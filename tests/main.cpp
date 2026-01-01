@@ -1,3 +1,4 @@
+#include "expression.cpp"
 #include "framework.h"
 #include "operator.cpp"
 #include "static_vector.cpp"
