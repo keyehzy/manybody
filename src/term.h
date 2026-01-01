@@ -18,7 +18,7 @@ struct Term {
   using container_type =
       static_vector<Operator, static_vector_size, Operator::ubyte>;
 
-  complex_type c{1.0f, 0.0f};
+  complex_type c{1.0, 0.0};
   container_type operators{};
 
   constexpr Term() noexcept = default;
