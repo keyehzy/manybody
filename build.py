@@ -9,13 +9,15 @@ from multiprocessing import Pool
 CXX_COMPILER = "/opt/homebrew/opt/llvm/bin/clang++"
 CXX_FLAGS = ["-std=c++20", "-O2", "-Wall", "-Wextra"]
 
-INCLUDES = [ "src", "third-party" ]
-LIBRARIES = []
+INCLUDES = [ "src", "third-party", "/opt/homebrew/Cellar/armadillo/15.2.2/include", "/opt/homebrew/Cellar/libomp/21.1.7/include" ]
+LIBRARIES = [ "/opt/homebrew/Cellar/armadillo/15.2.2/lib", "/opt/homebrew/Cellar/libomp/21.1.7/lib" ]
+
+EXTRA_FLAGS = [ "-larmadillo", "-fopenmp" ]
 
 TESTS = [ "tests/operator.cpp", "tests/static_vector.cpp", "tests/term.cpp",
           "tests/expression.cpp", "tests/normal_order.cpp", "tests/basis_test.cpp",
-          "tests/indexed_hash_set.cpp", "src/basis.cpp", "src/basis.h",
-          "src/indexed_hash_set.h" ]
+          "tests/indexed_hash_set.cpp", "tests/matrix_elements.cpp", "src/basis.cpp",
+          "src/basis.h", "src/indexed_hash_set.h", "src/matrix_elements.h" ]
 
 TARGETS = [
     (["src/main.cpp", "src/expression.cpp"], [ "src/operator.h", "src/term.h", "src/expression.h" ], "build/main"),
@@ -30,7 +32,7 @@ def build_target(source_files, dependencies, output_file):
         print(f"Building {output_file}...")
         includes = ["-I" + include for include in INCLUDES]
         libraries = ["-L" + library for library in LIBRARIES]
-        cmd = [CXX_COMPILER, *CXX_FLAGS, *includes, "-o", output_file, *source_files, *libraries]
+        cmd = [CXX_COMPILER, *CXX_FLAGS, *includes, "-o", output_file, *source_files, *libraries, *EXTRA_FLAGS]
         subprocess.run(cmd, check=True)
         print(f"Successfully built {output_file}")
         return True
