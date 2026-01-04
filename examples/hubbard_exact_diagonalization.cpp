@@ -13,7 +13,7 @@ int main() {
 
   // Build the model and a fixed-particle-number basis (spin is implicit).
   HubbardModel hubbard(hopping, interaction, lattice_size);
-  Basis basis(lattice_size, particles, Basis::Strategy::Restrict);
+  Basis basis = Basis::with_fixed_particle_number(lattice_size, particles);
 
   // Construct the Hamiltonian matrix in the chosen basis.
   const Expression hamiltonian = hubbard.hamiltonian();

@@ -21,12 +21,4 @@ struct Basis {
   set_type set;
   size_t orbitals;
   size_t particles;
-
- private:
-  enum class Strategy {
-    All,
-    Restrict,
-  };
-
-  Basis(size_t orbitals, size_t particles, Strategy strategy);
 };

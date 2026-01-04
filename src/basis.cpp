@@ -24,48 +24,41 @@ constexpr uint64_t compute_basis_size(uint64_t orbitals, uint64_t particles) noe
   return choose(2 * orbitals, particles);
 }
 
-Basis::Basis(size_t orbitals, size_t particles, Strategy strategy)
-    : orbitals(orbitals), particles(particles) {
+Basis Basis::with_fixed_particle_number(size_t orbitals, size_t particles) {
+  Basis basis;
+  basis.orbitals = orbitals;
+  basis.particles = particles;
   assert(orbitals <= Operator::max_index());
   assert(particles <= 2 * orbitals);
 
-  switch (strategy) {
-    case Strategy::Restrict: {
-      size_t basis_size = compute_basis_size(orbitals, particles);
-      std::vector<key_type> acc;
-      acc.reserve(basis_size);
-      generate_restrict_combinations({}, 0, acc);
-      assert(acc.size() == basis_size);
-      set = IndexedHashSet(std::move(acc));
-      break;
-    }
-
-    case Strategy::All: {
-      size_t basis_size = 0;
-      for (size_t i = 1; i <= particles; ++i) {
-        basis_size += compute_basis_size(orbitals, i);
-      }
-      std::vector<key_type> acc;
-      acc.reserve(basis_size);
-      generate_all_combinations({}, 0, acc);
-      assert(acc.size() == basis_size);
-      std::sort(acc.begin(), acc.end(),
-                [](const auto& a, const auto& b) { return a.size() < b.size(); });
-      set = IndexedHashSet(std::move(acc));
-      break;
-    }
-
-    default:
-      break;
-  }
-}
-
-Basis Basis::with_fixed_particle_number(size_t orbitals, size_t particles) {
-  return Basis(orbitals, particles, Strategy::Restrict);
+  size_t basis_size = compute_basis_size(orbitals, particles);
+  std::vector<key_type> acc;
+  acc.reserve(basis_size);
+  basis.generate_restrict_combinations({}, 0, acc);
+  assert(acc.size() == basis_size);
+  basis.set = IndexedHashSet(std::move(acc));
+  return basis;
 }
 
 Basis Basis::with_all_particle_number(size_t orbitals, size_t particles) {
-  return Basis(orbitals, particles, Strategy::All);
+  Basis basis;
+  basis.orbitals = orbitals;
+  basis.particles = particles;
+  assert(orbitals <= Operator::max_index());
+  assert(particles <= 2 * orbitals);
+
+  size_t basis_size = 0;
+  for (size_t i = 1; i <= particles; ++i) {
+    basis_size += compute_basis_size(orbitals, i);
+  }
+  std::vector<key_type> acc;
+  acc.reserve(basis_size);
+  basis.generate_all_combinations({}, 0, acc);
+  assert(acc.size() == basis_size);
+  std::sort(acc.begin(), acc.end(),
+            [](const auto& a, const auto& b) { return a.size() < b.size(); });
+  basis.set = IndexedHashSet(std::move(acc));
+  return basis;
 }
 
 void Basis::generate_all_combinations(key_type current, size_t first_orbital,
