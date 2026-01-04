@@ -2,6 +2,7 @@
 #include "basis_test.cpp"
 #include "expression.cpp"
 #include "framework.h"
+#include "index.cpp"
 #include "indexed_hash_set.cpp"
 #include "model.cpp"
 #include "normal_order.cpp"
