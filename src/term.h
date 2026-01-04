@@ -147,10 +147,6 @@ inline constexpr Term one_body(Operator::Spin s1, size_t o1, Operator::Spin s2,
   return Term({Operator::creation(s1, o1), Operator::annihilation(s2, o2)});
 }
 
-inline constexpr Term hopping(size_t from, size_t to, Operator::Spin spin) noexcept {
-  return one_body(spin, from, spin, to);
-}
-
 inline constexpr Term two_body(Operator::Spin s1, size_t o1, Operator::Spin s2, size_t o2,
                                Operator::Spin s3, size_t o3, Operator::Spin s4,
                                size_t o4) noexcept {

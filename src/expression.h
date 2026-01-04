@@ -79,3 +79,26 @@ inline Expression operator*(Expression lhs, const Expression& rhs) {
   lhs *= rhs;
   return lhs;
 }
+
+inline Expression operator*(Expression lhs, const Expression::complex_type& rhs) {
+  lhs *= rhs;
+  return lhs;
+}
+
+inline Expression operator*(const Expression::complex_type& lhs, Expression rhs) {
+  rhs *= lhs;
+  return rhs;
+}
+
+inline Expression hopping(const Term::complex_type& coeff, size_t from, size_t to,
+                          Operator::Spin spin) noexcept {
+  Expression result =
+      Expression(Term(coeff, {Operator::creation(spin, from), Operator::annihilation(spin, to)}));
+  result += Expression(
+      Term(std::conj(coeff), {Operator::creation(spin, to), Operator::annihilation(spin, from)}));
+  return result;
+}
+
+inline Expression hopping(size_t from, size_t to, Operator::Spin spin) noexcept {
+  return hopping(1.0, from, to, spin);
+}
