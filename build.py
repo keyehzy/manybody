@@ -193,6 +193,7 @@ def find_test_deps():
         deps.extend(glob.glob(pattern))
     return filter_files(deps)
 
+
 def format_code():
     for file in find_cpp_files():
         print(f"Formatting {file}")
@@ -210,78 +211,6 @@ manybody = Target(
         "/opt/homebrew/Cellar/libomp/21.1.7/include",
     ],
     extra_deps=find_headers(["src"]),
-)
-
-app = Target(
-    name="main",
-    kind="executable",
-    sources=["src/main.cpp"],
-    includes=[
-        "src",
-        "third-party",
-        "/opt/homebrew/Cellar/armadillo/15.2.2/include",
-        "/opt/homebrew/Cellar/libomp/21.1.7/include",
-    ],
-    libraries=[
-        "/opt/homebrew/Cellar/armadillo/15.2.2/lib",
-        "/opt/homebrew/Cellar/libomp/21.1.7/lib",
-    ],
-    link_flags=["-larmadillo", "-fopenmp"],
-    deps=[manybody],
-)
-
-example_hubbard_ed = Target(
-    name="example_hubbard_ed",
-    kind="executable",
-    sources=["examples/hubbard_exact_diagonalization.cpp"],
-    includes=[
-        "src",
-        "third-party",
-        "/opt/homebrew/Cellar/armadillo/15.2.2/include",
-        "/opt/homebrew/Cellar/libomp/21.1.7/include",
-    ],
-    libraries=[
-        "/opt/homebrew/Cellar/armadillo/15.2.2/lib",
-        "/opt/homebrew/Cellar/libomp/21.1.7/lib",
-    ],
-    link_flags=["-larmadillo", "-fopenmp"],
-    deps=[manybody],
-)
-
-example_hubbard_3d_sparse = Target(
-    name="example_hubbard_3d_sparse",
-    kind="executable",
-    sources=["examples/hubbard_3d_sparse_lowest.cpp"],
-    includes=[
-        "src",
-        "third-party",
-        "/opt/homebrew/Cellar/armadillo/15.2.2/include",
-        "/opt/homebrew/Cellar/libomp/21.1.7/include",
-    ],
-    libraries=[
-        "/opt/homebrew/Cellar/armadillo/15.2.2/lib",
-        "/opt/homebrew/Cellar/libomp/21.1.7/lib",
-    ],
-    link_flags=["-larmadillo", "-fopenmp"],
-    deps=[manybody],
-)
-
-example_tight_binding_fourier = Target(
-    name="example_tight_binding_fourier",
-    kind="executable",
-    sources=["examples/tight_binding_fourier.cpp"],
-    includes=[
-        "src",
-        "third-party",
-        "/opt/homebrew/Cellar/armadillo/15.2.2/include",
-        "/opt/homebrew/Cellar/libomp/21.1.7/include",
-    ],
-    libraries=[
-        "/opt/homebrew/Cellar/armadillo/15.2.2/lib",
-        "/opt/homebrew/Cellar/libomp/21.1.7/lib",
-    ],
-    link_flags=["-larmadillo", "-fopenmp"],
-    deps=[manybody],
 )
 
 tests = Target(
@@ -302,6 +231,46 @@ tests = Target(
     link_flags=["-larmadillo", "-fopenmp"],
     deps=[manybody],
     extra_deps=find_test_deps(),
+)
+
+def example_target(name, source):
+    return Target(
+        name=name,
+        kind="executable",
+        sources=[source],
+        includes=[
+            "src",
+            "third-party",
+            "/opt/homebrew/Cellar/armadillo/15.2.2/include",
+            "/opt/homebrew/Cellar/libomp/21.1.7/include",
+        ],
+        libraries=[
+            "/opt/homebrew/Cellar/armadillo/15.2.2/lib",
+            "/opt/homebrew/Cellar/libomp/21.1.7/lib",
+        ],
+        link_flags=["-larmadillo", "-fopenmp"],
+        deps=[manybody],
+    )
+
+
+app = example_target(
+    "main",
+    "src/main.cpp",
+)
+
+example_hubbard_ed = example_target(
+    "example_hubbard_ed",
+    "examples/hubbard_exact_diagonalization.cpp",
+)
+
+example_hubbard_3d_sparse = example_target(
+    "example_hubbard_3d_sparse",
+    "examples/hubbard_3d_sparse_lowest.cpp",
+)
+
+example_tight_binding_fourier = example_target(
+    "example_tight_binding_fourier",
+    "examples/tight_binding_fourier.cpp",
 )
 
 TARGETS = [
