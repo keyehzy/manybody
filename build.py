@@ -230,6 +230,24 @@ app = Target(
     deps=[manybody],
 )
 
+example_hubbard_ed = Target(
+    name="example_hubbard_ed",
+    kind="executable",
+    sources=["examples/hubbard_exact_diagonalization.cpp"],
+    includes=[
+        "src",
+        "third-party",
+        "/opt/homebrew/Cellar/armadillo/15.2.2/include",
+        "/opt/homebrew/Cellar/libomp/21.1.7/include",
+    ],
+    libraries=[
+        "/opt/homebrew/Cellar/armadillo/15.2.2/lib",
+        "/opt/homebrew/Cellar/libomp/21.1.7/lib",
+    ],
+    link_flags=["-larmadillo", "-fopenmp"],
+    deps=[manybody],
+)
+
 tests = Target(
     name="tests",
     kind="executable",
@@ -250,7 +268,7 @@ tests = Target(
     extra_deps=find_test_deps(),
 )
 
-TARGETS = [manybody, app, tests]
+TARGETS = [manybody, app, example_hubbard_ed, tests]
 
 
 if __name__ == "__main__":

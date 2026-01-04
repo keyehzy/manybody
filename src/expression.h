@@ -64,3 +64,18 @@ struct Expression {
 
   static void add_to_map(map_type& target, container_type&& ops, const complex_type& coeff);
 };
+
+inline Expression operator+(Expression lhs, const Expression& rhs) {
+  lhs += rhs;
+  return lhs;
+}
+
+inline Expression operator-(Expression lhs, const Expression& rhs) {
+  lhs -= rhs;
+  return lhs;
+}
+
+inline Expression operator*(Expression lhs, const Expression& rhs) {
+  lhs *= rhs;
+  return lhs;
+}
