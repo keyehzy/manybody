@@ -3,6 +3,7 @@
 #include "expression.cpp"
 #include "framework.h"
 #include "indexed_hash_set.cpp"
+#include "model.cpp"
 #include "normal_order.cpp"
 #include "operator.cpp"
 #include "static_vector.cpp"
