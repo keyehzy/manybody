@@ -15,5 +15,3 @@ Refactor ideas discovered during codebase skim:
 - Clean up `NormalOrderer` API: remove or implement the unused overload and centralize
   consecutive-element checks in `src/normal_order.h` and `src/normal_order.cpp`.
 - Cache `DynamicIndex` total size to avoid repeated recomputation in `src/index.h`.
-- Isolate `xxhash` implementation macros to a single translation unit or dedicated header
-  to reduce compile-time overhead in `src/static_vector.h`.

@@ -11,11 +11,6 @@
 
 #include "xxhash.h"
 
-#define XXH_STATIC_LINKING_ONLY
-#define XXH_IMPLEMENTATION
-#define XXH_INLINE_ALL
-#include "xxhash.h"
-
 template <typename T, size_t N, typename SizeType = std::size_t>
 struct static_vector {
   std::array<T, N> data{};
