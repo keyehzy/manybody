@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <complex>
 #include <cstddef>
 #include <cstdint>
@@ -41,6 +42,25 @@ struct Term {
       : c(x), operators(init) {}
 
   constexpr size_t size() const noexcept { return operators.size(); }
+
+  constexpr bool is_diagonal() const noexcept {
+    constexpr size_t stride = Operator::kValueMask + 1;
+    std::array<int, stride * 2> balance{};
+    for (const auto& op : operators) {
+      const size_t idx = static_cast<size_t>(op.data & ~Operator::kTypeBit);
+      if (op.type() == Operator::Type::Creation) {
+        ++balance[idx];
+      } else {
+        --balance[idx];
+      }
+    }
+    for (int count : balance) {
+      if (count != 0) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   std::string to_string() const;
 

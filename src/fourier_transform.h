@@ -72,7 +72,3 @@ inline Expression fourier_transform_operator(Operator op, const DynamicIndex& in
 
   return result;
 }
-
-inline Expression fourier_transform_operator(Operator op, size_t size) {
-  return fourier_transform_operator(op, DynamicIndex({size}));
-}

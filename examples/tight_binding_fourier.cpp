@@ -26,13 +26,16 @@ int main() {
                                Operator::annihilation(Operator::Spin::Up, i)});
   }
 
-  Expression momentum_space = transform_expression(
-      [](Operator op, const DynamicIndex& idx) { return fourier_transform_operator(op, idx); },
-      real_space, index);
+  Expression momentum_space = transform_expression(fourier_transform_operator, real_space, index);
 
   std::vector<std::complex<double>> diagonal(sites, {0.0, 0.0});
-  double max_off_diagonal = 0.0;
+  bool all_diagonal = true;
   for (const auto& [ops, term_coeff] : momentum_space.hashmap) {
+    Term term(term_coeff, ops);
+    if (!term.is_diagonal()) {
+      all_diagonal = false;
+      continue;
+    }
     if (ops.size() != 2) {
       continue;
     }
@@ -49,8 +52,6 @@ int main() {
     const std::complex<double> coeff_double(term_coeff.real(), term_coeff.imag());
     if (k == k_prime) {
       diagonal[k] += coeff_double;
-    } else {
-      max_off_diagonal = std::max(max_off_diagonal, std::abs(coeff_double));
     }
   }
 
@@ -69,6 +70,7 @@ int main() {
               << diagonal[k].real() << "\n";
   }
 
-  std::cout << "Max off-diagonal magnitude: " << max_off_diagonal << "\n";
+  std::cout << "All terms diagonal after Fourier transform: " << (all_diagonal ? "yes" : "no")
+            << "\n";
   return 0;
 }

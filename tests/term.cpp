@@ -204,3 +204,28 @@ TEST(term_density_density_helper) {
   EXPECT_EQ(term.operators[2], Operator::creation(Operator::Spin::Down, 2));
   EXPECT_EQ(term.operators[3], Operator::annihilation(Operator::Spin::Down, 2));
 }
+
+TEST(term_is_diagonal_empty_is_true) {
+  Term term;
+  EXPECT_TRUE(term.is_diagonal());
+}
+
+TEST(term_is_diagonal_single_operator_is_false) {
+  Term term = creation(Operator::Spin::Up, 0);
+  EXPECT_TRUE(!term.is_diagonal());
+}
+
+TEST(term_is_diagonal_matching_pair_is_true) {
+  Term term = density(Operator::Spin::Down, 3);
+  EXPECT_TRUE(term.is_diagonal());
+}
+
+TEST(term_is_diagonal_mismatched_pair_is_false) {
+  Term term = one_body(Operator::Spin::Up, 1, Operator::Spin::Up, 2);
+  EXPECT_TRUE(!term.is_diagonal());
+}
+
+TEST(term_is_diagonal_multiple_pairs_is_true) {
+  Term term = density_density(Operator::Spin::Up, 1, Operator::Spin::Down, 2);
+  EXPECT_TRUE(term.is_diagonal());
+}
