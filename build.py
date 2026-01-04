@@ -9,18 +9,6 @@ CXX_COMPILER = "/opt/homebrew/opt/llvm/bin/clang++"
 CXX_FLAGS = ["-std=c++20", "-O2", "-Wall", "-Wextra"]
 AR = "ar"
 
-BASE_INCLUDES = [
-    "src",
-    "third-party",
-    "/opt/homebrew/Cellar/armadillo/15.2.2/include",
-    "/opt/homebrew/Cellar/libomp/21.1.7/include",
-]
-BASE_LIBRARIES = [
-    "/opt/homebrew/Cellar/armadillo/15.2.2/lib",
-    "/opt/homebrew/Cellar/libomp/21.1.7/lib",
-]
-LINK_FLAGS = ["-larmadillo", "-fopenmp"]
-
 BUILD_DIR = "build"
 OBJ_DIR = os.path.join(BUILD_DIR, "obj")
 RUN_TARGET = "main"
@@ -33,6 +21,7 @@ class Target:
         sources,
         includes=None,
         libraries=None,
+        link_flags=None,
         flags=None,
         deps=None,
         extra_deps=None,
@@ -42,6 +31,7 @@ class Target:
         self.sources = sources
         self.includes = includes or []
         self.libraries = libraries or []
+        self.link_flags = link_flags or []
         self.flags = flags or []
         self.deps = deps or []
         self.extra_deps = extra_deps or []
@@ -55,8 +45,8 @@ class Target:
     def object_path(self, source):
         return os.path.join(OBJ_DIR, self.name, source + ".o")
 
-    def compile_objects(self, global_includes):
-        includes = ["-I" + include for include in global_includes + self.includes]
+    def compile_objects(self):
+        includes = ["-I" + include for include in self.includes]
         object_files = []
         for source in self.sources:
             obj = self.object_path(source)
@@ -70,9 +60,9 @@ class Target:
                 print(f"[compile] {self.name}: {source} up to date")
         return object_files
 
-    def build(self, global_includes, global_libraries):
+    def build(self):
         print(f"[target] {self.name} ({self.kind})")
-        object_files = self.compile_objects(global_includes)
+        object_files = self.compile_objects()
         if self.kind == "library":
             if should_rebuild(self.output, object_files):
                 print(f"[archive] {self.output}")
@@ -86,8 +76,8 @@ class Target:
             if should_rebuild(self.output, link_inputs):
                 print(f"[link] {self.output}")
                 os.makedirs(os.path.dirname(self.output), exist_ok=True)
-                includes = ["-I" + include for include in global_includes + self.includes]
-                libraries = ["-L" + library for library in global_libraries + self.libraries]
+                includes = ["-I" + include for include in self.includes]
+                libraries = ["-L" + library for library in self.libraries]
                 cmd = [
                     CXX_COMPILER,
                     *CXX_FLAGS,
@@ -97,7 +87,7 @@ class Target:
                     self.output,
                     *link_inputs,
                     *libraries,
-                    *LINK_FLAGS,
+                    *self.link_flags,
                 ]
                 subprocess.run(cmd, check=True)
             else:
@@ -144,7 +134,7 @@ def build_all():
         os.makedirs(BUILD_DIR)
     print("[build] start")
     for target in topo_sort(TARGETS):
-        target.build(BASE_INCLUDES, BASE_LIBRARIES)
+        target.build()
     print("[build] done")
 
 
@@ -213,7 +203,12 @@ manybody = Target(
     name="manybody",
     kind="library",
     sources=find_sources("src", exclude_files=["src/main.cpp"]),
-    includes=["src"],
+    includes=[
+        "src",
+        "third-party",
+        "/opt/homebrew/Cellar/armadillo/15.2.2/include",
+        "/opt/homebrew/Cellar/libomp/21.1.7/include",
+    ],
     extra_deps=find_headers(["src"]),
 )
 
@@ -221,7 +216,17 @@ app = Target(
     name="main",
     kind="executable",
     sources=["src/main.cpp"],
-    includes=["src"],
+    includes=[
+        "src",
+        "third-party",
+        "/opt/homebrew/Cellar/armadillo/15.2.2/include",
+        "/opt/homebrew/Cellar/libomp/21.1.7/include",
+    ],
+    libraries=[
+        "/opt/homebrew/Cellar/armadillo/15.2.2/lib",
+        "/opt/homebrew/Cellar/libomp/21.1.7/lib",
+    ],
+    link_flags=["-larmadillo", "-fopenmp"],
     deps=[manybody],
 )
 
@@ -229,7 +234,18 @@ tests = Target(
     name="tests",
     kind="executable",
     sources=["tests/main.cpp"],
-    includes=["src", "tests"],
+    includes=[
+        "src",
+        "tests",
+        "third-party",
+        "/opt/homebrew/Cellar/armadillo/15.2.2/include",
+        "/opt/homebrew/Cellar/libomp/21.1.7/include",
+    ],
+    libraries=[
+        "/opt/homebrew/Cellar/armadillo/15.2.2/lib",
+        "/opt/homebrew/Cellar/libomp/21.1.7/lib",
+    ],
+    link_flags=["-larmadillo", "-fopenmp"],
     deps=[manybody],
     extra_deps=find_test_deps(),
 )
@@ -250,10 +266,12 @@ if __name__ == "__main__":
         CXX_FLAGS.extend(args.flags.split())
 
     if args.includes:
-        BASE_INCLUDES.extend(args.includes.split())
+        for target in TARGETS:
+            target.includes.extend(args.includes.split())
 
     if args.libs:
-        BASE_LIBRARIES.extend(args.libs.split())
+        for target in TARGETS:
+            target.libraries.extend(args.libs.split())
 
     try:
         if args.format:
