@@ -1,6 +1,7 @@
 #include "basis.cpp"
 #include "basis_test.cpp"
 #include "expression.cpp"
+#include "fourier_transform.cpp"
 #include "framework.h"
 #include "index.cpp"
 #include "indexed_hash_set.cpp"

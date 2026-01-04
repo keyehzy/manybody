@@ -266,6 +266,24 @@ example_hubbard_3d_sparse = Target(
     deps=[manybody],
 )
 
+example_tight_binding_fourier = Target(
+    name="example_tight_binding_fourier",
+    kind="executable",
+    sources=["examples/tight_binding_fourier.cpp"],
+    includes=[
+        "src",
+        "third-party",
+        "/opt/homebrew/Cellar/armadillo/15.2.2/include",
+        "/opt/homebrew/Cellar/libomp/21.1.7/include",
+    ],
+    libraries=[
+        "/opt/homebrew/Cellar/armadillo/15.2.2/lib",
+        "/opt/homebrew/Cellar/libomp/21.1.7/lib",
+    ],
+    link_flags=["-larmadillo", "-fopenmp"],
+    deps=[manybody],
+)
+
 tests = Target(
     name="tests",
     kind="executable",
@@ -286,7 +304,14 @@ tests = Target(
     extra_deps=find_test_deps(),
 )
 
-TARGETS = [manybody, app, example_hubbard_ed, example_hubbard_3d_sparse, tests]
+TARGETS = [
+    manybody,
+    app,
+    example_hubbard_ed,
+    example_hubbard_3d_sparse,
+    example_tight_binding_fourier,
+    tests,
+]
 
 
 if __name__ == "__main__":
