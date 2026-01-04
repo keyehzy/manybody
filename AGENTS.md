@@ -43,3 +43,7 @@ Refactor user service to reduce duplication
 Extract shared validation logic into a helper module,
 simplifying maintenance and improving test coverage.
 ```
+
+## Project notes
+
+- Refactor ideas are tracked in `TODO.md`.
