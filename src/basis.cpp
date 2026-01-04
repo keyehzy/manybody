@@ -60,6 +60,14 @@ Basis::Basis(size_t orbitals, size_t particles, Strategy strategy)
   }
 }
 
+Basis Basis::with_fixed_particle_number(size_t orbitals, size_t particles) {
+  return Basis(orbitals, particles, Strategy::Restrict);
+}
+
+Basis Basis::with_all_particle_number(size_t orbitals, size_t particles) {
+  return Basis(orbitals, particles, Strategy::All);
+}
+
 void Basis::generate_all_combinations(key_type current, size_t first_orbital,
                                       std::vector<key_type>& acc) const {
   if (current.size() > 0 && current.size() <= particles) {

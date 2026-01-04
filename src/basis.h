@@ -7,14 +7,10 @@ struct Basis {
   using key_type = Term::container_type;
   using set_type = IndexedHashSet<key_type>;
 
-  enum class Strategy {
-    All,
-    Restrict,
-  };
-
   Basis() = default;
 
-  Basis(size_t orbitals, size_t particles, Strategy strategy = Strategy::Restrict);
+  static Basis with_fixed_particle_number(size_t orbitals, size_t particles);
+  static Basis with_all_particle_number(size_t orbitals, size_t particles);
 
   void generate_all_combinations(key_type current, size_t first_orbital,
                                  std::vector<key_type>&) const;
@@ -25,4 +21,12 @@ struct Basis {
   set_type set;
   size_t orbitals;
   size_t particles;
+
+ private:
+  enum class Strategy {
+    All,
+    Restrict,
+  };
+
+  Basis(size_t orbitals, size_t particles, Strategy strategy);
 };
