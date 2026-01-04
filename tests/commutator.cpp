@@ -84,3 +84,52 @@ TEST(commutator_expression_distributes_over_terms) {
     EXPECT_EQ(it->second, coeff);
   }
 }
+
+TEST(bch_order_one_matches_first_commutator_term) {
+  Operator create = Operator::creation(Operator::Spin::Down, 3);
+  Operator annihilate = Operator::annihilation(Operator::Spin::Down, 3);
+  Expression A{Term(create)};
+  Expression B{Term(annihilate)};
+
+  const Expression::complex_type::value_type lambda = 0.5;
+  Expression result = BCH(A, B, lambda, 1);
+
+  Expression expected = B + (commutator(A, B) * lambda);
+  EXPECT_EQ(result.size(), expected.size());
+  for (const auto& [ops, coeff] : expected.hashmap) {
+    auto it = result.hashmap.find(ops);
+    EXPECT_TRUE(it != result.hashmap.end());
+    EXPECT_EQ(it->second, coeff);
+  }
+}
+
+TEST(bch_zero_lambda_returns_b) {
+  Operator create = Operator::creation(Operator::Spin::Up, 2);
+  Operator annihilate = Operator::annihilation(Operator::Spin::Up, 2);
+  Expression A{Term(create)};
+  Expression B{Term(annihilate)};
+
+  Expression result = BCH(A, B, 0.0, 5);
+
+  EXPECT_EQ(result.size(), B.size());
+  for (const auto& [ops, coeff] : B.hashmap) {
+    auto it = result.hashmap.find(ops);
+    EXPECT_TRUE(it != result.hashmap.end());
+    EXPECT_EQ(it->second, coeff);
+  }
+}
+
+TEST(bch_identity_generator_leaves_b) {
+  Operator create = Operator::creation(Operator::Spin::Down, 1);
+  Expression A(Expression::complex_type(1.0f, 0.0f));
+  Expression B{Term(create)};
+
+  Expression result = BCH(A, B, 0.75, 4);
+
+  EXPECT_EQ(result.size(), B.size());
+  for (const auto& [ops, coeff] : B.hashmap) {
+    auto it = result.hashmap.find(ops);
+    EXPECT_TRUE(it != result.hashmap.end());
+    EXPECT_EQ(it->second, coeff);
+  }
+}
