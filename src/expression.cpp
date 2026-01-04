@@ -1,5 +1,7 @@
 #include "expression.h"
 
+#include <algorithm>
+#include <sstream>
 #include <utility>
 
 bool Expression::is_zero(const complex_type& value) { return value == complex_type{}; }
@@ -98,6 +100,33 @@ Expression Expression::adjoint() const {
 }
 
 size_t Expression::size() const { return hashmap.size(); }
+
+std::string Expression::to_string() const {
+  if (hashmap.empty()) {
+    return "0";
+  }
+  std::vector<const map_type::value_type*> ordered;
+  ordered.reserve(hashmap.size());
+  for (const auto& entry : hashmap) {
+    ordered.push_back(&entry);
+  }
+  std::sort(ordered.begin(), ordered.end(),
+            [](const map_type::value_type* left, const map_type::value_type* right) {
+              return less_ops(left->first, right->first);
+            });
+
+  std::ostringstream oss;
+  bool first = true;
+  for (const auto* entry : ordered) {
+    Term term(entry->second, entry->first);
+    if (!first) {
+      oss << "\n";
+    }
+    oss << term.to_string();
+    first = false;
+  }
+  return oss.str();
+}
 
 Expression& Expression::operator+=(const complex_type& value) {
   add_to_map(hashmap, container_type{}, value);

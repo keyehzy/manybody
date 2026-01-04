@@ -33,6 +33,20 @@ struct Operator {
 
   constexpr size_t value() const noexcept { return data & kValueMask; }
 
+  std::string to_string() const {
+    const char* spin_arrow = spin() == Spin::Up ? "↑" : "↓";
+    std::string result = "c";
+    if (type() == Type::Creation) {
+      result += "+";
+    }
+    result += "(";
+    result += spin_arrow;
+    result += ", ";
+    result += std::to_string(value());
+    result += ")";
+    return result;
+  }
+
   constexpr bool operator<(Operator other) const noexcept { return data < other.data; }
   constexpr bool operator==(Operator other) const noexcept { return data == other.data; }
 
