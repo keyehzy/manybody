@@ -1,6 +1,7 @@
 #include "basis.cpp"
 #include "basis_test.cpp"
 #include "commutator.cpp"
+#include "diagonal_terms.cpp"
 #include "expression.cpp"
 #include "fourier_transform.cpp"
 #include "framework.h"
