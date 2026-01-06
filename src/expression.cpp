@@ -32,6 +32,9 @@ void Expression::add_to_map(map_type& target, const container_type& ops,
   if (is_zero(coeff)) {
     return;
   }
+  if (ops.size() > 8) {
+    return;
+  }
   auto it = target.find(ops);
   if (it == target.end()) {
     target.emplace(ops, coeff);
@@ -45,6 +48,9 @@ void Expression::add_to_map(map_type& target, const container_type& ops,
 
 void Expression::add_to_map(map_type& target, container_type&& ops, const complex_type& coeff) {
   if (is_zero(coeff)) {
+    return;
+  }
+  if (ops.size() > 8) {
     return;
   }
   auto it = target.find(ops);

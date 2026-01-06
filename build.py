@@ -162,6 +162,7 @@ def filter_files(files):
 def find_sources(directory, exclude_files=None):
     exclude_files = set(exclude_files or [])
     sources = filter_files(glob.glob(os.path.join(directory, "*.cpp")))
+    sources += filter_files(glob.glob(os.path.join(directory, "**", "*.cpp"), recursive=True))
     return [source for source in sources if source not in exclude_files]
 
 

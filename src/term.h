@@ -8,7 +8,7 @@
 #include "operator.h"
 #include "static_vector.h"
 
-constexpr size_t term_size = 16;
+constexpr size_t term_size = 24;
 
 struct Term {
   using complex_type = std::complex<float>;
