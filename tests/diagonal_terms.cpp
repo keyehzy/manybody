@@ -49,3 +49,28 @@ TEST(diagonal_children_keeps_empty_entries_for_diagonals) {
   EXPECT_TRUE(it != result.children.end());
   EXPECT_TRUE(it->second.empty());
 }
+
+TEST(diagonal_children_matches_operator_substrings) {
+  const auto c0 = Operator::creation(Operator::Spin::Up, 0);
+  const auto c1 = Operator::creation(Operator::Spin::Up, 1);
+  const auto c2 = Operator::creation(Operator::Spin::Up, 2);
+  const auto c3 = Operator::creation(Operator::Spin::Up, 3);
+  const auto a0 = Operator::annihilation(Operator::Spin::Up, 0);
+  const auto a1 = Operator::annihilation(Operator::Spin::Up, 1);
+  const auto a2 = Operator::annihilation(Operator::Spin::Up, 2);
+  const auto a3 = Operator::annihilation(Operator::Spin::Up, 3);
+
+  Term diag(Term::complex_type(1.0f, 0.0f), {c0, c2, a0, a2});
+  Term off_prefix(Term::complex_type(1.0f, 0.0f), {c0, c2, a1, a3});
+  Term off_suffix(Term::complex_type(1.0f, 0.0f), {c1, c3, a0, a2});
+  Term off_none(Term::complex_type(1.0f, 0.0f), {c1, c3, a1, a3});
+
+  Expression expr({diag, off_prefix, off_suffix, off_none});
+  const auto result = group_diagonal_children(expr);
+
+  auto it = result.children.find(diag.operators);
+  EXPECT_TRUE(it != result.children.end());
+  EXPECT_TRUE(contains_term(it->second, off_prefix));
+  EXPECT_TRUE(contains_term(it->second, off_suffix));
+  EXPECT_TRUE(!contains_term(it->second, off_none));
+}
