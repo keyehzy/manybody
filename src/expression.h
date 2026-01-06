@@ -40,6 +40,9 @@ struct Expression {
 
   size_t size() const;
 
+  Expression& truncate_by_size(size_t max_size);
+  Expression& truncate_by_norm(float min_norm);
+
   std::string to_string() const;
 
   Expression& operator+=(const complex_type& value);

@@ -98,6 +98,37 @@ Expression Expression::adjoint() const {
 
 size_t Expression::size() const { return hashmap.size(); }
 
+Expression& Expression::truncate_by_size(size_t max_size) {
+  if (max_size == 0) {
+    hashmap.clear();
+    return *this;
+  }
+  for (auto it = hashmap.begin(); it != hashmap.end();) {
+    if (it->first.size() > max_size) {
+      it = hashmap.erase(it);
+    } else {
+      ++it;
+    }
+  }
+  return *this;
+}
+
+Expression& Expression::truncate_by_norm(float min_norm) {
+  if (min_norm <= 0.0f) {
+    return *this;
+  }
+  const auto cutoff = static_cast<complex_type::value_type>(min_norm);
+  const auto cutoff_norm = cutoff * cutoff;
+  for (auto it = hashmap.begin(); it != hashmap.end();) {
+    if (std::norm(it->second) < cutoff_norm) {
+      it = hashmap.erase(it);
+    } else {
+      ++it;
+    }
+  }
+  return *this;
+}
+
 std::string Expression::to_string() const {
   if (hashmap.empty()) {
     return "0";
