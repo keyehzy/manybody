@@ -1,10 +1,16 @@
 #include "expression.h"
 
 #include <algorithm>
+#include <limits>
 #include <sstream>
 #include <utility>
 
-bool Expression::is_zero(const complex_type& value) { return value == complex_type{}; }
+constexpr auto tolerance =
+    1000.0 * std::numeric_limits<Expression::complex_type::value_type>::epsilon();
+
+bool Expression::is_zero(const complex_type& value) {
+  return std::norm(value) < tolerance * tolerance;
+}
 
 bool Expression::less_ops(const container_type& left, const container_type& right) {
   if (left.size() != right.size()) {

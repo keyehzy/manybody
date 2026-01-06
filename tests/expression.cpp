@@ -1,5 +1,7 @@
 #include "expression.h"
 
+#include <limits>
+
 #include "framework.h"
 
 TEST(expression_construct_from_complex_identity) {
@@ -80,4 +82,21 @@ TEST(expression_multiply_term_appends_ops) {
   auto it = expr.hashmap.find(ops);
   EXPECT_TRUE(it != expr.hashmap.end());
   EXPECT_EQ(it->second, Expression::complex_type(1.0f, 0.0f));
+}
+
+TEST(expression_ignores_near_zero_coefficients) {
+  constexpr auto tolerance =
+      1000.0 * std::numeric_limits<Expression::complex_type::value_type>::epsilon();
+  auto small = Expression::complex_type(0.5f * tolerance, 0.0f);
+  Expression expr(small);
+  EXPECT_EQ(expr.size(), 0u);
+}
+
+TEST(expression_cancels_terms_within_tolerance) {
+  constexpr auto tolerance =
+      1000.0 * std::numeric_limits<Expression::complex_type::value_type>::epsilon();
+  Operator op = Operator::creation(Operator::Spin::Up, 2);
+  Expression expr(Term(Expression::complex_type(1.0f, 0.0f), {op}));
+  expr += Term(Expression::complex_type(-1.0f + 0.5f * tolerance, 0.0f), {op});
+  EXPECT_EQ(expr.size(), 0u);
 }
