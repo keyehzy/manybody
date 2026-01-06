@@ -268,6 +268,11 @@ example_hubbard_3d_sparse = example_target(
     "examples/hubbard_3d_sparse_lowest.cpp",
 )
 
+example_hubbard_1d_schriffer_wolff = example_target(
+    "example_hubbard_1d_schriffer_wolff",
+    "examples/hubbard_1d_schriffer_wolff.cpp",
+)
+
 example_tight_binding_fourier = example_target(
     "example_tight_binding_fourier",
     "examples/tight_binding_fourier.cpp",
@@ -278,6 +283,7 @@ TARGETS = [
     app,
     example_hubbard_ed,
     example_hubbard_3d_sparse,
+    example_hubbard_1d_schriffer_wolff,
     example_tight_binding_fourier,
     tests,
 ]
