@@ -12,21 +12,6 @@ bool Expression::is_zero(const complex_type& value) {
   return std::norm(value) < tolerance * tolerance;
 }
 
-bool Expression::less_ops(const container_type& left, const container_type& right) {
-  if (left.size() != right.size()) {
-    return left.size() < right.size();
-  }
-  for (size_t i = 0; i < left.size(); ++i) {
-    if (left[i] < right[i]) {
-      return true;
-    }
-    if (right[i] < left[i]) {
-      return false;
-    }
-  }
-  return false;
-}
-
 void Expression::add_to_map(map_type& target, const container_type& ops,
                             const complex_type& coeff) {
   if (is_zero(coeff)) {
@@ -124,7 +109,14 @@ std::string Expression::to_string() const {
   }
   std::sort(ordered.begin(), ordered.end(),
             [](const map_type::value_type* left, const map_type::value_type* right) {
-              return less_ops(left->first, right->first);
+              const auto left_size = left->first.size();
+              const auto right_size = right->first.size();
+              if (left_size != right_size) {
+                return left_size < right_size;
+              }
+              const auto left_norm = std::norm(left->second);
+              const auto right_norm = std::norm(right->second);
+              return left_norm > right_norm;
             });
 
   std::ostringstream oss;
