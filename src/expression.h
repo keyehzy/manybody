@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <sstream>
 #include <string>
-#include <unordered_map>
+#include "robin_hood.h"
 #include <vector>
 
 #include "term.h"
@@ -11,7 +11,7 @@
 struct Expression {
   using complex_type = Term::complex_type;
   using container_type = Term::container_type;
-  using map_type = std::unordered_map<container_type, complex_type>;
+  using map_type = robin_hood::unordered_map<container_type, complex_type>;
 
   map_type hashmap;
 

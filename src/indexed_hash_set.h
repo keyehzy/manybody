@@ -8,7 +8,7 @@
 #include <iterator>
 #include <stdexcept>
 #include <type_traits>
-#include <unordered_map>
+#include "robin_hood.h"
 #include <utility>
 #include <vector>
 
@@ -36,7 +36,7 @@ class IndexedHashSet {
 
  private:
   std::vector<Key> elements_;
-  std::unordered_map<Key, size_type, Hash, KeyEqual> indices_;
+  robin_hood::unordered_map<Key, size_type, Hash, KeyEqual> indices_;
 
   void build_index_map() {
     indices_.reserve(elements_.size());
@@ -107,7 +107,7 @@ class IndexedHashSet {
  public:
   IndexedHashSet() noexcept(
       std::is_nothrow_default_constructible_v<std::vector<Key>> &&
-      std::is_nothrow_default_constructible_v<std::unordered_map<Key, size_type, Hash, KeyEqual>>) =
+      std::is_nothrow_default_constructible_v<robin_hood::unordered_map<Key, size_type, Hash, KeyEqual>>) =
       default;
 
   explicit IndexedHashSet(std::initializer_list<Key> init_list) {
