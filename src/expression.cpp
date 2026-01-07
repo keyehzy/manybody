@@ -259,7 +259,7 @@ Expression& Expression::operator*=(const Term& value) {
     hashmap.clear();
     return *this;
   }
-  
+
   if (value.operators.size() == 0) {
     for (auto& [ops, coeff] : hashmap) {
       coeff *= value.c;

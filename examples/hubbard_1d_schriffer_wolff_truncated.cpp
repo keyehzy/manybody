@@ -41,43 +41,35 @@ int main() {
   const double hopping = 1.0;
   const double interaction = -10.0;
   const size_t iterations = 1000;
-  const float cutoff =
-      static_cast<float>(0.1 * std::abs(hopping * hopping / interaction));
+  const float cutoff = static_cast<float>(0.1 * std::abs(hopping * hopping / interaction));
 
   HubbardModel hubbard(hopping, interaction, lattice_size);
-  Basis sw_basis =
-      Basis::with_fixed_particle_number(lattice_size, sw_particles);
+  Basis sw_basis = Basis::with_fixed_particle_number(lattice_size, sw_particles);
 
   Expression kinetic = hubbard.kinetic();
   Expression interaction_term = hubbard.interaction();
   Expression hamiltonian = kinetic + interaction_term;
 
-  Expression generator =
-      schriffer_wolff(kinetic, interaction_term, sw_basis, iterations);
-  Expression effective_hamiltonian =
-      BCH(generator, hamiltonian, 1.0, iterations);
+  Expression generator = schriffer_wolff(kinetic, interaction_term, sw_basis, iterations);
+  Expression effective_hamiltonian = BCH(generator, hamiltonian, 1.0, iterations);
 
   for (size_t truncatation = 2; truncatation <= max_particles; ++truncatation) {
     Expression truncated_effective = effective_hamiltonian;
-    truncated_effective.truncate_by_size(2 * truncatation)
-        .truncate_by_norm(cutoff);
+    truncated_effective.truncate_by_size(2 * truncatation).truncate_by_norm(cutoff);
 
     {
       std::ostringstream oss;
-      oss << "effective_hamiltonian_L=" << lattice_size << "_T=" << truncatation
-          << ".txt";
+      oss << "effective_hamiltonian_L=" << lattice_size << "_T=" << truncatation << ".txt";
       std::ofstream os(oss.str());
       for (const auto& [_, coeff] : truncated_effective.hashmap) {
         os << truncated_effective.to_string() << "\n";
       }
     }
     for (size_t particles = 2; particles <= max_particles; ++particles) {
-      Basis diag_basis =
-          Basis::with_fixed_particle_number(lattice_size, particles);
-      arma::cx_mat H_exact =
-          compute_matrix_elements<arma::cx_mat>(diag_basis, hamiltonian);
-      arma::cx_mat H_effective = compute_matrix_elements<arma::cx_mat>(
-          diag_basis, truncated_effective);
+      Basis diag_basis = Basis::with_fixed_particle_number(lattice_size, particles);
+      arma::cx_mat H_exact = compute_matrix_elements<arma::cx_mat>(diag_basis, hamiltonian);
+      arma::cx_mat H_effective =
+          compute_matrix_elements<arma::cx_mat>(diag_basis, truncated_effective);
 
       arma::vec exact_vals;
       arma::cx_mat exact_vecs;
@@ -89,14 +81,12 @@ int main() {
       arma::vec effective_vals;
       arma::cx_mat effective_vecs;
       if (!arma::eig_sym(effective_vals, effective_vecs, H_effective)) {
-        std::cerr
-            << "Diagonalization failed for truncated effective Hamiltonian.\n";
+        std::cerr << "Diagonalization failed for truncated effective Hamiltonian.\n";
         return 1;
       }
 
       std::ostringstream oss;
-      oss << "data_L=" << lattice_size << "_T=" << truncatation
-          << "_P=" << particles << ".txt";
+      oss << "data_L=" << lattice_size << "_T=" << truncatation << "_P=" << particles << ".txt";
       std::ofstream os(oss.str());
       os << unique_eigenvalues(effective_vals) << "\n";
     }
