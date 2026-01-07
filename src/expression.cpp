@@ -17,7 +17,7 @@ void Expression::add_to_map(map_type& target, const container_type& ops,
   if (is_zero(coeff)) {
     return;
   }
-  if (ops.size() > 8) {
+  if (ops.size() > 12) {
     return;
   }
   auto it = target.find(ops);
@@ -35,7 +35,7 @@ void Expression::add_to_map(map_type& target, container_type&& ops, const comple
   if (is_zero(coeff)) {
     return;
   }
-  if (ops.size() > 8) {
+  if (ops.size() > 12) {
     return;
   }
   auto it = target.find(ops);
@@ -214,6 +214,9 @@ Expression& Expression::operator*=(const Expression& value) {
   result.reserve(hashmap.size() * value.hashmap.size());
   for (const auto& [lhs_ops, lhs_coeff] : hashmap) {
     for (const auto& [rhs_ops, rhs_coeff] : value.hashmap) {
+      if (lhs_ops.size() + rhs_ops.size() > 12) {
+        continue;
+      }
       container_type combined = lhs_ops;
       combined.append_range(rhs_ops.begin(), rhs_ops.end());
       add_to_map(result, std::move(combined), lhs_coeff * rhs_coeff);
@@ -250,6 +253,9 @@ Expression& Expression::operator*=(const Term& value) {
   map_type result;
   result.reserve(hashmap.size());
   for (const auto& [ops, coeff] : hashmap) {
+    if (ops.size() + value.operators.size() > 12) {
+      continue;
+    }
     container_type combined = ops;
     combined.append_range(value.operators.begin(), value.operators.end());
     add_to_map(result, std::move(combined), coeff * value.c);
