@@ -274,6 +274,11 @@ example_hubbard_1d_schriffer_wolff = example_target(
     "examples/hubbard_1d_schriffer_wolff.cpp",
 )
 
+example_hubbard_1d_schriffer_wolff_truncated = example_target(
+    "example_hubbard_1d_schriffer_wolff_truncated",
+    "examples/hubbard_1d_schriffer_wolff_truncated.cpp",
+)
+
 example_tight_binding_fourier = example_target(
     "example_tight_binding_fourier",
     "examples/tight_binding_fourier.cpp",
@@ -285,6 +290,7 @@ TARGETS = [
     example_hubbard_ed,
     example_hubbard_3d_sparse,
     example_hubbard_1d_schriffer_wolff,
+    example_hubbard_1d_schriffer_wolff_truncated,
     example_tight_binding_fourier,
     tests,
 ]
