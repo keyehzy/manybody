@@ -134,3 +134,30 @@ TEST(expression_truncate_by_norm_drops_small_terms) {
   EXPECT_TRUE(expr.hashmap.find(Expression::container_type{a}) == expr.hashmap.end());
   EXPECT_TRUE(expr.hashmap.find(Expression::container_type{b}) == expr.hashmap.end());
 }
+
+TEST(expression_filter_by_size_keeps_exact_matches) {
+  Operator a = Operator::creation(Operator::Spin::Up, 1);
+  Operator b = Operator::creation(Operator::Spin::Up, 2);
+  Operator c = Operator::annihilation(Operator::Spin::Down, 3);
+  Term term_a(Expression::complex_type(1.0f, 0.0f), {a});
+  Term term_b(Expression::complex_type(2.0f, 0.0f), {a, b});
+  Term term_c(Expression::complex_type(3.0f, 0.0f), {a, b, c});
+  Expression expr({term_a, term_b, term_c});
+
+  expr.filter_by_size(2);
+
+  EXPECT_EQ(expr.size(), 1u);
+  EXPECT_TRUE(expr.hashmap.find(Expression::container_type{a, b}) != expr.hashmap.end());
+  EXPECT_TRUE(expr.hashmap.find(Expression::container_type{a}) == expr.hashmap.end());
+  EXPECT_TRUE(expr.hashmap.find(Expression::container_type{a, b, c}) == expr.hashmap.end());
+}
+
+TEST(expression_filter_by_size_zero_clears_expression) {
+  Operator a = Operator::creation(Operator::Spin::Up, 1);
+  Operator b = Operator::annihilation(Operator::Spin::Down, 2);
+  Expression expr({Term(Expression::complex_type(1.0f, 0.0f), {a, b})});
+
+  expr.filter_by_size(0);
+
+  EXPECT_EQ(expr.size(), 0u);
+}

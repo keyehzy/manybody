@@ -43,6 +43,8 @@ struct Expression {
   Expression& truncate_by_size(size_t max_size);
   Expression& truncate_by_norm(float min_norm);
 
+  Expression& filter_by_size(size_t size);
+
   std::string to_string() const;
 
   Expression& operator+=(const complex_type& value);

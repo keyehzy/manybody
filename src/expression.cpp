@@ -129,6 +129,21 @@ Expression& Expression::truncate_by_norm(float min_norm) {
   return *this;
 }
 
+Expression& Expression::filter_by_size(size_t size) {
+  if (size == 0) {
+    hashmap.clear();
+    return *this;
+  }
+  for (auto it = hashmap.begin(); it != hashmap.end();) {
+    if (it->first.size() != size) {
+      it = hashmap.erase(it);
+    } else {
+      ++it;
+    }
+  }
+  return *this;
+}
+
 std::string Expression::to_string() const {
   if (hashmap.empty()) {
     return "0";
@@ -244,6 +259,7 @@ Expression& Expression::operator*=(const Term& value) {
     hashmap.clear();
     return *this;
   }
+  
   if (value.operators.size() == 0) {
     for (auto& [ops, coeff] : hashmap) {
       coeff *= value.c;
