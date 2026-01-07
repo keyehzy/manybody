@@ -47,3 +47,7 @@ simplifying maintenance and improving test coverage.
 ## Project notes
 
 - Refactor ideas are tracked in `TODO.md`.
+
+## Benchmark
+
+- Use examples/hubbard_1d_schriffer_wolff_benchmark.cpp as a proxy benchmark for the library functionality.
