@@ -8,7 +8,7 @@
 #include "models/hubbard_model.h"
 
 int main() {
-  const size_t lattice_size = 4;
+  const size_t lattice_size = 15;
   const size_t particles = 2;
   const double hopping = 1.0;
   const double interaction = 100.0;
