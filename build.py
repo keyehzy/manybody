@@ -4,14 +4,36 @@ import subprocess
 import sys
 import glob
 import argparse
+import shlex
 
-CXX_COMPILER = "/opt/homebrew/opt/llvm/bin/clang++"
+CXX_COMPILER = "g++"
 CXX_FLAGS = ["-std=c++20", "-O2", "-Wall", "-Wextra"]
 AR = "ar"
 
 BUILD_DIR = "build"
 OBJ_DIR = os.path.join(BUILD_DIR, "obj")
-RUN_TARGET = "main"
+
+def pkg_config(package, flag):
+    cmd = ['pkg-config', flag, package]
+    output = subprocess.check_output(cmd).decode('utf-8').strip()
+    return shlex.split(output)
+
+class Openblas:
+    Cflags = pkg_config('openblas', '--cflags')
+    Libs = pkg_config('openblas', '--libs')
+
+class Arpack:
+    Cflags = pkg_config('arpack', '--cflags')
+    Libs = pkg_config('arpack', '--libs')
+
+class SuperLU:
+    Cflags = pkg_config('superlu', '--cflags')
+    Libs = pkg_config('superlu', '--libs')
+
+class Armadillo:
+    Cflags = pkg_config('armadillo', '--cflags')
+    Libs = pkg_config('armadillo', '--libs')
+    depends_on = [Openblas, Arpack, SuperLU]
 
 class Target:
     def __init__(
@@ -46,6 +68,11 @@ class Target:
         return os.path.join(OBJ_DIR, self.name, source + ".o")
 
     def compile_objects(self):
+        print("[debug] compile objects")
+        print("[debug] includes: ", self.includes)
+        print("[debug] libraries: ", self.libraries)
+        print("[debug] flags: ", self.flags)
+        print("[debug] link flags: ", self.link_flags)
         includes = ["-I" + include for include in self.includes]
         object_files = []
         for source in self.sources:
@@ -54,13 +81,15 @@ class Target:
             if should_rebuild(obj, [source, *self.extra_deps]):
                 print(f"[compile] {self.name}: {source} -> {obj}")
                 os.makedirs(os.path.dirname(obj), exist_ok=True)
-                cmd = [CXX_COMPILER, *CXX_FLAGS, *self.flags, *includes, "-c", source, "-o", obj]
+                cmd = [CXX_COMPILER, *CXX_FLAGS, *self.flags, *includes, "-c", source, "-o", obj, *self.libraries, *self.link_flags]
+                print("[debug] ", ' '.join(cmd))
                 subprocess.run(cmd, check=True)
             else:
                 print(f"[compile] {self.name}: {source} up to date")
         return object_files
 
     def build(self):
+        print("[debug] build")
         print(f"[target] {self.name} ({self.kind})")
         object_files = self.compile_objects()
         if self.kind == "library":
@@ -77,7 +106,6 @@ class Target:
                 print(f"[link] {self.output}")
                 os.makedirs(os.path.dirname(self.output), exist_ok=True)
                 includes = ["-I" + include for include in self.includes]
-                libraries = ["-L" + library for library in self.libraries]
                 cmd = [
                     CXX_COMPILER,
                     *CXX_FLAGS,
@@ -86,9 +114,10 @@ class Target:
                     "-o",
                     self.output,
                     *link_inputs,
-                    *libraries,
+                    *self.libraries,
                     *self.link_flags,
                 ]
+                print("[debug] ", ' '.join(cmd))
                 subprocess.run(cmd, check=True)
             else:
                 print(f"[link] {self.output} up to date")
@@ -208,9 +237,9 @@ manybody = Target(
     includes=[
         "src",
         "third-party",
-        "/opt/homebrew/Cellar/armadillo/15.2.2/include",
-        "/opt/homebrew/Cellar/libomp/21.1.7/include",
     ],
+    flags=[*Armadillo.Cflags],
+    link_flags=["-fopenmp"],
     extra_deps=find_headers(["src"]),
 )
 
@@ -222,14 +251,15 @@ tests = Target(
         "src",
         "tests",
         "third-party",
-        "/opt/homebrew/Cellar/armadillo/15.2.2/include",
-        "/opt/homebrew/Cellar/libomp/21.1.7/include",
     ],
+    flags =[*Armadillo.Cflags],
     libraries=[
-        "/opt/homebrew/Cellar/armadillo/15.2.2/lib",
-        "/opt/homebrew/Cellar/libomp/21.1.7/lib",
+        *Openblas.Libs,
+        *Arpack.Libs,
+        *SuperLU.Libs,
+        *Armadillo.Libs,
     ],
-    link_flags=["-larmadillo", "-fopenmp"],
+    link_flags=["-fopenmp"],
     deps=[manybody],
     extra_deps=find_test_deps(),
 )
@@ -242,14 +272,15 @@ def example_target(name, source):
         includes=[
             "src",
             "third-party",
-            "/opt/homebrew/Cellar/armadillo/15.2.2/include",
-            "/opt/homebrew/Cellar/libomp/21.1.7/include",
         ],
+        flags =[*Armadillo.Cflags],
         libraries=[
-            "/opt/homebrew/Cellar/armadillo/15.2.2/lib",
-            "/opt/homebrew/Cellar/libomp/21.1.7/lib",
+            *Openblas.Libs,
+            *Arpack.Libs,
+            *SuperLU.Libs,
+            *Armadillo.Libs,
         ],
-        link_flags=["-larmadillo", "-fopenmp"],
+        link_flags=["-fopenmp"],
         deps=[manybody],
     )
 
@@ -305,7 +336,6 @@ TARGETS = [
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Build system for the project")
     parser.add_argument('--format', action='store_true', help='Run clang-format on all C++ source files')
-    parser.add_argument('--run', action='store_true', help='Run the target')
     parser.add_argument('--flags', type=str, help='Additional compiler flags')
     parser.add_argument('--includes', type=str, help='Additional INCLUDES')
     parser.add_argument('--libs', type=str, help='Additional LIBRARIES')
@@ -327,12 +357,6 @@ if __name__ == "__main__":
             format_code()
 
         build_all()
-
-        if args.run:
-            run_target = next((t for t in TARGETS if t.name == RUN_TARGET), None)
-            if run_target is None:
-                raise RuntimeError(f"Run target {RUN_TARGET} not found")
-            subprocess.run([run_target.output], check=True)
 
     except subprocess.CalledProcessError as e:
         sys.exit(1)
