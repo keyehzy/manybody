@@ -16,3 +16,6 @@ Refactor ideas discovered during codebase skim:
   consecutive-element checks in `src/normal_order.h` and `src/normal_order.cpp`.
 - Cache `DynamicIndex` total size to avoid repeated recomputation in `src/index.h`.
 - Add `EXPECT_FALSE` macro to `tests/framework.h` to avoid `EXPECT_TRUE(!...)` usage.
+- Add Lanczos, time evolution, etc.
+- Add Chebyshev, density of states, etc
+- Implement total momentum/relative position hamiltonians for Hubbard Model. 
