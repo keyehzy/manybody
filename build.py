@@ -6,7 +6,7 @@ import glob
 import argparse
 import shlex
 
-CXX_COMPILER = "g++"
+CXX_COMPILER = "/opt/homebrew/opt/llvm/bin/clang++"
 CXX_FLAGS = ["-std=c++20", "-O2", "-Wall", "-Wextra"]
 AR = "ar"
 
@@ -46,7 +46,6 @@ class Target:
         sources,
         includes=None,
         libraries=None,
-        link_flags=None,
         flags=None,
         deps=None,
         extra_deps=None,
@@ -56,7 +55,6 @@ class Target:
         self.sources = sources
         self.includes = includes or []
         self.libraries = libraries or []
-        self.link_flags = link_flags or []
         self.flags = flags or []
         self.deps = deps or []
         self.extra_deps = extra_deps or []
@@ -75,7 +73,6 @@ class Target:
         print("[debug] includes: ", self.includes)
         print("[debug] libraries: ", self.libraries)
         print("[debug] flags: ", self.flags)
-        print("[debug] link flags: ", self.link_flags)
         includes = ["-I" + include for include in self.includes]
         object_files = []
         for source in self.sources:
@@ -84,7 +81,7 @@ class Target:
             if should_rebuild(obj, [source, *self.extra_deps]):
                 print(f"[compile] {self.name}: {source} -> {obj}")
                 os.makedirs(os.path.dirname(obj), exist_ok=True)
-                cmd = [CXX_COMPILER, *CXX_FLAGS, *self.flags, *includes, "-c", source, "-o", obj, *self.libraries, *self.link_flags]
+                cmd = [CXX_COMPILER, *CXX_FLAGS, *self.flags, *includes, "-c", source, "-o", obj, *self.libraries]
                 print("[debug] ", ' '.join(cmd))
                 subprocess.run(cmd, check=True)
             else:
@@ -118,7 +115,6 @@ class Target:
                     self.output,
                     *link_inputs,
                     *self.libraries,
-                    *self.link_flags,
                 ]
                 print("[debug] ", ' '.join(cmd))
                 subprocess.run(cmd, check=True)
