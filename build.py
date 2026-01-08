@@ -30,10 +30,13 @@ class SuperLU:
     Cflags = pkg_config('superlu', '--cflags')
     Libs = pkg_config('superlu', '--libs')
 
+class OpenMP:
+    Cflags = [""]
+    Libs = ["-L/opt/homebrew/Cellar/libomp/21.1.7/lib", "-fopenmp"]
+
 class Armadillo:
     Cflags = pkg_config('armadillo', '--cflags')
     Libs = pkg_config('armadillo', '--libs')
-    depends_on = [Openblas, Arpack, SuperLU]
 
 class Target:
     def __init__(
@@ -238,8 +241,8 @@ manybody = Target(
         "src",
         "third-party",
     ],
-    flags=[*Armadillo.Cflags],
-    link_flags=["-fopenmp"],
+    flags=[*Armadillo.Cflags, *OpenMP.Cflags],
+    libraries=[*OpenMP.Libs],
     extra_deps=find_headers(["src"]),
 )
 
@@ -253,13 +256,7 @@ tests = Target(
         "third-party",
     ],
     flags =[*Armadillo.Cflags],
-    libraries=[
-        *Openblas.Libs,
-        *Arpack.Libs,
-        *SuperLU.Libs,
-        *Armadillo.Libs,
-    ],
-    link_flags=["-fopenmp"],
+    libraries=[*Armadillo.Libs, *OpenMP.Libs],
     deps=[manybody],
     extra_deps=find_test_deps(),
 )
@@ -274,13 +271,7 @@ def example_target(name, source):
             "third-party",
         ],
         flags =[*Armadillo.Cflags],
-        libraries=[
-            *Openblas.Libs,
-            *Arpack.Libs,
-            *SuperLU.Libs,
-            *Armadillo.Libs,
-        ],
-        link_flags=["-fopenmp"],
+        libraries=[*Armadillo.Libs, *OpenMP.Libs],
         deps=[manybody],
     )
 
