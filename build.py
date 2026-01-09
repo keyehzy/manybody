@@ -18,18 +18,6 @@ def pkg_config(package, flag):
     output = subprocess.check_output(cmd).decode('utf-8').strip()
     return shlex.split(output)
 
-class Openblas:
-    Cflags = pkg_config('openblas', '--cflags')
-    Libs = pkg_config('openblas', '--libs')
-
-class Arpack:
-    Cflags = pkg_config('arpack', '--cflags')
-    Libs = pkg_config('arpack', '--libs')
-
-class SuperLU:
-    Cflags = pkg_config('superlu', '--cflags')
-    Libs = pkg_config('superlu', '--libs')
-
 class OpenMP:
     Cflags = [""]
     Libs = ["-L/opt/homebrew/Cellar/libomp/21.1.7/lib", "-fopenmp"]
@@ -307,6 +295,11 @@ example_tight_binding_fourier = example_target(
     "examples/tight_binding_fourier.cpp",
 )
 
+example_hubbard_relative_linear_operator = example_target(
+    "example_hubbard_relative_linear_operator",
+    "examples/hubbard_relative_linear_operator.cpp",
+)
+
 TARGETS = [
     manybody,
     app,
@@ -316,6 +309,7 @@ TARGETS = [
     example_hubbard_1d_schriffer_wolff_truncated,
     example_hubbard_1d_schriffer_wolff_benchmark,
     example_tight_binding_fourier,
+    example_hubbard_relative_linear_operator,
     tests,
 ]
 
