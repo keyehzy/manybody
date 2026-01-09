@@ -1,6 +1,7 @@
 #include "linear_operator.h"
 
 #include <armadillo>
+#include <cmath>
 
 #include "framework.h"
 
@@ -107,4 +108,41 @@ TEST(linear_operator_identity_preserves_vector) {
   EXPECT_EQ(result(1), -2.0);
   EXPECT_EQ(result(2), 5.0);
   EXPECT_EQ(identity.dimension(), 3u);
+}
+
+TEST(linear_operator_exp_matches_diagonal_exponential) {
+  DiagonalOperator op(arma::vec{-2.0, 0.5, 1.5});
+  arma::vec v{1.0, -2.0, 0.5};
+
+  ExpOptions<double> options;
+  options.tolerance = 1e-10;
+  options.max_degree = 250;
+  options.scale_target = 10.0;
+  Exp<DiagonalOperator> exp_op(op, options);
+  arma::vec result = exp_op.apply(v);
+
+  arma::vec expected = arma::vec{std::exp(-2.0), std::exp(0.5), std::exp(1.5)} % v;
+  const double tol = 1e-6;
+  for (size_t i = 0; i < expected.n_elem; ++i) {
+    EXPECT_TRUE(std::abs(result(i) - expected(i)) < tol);
+  }
+}
+
+TEST(linear_operator_exp_handles_scaled_steps) {
+  DiagonalOperator op(arma::vec{-3.0, 1.0});
+  arma::vec v{1.0, 2.0};
+
+  ExpOptions<double> options;
+  options.tolerance = 1e-9;
+  options.max_degree = 200;
+  options.scale_target = 0.25;
+  options.max_scale_steps = 16;
+  Exp<DiagonalOperator> exp_op(op, options);
+  arma::vec result = exp_op.apply(v);
+
+  arma::vec expected = arma::vec{std::exp(-3.0), std::exp(1.0)} % v;
+  const double tol = 1e-5;
+  for (size_t i = 0; i < expected.n_elem; ++i) {
+    EXPECT_TRUE(std::abs(result(i) - expected(i)) < tol);
+  }
 }
