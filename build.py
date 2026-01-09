@@ -300,6 +300,11 @@ example_hubbard_relative_linear_operator = example_target(
     "examples/hubbard_relative_linear_operator.cpp",
 )
 
+example_hubbard_relative_overlap = example_target(
+    "example_hubbard_relative_overlap",
+    "examples/hubbard_relative_overlap.cpp",
+)
+
 TARGETS = [
     manybody,
     app,
@@ -310,6 +315,7 @@ TARGETS = [
     example_hubbard_1d_schriffer_wolff_benchmark,
     example_tight_binding_fourier,
     example_hubbard_relative_linear_operator,
+    example_hubbard_relative_overlap,
     tests,
 ]
 
