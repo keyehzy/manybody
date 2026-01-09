@@ -128,3 +128,54 @@ struct Identity final : LinearOperator<Vector> {
  private:
   size_t dimension_{};
 };
+
+template <typename T, typename = void>
+struct is_linear_operator : std::false_type {};
+
+template <typename T>
+struct is_linear_operator<T, std::void_t<typename T::VectorType, typename T::ScalarType>>
+    : std::bool_constant<std::is_base_of_v<LinearOperator<typename T::VectorType>, T>> {};
+
+template <typename T>
+inline constexpr bool is_linear_operator_v = is_linear_operator<T>::value;
+
+template <typename Op, std::enable_if_t<is_linear_operator_v<Op>, int> = 0>
+Negated<Op> operator-(const Op& op) {
+  return Negated<Op>(op);
+}
+
+template <typename LeftOp, typename RightOp,
+          std::enable_if_t<is_linear_operator_v<LeftOp> && is_linear_operator_v<RightOp>, int> = 0>
+Sum<LeftOp, RightOp> operator+(const LeftOp& lhs, const RightOp& rhs) {
+  return Sum<LeftOp, RightOp>(lhs, rhs);
+}
+
+template <typename LeftOp, typename RightOp,
+          std::enable_if_t<is_linear_operator_v<LeftOp> && is_linear_operator_v<RightOp>, int> = 0>
+Difference<LeftOp, RightOp> operator-(const LeftOp& lhs, const RightOp& rhs) {
+  return Difference<LeftOp, RightOp>(lhs, rhs);
+}
+
+template <typename LeftOp, typename RightOp,
+          std::enable_if_t<is_linear_operator_v<LeftOp> && is_linear_operator_v<RightOp>, int> = 0>
+Composed<LeftOp, RightOp> operator*(const LeftOp& lhs, const RightOp& rhs) {
+  return Composed<LeftOp, RightOp>(lhs, rhs);
+}
+
+template <
+    typename Op, typename Scalar,
+    std::enable_if_t<is_linear_operator_v<Op> && !is_linear_operator_v<std::decay_t<Scalar>> &&
+                         std::is_convertible_v<Scalar, typename Op::ScalarType>,
+                     int> = 0>
+Scaled<Op> operator*(const Op& op, Scalar scale) {
+  return Scaled<Op>(op, static_cast<typename Op::ScalarType>(scale));
+}
+
+template <
+    typename Scalar, typename Op,
+    std::enable_if_t<is_linear_operator_v<Op> && !is_linear_operator_v<std::decay_t<Scalar>> &&
+                         std::is_convertible_v<Scalar, typename Op::ScalarType>,
+                     int> = 0>
+Scaled<Op> operator*(Scalar scale, const Op& op) {
+  return Scaled<Op>(op, static_cast<typename Op::ScalarType>(scale));
+}

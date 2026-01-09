@@ -20,7 +20,7 @@ TEST(linear_operator_negated_applies_sign) {
   DiagonalOperator op(arma::vec{1.0, 2.0, -1.0});
   arma::vec v{2.0, -1.0, 3.0};
 
-  Negated<DiagonalOperator> neg(op);
+  auto neg = -op;
   arma::vec result = neg.apply(v);
 
   EXPECT_EQ(result(0), -2.0);
@@ -33,7 +33,20 @@ TEST(linear_operator_scaled_applies_factor) {
   DiagonalOperator op(arma::vec{1.0, -2.0, 0.5});
   arma::vec v{2.0, 3.0, -4.0};
 
-  Scaled<DiagonalOperator> scaled(op, 2.0);
+  auto scaled = op * 2.0;
+  arma::vec result = scaled.apply(v);
+
+  EXPECT_EQ(result(0), 4.0);
+  EXPECT_EQ(result(1), -12.0);
+  EXPECT_EQ(result(2), -4.0);
+  EXPECT_EQ(scaled.dimension(), 3u);
+}
+
+TEST(linear_operator_scaled_applies_factor_left) {
+  DiagonalOperator op(arma::vec{1.0, -2.0, 0.5});
+  arma::vec v{2.0, 3.0, -4.0};
+
+  auto scaled = 2.0 * op;
   arma::vec result = scaled.apply(v);
 
   EXPECT_EQ(result(0), 4.0);
@@ -47,7 +60,7 @@ TEST(linear_operator_sum_adds_results) {
   DiagonalOperator b(arma::vec{-1.0, 4.0, 0.5});
   arma::vec v{2.0, -1.0, 3.0};
 
-  Sum<DiagonalOperator, DiagonalOperator> sum(a, b);
+  auto sum = a + b;
   arma::vec result = sum.apply(v);
 
   EXPECT_EQ(result(0), 0.0);
@@ -61,7 +74,7 @@ TEST(linear_operator_difference_subtracts_results) {
   DiagonalOperator b(arma::vec{-1.0, 4.0, 0.5});
   arma::vec v{2.0, -1.0, 3.0};
 
-  Difference<DiagonalOperator, DiagonalOperator> diff(a, b);
+  auto diff = a - b;
   arma::vec result = diff.apply(v);
 
   EXPECT_EQ(result(0), 4.0);
@@ -75,7 +88,7 @@ TEST(linear_operator_composed_applies_in_sequence) {
   DiagonalOperator b(arma::vec{3.0, -2.0, 4.0});
   arma::vec v{1.0, -1.0, 2.0};
 
-  Composed<DiagonalOperator, DiagonalOperator> composed(a, b);
+  auto composed = a * b;
   arma::vec result = composed.apply(v);
 
   EXPECT_EQ(result(0), 6.0);
