@@ -147,12 +147,11 @@ TEST(linear_operator_power_method_estimates_dominant_eigenvalue) {
 
 TEST(linear_operator_estimate_bounds_matches_diagonal_spectrum) {
   DiagonalOperator op(arma::vec{-2.0, 0.5, 4.0});
-  arma::vec seed{1.0, 1.0, 1.0};
 
   ExpOptions<double> options;
   options.power_iterations = 40;
   options.spectral_padding = 0.2;
-  const auto bounds = estimate_bounds(op, seed, options.power_iterations, options.spectral_padding);
+  const auto bounds = estimate_bounds(op, options.power_iterations, options.spectral_padding);
 
   EXPECT_TRUE(std::abs(bounds.alpha + 2.0) < 1e-3);
   EXPECT_TRUE(std::abs(bounds.beta - 4.0) < 1e-3);

@@ -265,10 +265,11 @@ auto power_method(const OperatorType& op, typename OperatorType::VectorType v, s
 
 template <typename Op>
 Bounds<typename Op::ScalarType> estimate_bounds(
-    const Op& op, const typename Op::VectorType& seed, size_t power_iterations,
+    const Op& op, size_t power_iterations,
     scalar_real_t<typename Op::ScalarType> spectral_padding) {
   using ScalarType = typename Op::ScalarType;
   using RealType = scalar_real_t<ScalarType>;
+  const auto seed = make_seed_vector(op);
 
   const RealType dominant = std::abs(power_method(op, seed, power_iterations));
   if (dominant == static_cast<RealType>(0)) {
@@ -297,8 +298,7 @@ struct Exp final : LinearOperator<typename Op::VectorType> {
   using Options = ExpOptions<ScalarType>;
 
   Exp(Op op, Options options = {}) : op_(std::move(op)), options_(options) {
-    bounds_ = estimate_bounds(op_, make_seed_vector(op_), options_.power_iterations,
-                              options_.spectral_padding);
+    bounds_ = estimate_bounds(op_, options_.power_iterations, options_.spectral_padding);
   }
 
   VectorType apply(const VectorType& v) const override {
