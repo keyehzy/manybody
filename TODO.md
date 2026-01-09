@@ -19,3 +19,7 @@ Refactor ideas discovered during codebase skim:
 - Add Lanczos, time evolution, etc.
 - Add Chebyshev, density of states, etc
 - Implement total momentum/relative position hamiltonians for Hubbard Model. 
+- LinearOperator perf: avoid temporaries by adding in-place apply(out, in) and use in Sum/Difference/Composed.
+- LinearOperator perf: store operands by reference/pointer or use forwarding to avoid heavy operator copies in compositions.
+- LinearOperator perf: consider non-virtual/expression-template path for hot loops to reduce dispatch and allocations.
+- LinearOperator perf: reduce modulo cost in Hubbard relative kinetic operator (edge/inner loop or precomputed neighbors).
