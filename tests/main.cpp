@@ -1,5 +1,6 @@
 #include "basis.cpp"
 #include "basis_test.cpp"
+#include "bessel_i.cpp"
 #include "commutator.cpp"
 #include "diagonal_terms.cpp"
 #include "expression.cpp"

@@ -2,13 +2,14 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cmath>
 #include <complex>
 #include <cstddef>
 #include <limits>
 #include <type_traits>
 #include <utility>
 #include <vector>
+
+#include "special_functions.h"
 
 template <typename T>
 struct ScalarRealType {
@@ -348,7 +349,7 @@ struct Exp final : LinearOperator<typename Op::VectorType> {
     coeffs.reserve(options_.max_degree + 1);
     const size_t cutoff = static_cast<size_t>(std::max(static_cast<RealType>(1), std::ceil(a)));
     for (size_t k = 0; k <= options_.max_degree; ++k) {
-      const RealType ik = bessel_i(k, a);
+      const RealType ik = bessel_i(k, a, options_.tolerance);
       const RealType coeff = (k == 0) ? ik : static_cast<RealType>(2) * ik;
       coeffs.push_back(coeff);
       if (coeff < options_.tolerance && k > cutoff) {
@@ -381,41 +382,17 @@ struct Exp final : LinearOperator<typename Op::VectorType> {
     return exp_c * y;
   }
 
-  RealType bessel_i(size_t order, RealType x) const {
-    const RealType abs_x = std::abs(x);
-    if (abs_x == static_cast<RealType>(0)) {
-      return order == 0 ? static_cast<RealType>(1) : static_cast<RealType>(0);
-    }
-
-    const RealType half_x = abs_x / static_cast<RealType>(2);
-    RealType term = static_cast<RealType>(1);
-    for (size_t k = 1; k <= order; ++k) {
-      term *= half_x / static_cast<RealType>(k);
-    }
-    RealType sum = term;
-    const RealType eps = std::max(options_.tolerance * static_cast<RealType>(0.1),
-                                  std::numeric_limits<RealType>::epsilon());
-    for (size_t m = 1; m < 200; ++m) {
-      term *= (half_x * half_x) / static_cast<RealType>(m * (m + order));
-      sum += term;
-      if (term < eps * sum) {
-        break;
-      }
-    }
-    return sum;
-  }
-
   Op op_;
   Options options_;
   Bounds<ScalarType> bounds_{};
-  size_t steps_ {1};
+  size_t steps_{1};
   RealType a_{0};
   RealType c_{0};
   RealType c_step_{0};
   RealType a_step_{0};
   ScalarType exp_c_{0};
   ScalarType exp_c_step_{0};
-  bool trivial_ {false};
+  bool trivial_{false};
   std::vector<RealType> coeffs_{};
 };
 
