@@ -43,6 +43,16 @@ scalar_real_t<typename Vector::elem_type> vector_norm(const Vector& v) {
   return std::sqrt(real_part(value));
 }
 
+template <typename Op>
+typename Op::VectorType make_seed_vector(const Op& op) {
+  using VectorType = typename Op::VectorType;
+  using ScalarType = typename Op::ScalarType;
+
+  VectorType seed(op.dimension());
+  seed.fill(static_cast<ScalarType>(1));
+  return seed;
+}
+
 template <typename Vector>
 struct LinearOperatorTraits {
   using ScalarType = typename Vector::elem_type;
@@ -286,7 +296,10 @@ struct Exp final : LinearOperator<typename Op::VectorType> {
   using RealType = scalar_real_t<ScalarType>;
   using Options = ExpOptions<ScalarType>;
 
-  Exp(Op op, Options options = {}) : op_(std::move(op)), options_(options) {}
+  Exp(Op op, Options options = {}) : op_(std::move(op)), options_(options) {
+    bounds_ = estimate_bounds(op_, make_seed_vector(op_), options_.power_iterations,
+                              options_.spectral_padding);
+  }
 
   VectorType apply(const VectorType& v) const override {
     const auto v_norm = vector_norm(v);
@@ -294,8 +307,7 @@ struct Exp final : LinearOperator<typename Op::VectorType> {
       return v;
     }
 
-    const auto [alpha, beta] =
-        estimate_bounds(op_, v, options_.power_iterations, options_.spectral_padding);
+    const auto [alpha, beta] = bounds_;
     RealType a = (beta - alpha) / static_cast<RealType>(2);
     RealType c = (beta + alpha) / static_cast<RealType>(2);
     if (a <= std::numeric_limits<RealType>::epsilon()) {
@@ -389,6 +401,7 @@ struct Exp final : LinearOperator<typename Op::VectorType> {
 
   Op op_;
   Options options_;
+  Bounds<ScalarType> bounds_{};
 };
 
 template <typename T, typename = void>
