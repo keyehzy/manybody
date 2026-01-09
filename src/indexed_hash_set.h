@@ -8,9 +8,10 @@
 #include <iterator>
 #include <stdexcept>
 #include <type_traits>
-#include "robin_hood.h"
 #include <utility>
 #include <vector>
+
+#include "robin_hood.h"
 
 #ifndef NDEBUG
 #include <unordered_set>
@@ -105,9 +106,9 @@ class IndexedHashSet {
   }
 
  public:
-  IndexedHashSet() noexcept(
-      std::is_nothrow_default_constructible_v<std::vector<Key>> &&
-      std::is_nothrow_default_constructible_v<robin_hood::unordered_map<Key, size_type, Hash, KeyEqual>>) =
+  IndexedHashSet() noexcept(std::is_nothrow_default_constructible_v<std::vector<Key>> &&
+                            std::is_nothrow_default_constructible_v<
+                                robin_hood::unordered_map<Key, size_type, Hash, KeyEqual>>) =
       default;
 
   explicit IndexedHashSet(std::initializer_list<Key> init_list) {

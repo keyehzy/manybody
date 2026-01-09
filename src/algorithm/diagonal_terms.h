@@ -1,9 +1,9 @@
 #pragma once
 
-#include "robin_hood.h"
 #include <vector>
 
 #include "expression.h"
+#include "robin_hood.h"
 
 struct DiagonalChildrenResult {
   std::vector<Term> diagonals;

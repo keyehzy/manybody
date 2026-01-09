@@ -3,9 +3,9 @@
 #include <algorithm>
 #include <sstream>
 #include <string>
-#include "robin_hood.h"
 #include <vector>
 
+#include "robin_hood.h"
 #include "term.h"
 
 struct Expression {

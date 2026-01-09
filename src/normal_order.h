@@ -1,8 +1,7 @@
 #pragma once
 
-#include "robin_hood.h"
-
 #include "expression.h"
+#include "robin_hood.h"
 
 struct NormalOrderer {
   using complex_type = Term::complex_type;
