@@ -88,6 +88,36 @@ struct Scaled final : LinearOperator<typename Op::VectorType> {
   ScalarType scale_{};
 };
 
+template <typename Op>
+struct Shifted final : LinearOperator<typename Op::VectorType> {
+  using VectorType = typename Op::VectorType;
+  using ScalarType = typename Op::ScalarType;
+
+  Shifted(Op op, ScalarType shift) : op_(std::move(op)), shift_(shift) {}
+
+  VectorType apply(const VectorType& v) const override { return op_.apply(v) + shift_ * v; }
+  size_t dimension() const override { return op_.dimension(); }
+
+ private:
+  Op op_;
+  ScalarType shift_{};
+};
+
+template <typename Op>
+struct NegShift final : LinearOperator<typename Op::VectorType> {
+  using VectorType = typename Op::VectorType;
+  using ScalarType = typename Op::ScalarType;
+
+  NegShift(Op op, ScalarType shift) : op_(std::move(op)), shift_(shift) {}
+
+  VectorType apply(const VectorType& v) const override { return -op_.apply(v) + shift_ * v; }
+  size_t dimension() const override { return op_.dimension(); }
+
+ private:
+  Op op_;
+  ScalarType shift_{};
+};
+
 template <typename LeftOp, typename RightOp>
 struct Sum final : LinearOperator<typename LeftOp::VectorType> {
   using VectorType = typename LeftOp::VectorType;
@@ -180,6 +210,75 @@ struct ExpOptions {
   RealType spectral_padding = static_cast<RealType>(0.1);
 };
 
+template <typename Scalar>
+struct Bounds {
+  using RealType = scalar_real_t<Scalar>;
+
+  RealType alpha;
+  RealType beta;
+};
+
+template <typename OperatorType>
+auto power_method(const OperatorType& op, typename OperatorType::VectorType v, size_t iterations) {
+  using ScalarType = typename OperatorType::ScalarType;
+  using RealType = scalar_real_t<ScalarType>;
+
+  if (iterations == 0) {
+    return static_cast<RealType>(0);
+  }
+
+  RealType norm = vector_norm(v);
+  if (norm == static_cast<RealType>(0)) {
+    return static_cast<RealType>(0);
+  }
+  v /= static_cast<ScalarType>(norm);
+
+  RealType eigenvalue = static_cast<RealType>(0);
+  for (size_t i = 0; i < iterations; ++i) {
+    auto w = op.apply(v);
+    const auto denom = vector_dot(v, v);
+    const auto numerator = vector_dot(v, w);
+    const RealType denom_real = real_part(denom);
+    if (denom_real == static_cast<RealType>(0)) {
+      return static_cast<RealType>(0);
+    }
+    eigenvalue = real_part(numerator) / denom_real;
+
+    norm = vector_norm(w);
+    if (norm == static_cast<RealType>(0)) {
+      return static_cast<RealType>(0);
+    }
+    v = w / static_cast<ScalarType>(norm);
+  }
+  return eigenvalue;
+}
+
+template <typename Op>
+Bounds<typename Op::ScalarType> estimate_bounds(
+    const Op& op, const typename Op::VectorType& seed, size_t power_iterations,
+    scalar_real_t<typename Op::ScalarType> spectral_padding) {
+  using ScalarType = typename Op::ScalarType;
+  using RealType = scalar_real_t<ScalarType>;
+
+  const RealType dominant = std::abs(power_method(op, seed, power_iterations));
+  if (dominant == static_cast<RealType>(0)) {
+    return {static_cast<RealType>(0), static_cast<RealType>(0)};
+  }
+
+  const RealType shift = dominant * (static_cast<RealType>(1) + spectral_padding) +
+                         std::numeric_limits<RealType>::epsilon();
+
+  Shifted<Op> shifted(op, static_cast<ScalarType>(shift));
+  NegShift<Op> neg_shifted(op, static_cast<ScalarType>(shift));
+
+  const RealType beta = power_method(shifted, seed, power_iterations) - shift;
+  const RealType alpha = shift - power_method(neg_shifted, seed, power_iterations);
+  if (alpha <= beta) {
+    return {alpha, beta};
+  }
+  return {beta, alpha};
+}
+
 template <typename Op>
 struct Exp final : LinearOperator<typename Op::VectorType> {
   using VectorType = typename Op::VectorType;
@@ -195,7 +294,8 @@ struct Exp final : LinearOperator<typename Op::VectorType> {
       return v;
     }
 
-    const auto [alpha, beta] = estimate_bounds(v);
+    const auto [alpha, beta] =
+        estimate_bounds(op_, v, options_.power_iterations, options_.spectral_padding);
     RealType a = (beta - alpha) / static_cast<RealType>(2);
     RealType c = (beta + alpha) / static_cast<RealType>(2);
     if (a <= std::numeric_limits<RealType>::epsilon()) {
@@ -224,83 +324,6 @@ struct Exp final : LinearOperator<typename Op::VectorType> {
   size_t dimension() const override { return op_.dimension(); }
 
  private:
-  struct Bounds {
-    RealType alpha;
-    RealType beta;
-  };
-
-  Bounds estimate_bounds(const VectorType& seed) const {
-    const RealType dominant = std::abs(power_method(op_, seed, options_.power_iterations));
-    if (dominant == static_cast<RealType>(0)) {
-      return {static_cast<RealType>(0), static_cast<RealType>(0)};
-    }
-
-    const RealType shift = dominant * (static_cast<RealType>(1) + options_.spectral_padding) +
-                           std::numeric_limits<RealType>::epsilon();
-
-    struct Shifted final : LinearOperator<VectorType> {
-      const Op& op;
-      ScalarType shift;
-
-      Shifted(const Op& op_in, ScalarType shift_in) : op(op_in), shift(shift_in) {}
-
-      VectorType apply(const VectorType& v) const override { return op.apply(v) + shift * v; }
-      size_t dimension() const override { return op.dimension(); }
-    };
-
-    struct NegShifted final : LinearOperator<VectorType> {
-      const Op& op;
-      ScalarType shift;
-
-      NegShifted(const Op& op_in, ScalarType shift_in) : op(op_in), shift(shift_in) {}
-
-      VectorType apply(const VectorType& v) const override { return -op.apply(v) + shift * v; }
-      size_t dimension() const override { return op.dimension(); }
-    };
-
-    Shifted shifted{op_, static_cast<ScalarType>(shift)};
-    NegShifted neg_shifted{op_, static_cast<ScalarType>(shift)};
-
-    const RealType beta = power_method(shifted, seed, options_.power_iterations) - shift;
-    const RealType alpha = shift - power_method(neg_shifted, seed, options_.power_iterations);
-    if (alpha <= beta) {
-      return {alpha, beta};
-    }
-    return {beta, alpha};
-  }
-
-  template <typename OperatorType>
-  RealType power_method(const OperatorType& op, VectorType v, size_t iterations) const {
-    if (iterations == 0) {
-      return static_cast<RealType>(0);
-    }
-
-    RealType norm = vector_norm(v);
-    if (norm == static_cast<RealType>(0)) {
-      return static_cast<RealType>(0);
-    }
-    v /= static_cast<ScalarType>(norm);
-
-    RealType eigenvalue = static_cast<RealType>(0);
-    for (size_t i = 0; i < iterations; ++i) {
-      VectorType w = op.apply(v);
-      const auto denom = vector_dot(v, v);
-      const auto numerator = vector_dot(v, w);
-      const RealType denom_real = real_part(denom);
-      if (denom_real == static_cast<RealType>(0)) {
-        return static_cast<RealType>(0);
-      }
-      eigenvalue = real_part(numerator) / denom_real;
-
-      norm = vector_norm(w);
-      if (norm == static_cast<RealType>(0)) {
-        return static_cast<RealType>(0);
-      }
-      v = w / static_cast<ScalarType>(norm);
-    }
-    return eigenvalue;
-  }
-
   std::vector<RealType> compute_coeffs(RealType a) const {
     std::vector<RealType> coeffs;
     coeffs.reserve(options_.max_degree + 1);
