@@ -299,6 +299,28 @@ struct Exp final : LinearOperator<typename Op::VectorType> {
 
   Exp(Op op, Options options = {}) : op_(std::move(op)), options_(options) {
     bounds_ = estimate_bounds(op_, options_.power_iterations, options_.spectral_padding);
+    const auto [alpha, beta] = bounds_;
+    a_ = (beta - alpha) / static_cast<RealType>(2);
+    c_ = (beta + alpha) / static_cast<RealType>(2);
+    if (a_ <= std::numeric_limits<RealType>::epsilon()) {
+      trivial_ = true;
+      exp_c_ = static_cast<ScalarType>(std::exp(c_));
+      return;
+    }
+
+    steps_ = 1;
+    if (options_.scale_target > static_cast<RealType>(0) && a_ > options_.scale_target) {
+      steps_ = static_cast<size_t>(std::ceil(a_ / options_.scale_target));
+      if (options_.max_scale_steps > 0) {
+        steps_ = std::min(steps_, options_.max_scale_steps);
+      }
+      steps_ = std::max<size_t>(1, steps_);
+    }
+
+    c_step_ = c_ / static_cast<RealType>(steps_);
+    a_step_ = a_ / static_cast<RealType>(steps_);
+    coeffs_ = compute_coeffs(a_step_);
+    exp_c_step_ = static_cast<ScalarType>(std::exp(c_step_));
   }
 
   VectorType apply(const VectorType& v) const override {
@@ -307,28 +329,13 @@ struct Exp final : LinearOperator<typename Op::VectorType> {
       return v;
     }
 
-    const auto [alpha, beta] = bounds_;
-    RealType a = (beta - alpha) / static_cast<RealType>(2);
-    RealType c = (beta + alpha) / static_cast<RealType>(2);
-    if (a <= std::numeric_limits<RealType>::epsilon()) {
-      return static_cast<ScalarType>(std::exp(c)) * v;
+    if (trivial_) {
+      return exp_c_ * v;
     }
 
-    size_t steps = 1;
-    if (options_.scale_target > static_cast<RealType>(0) && a > options_.scale_target) {
-      steps = static_cast<size_t>(std::ceil(a / options_.scale_target));
-      if (options_.max_scale_steps > 0) {
-        steps = std::min(steps, options_.max_scale_steps);
-      }
-      steps = std::max<size_t>(1, steps);
-    }
-
-    const RealType c_step = c / static_cast<RealType>(steps);
-    const RealType a_step = a / static_cast<RealType>(steps);
-    const auto coeffs = compute_coeffs(a_step);
     VectorType result = v;
-    for (size_t step = 0; step < steps; ++step) {
-      result = chebyshev_apply(result, coeffs, c_step, c, a);
+    for (size_t step = 0; step < steps_; ++step) {
+      result = chebyshev_apply(result, coeffs_, exp_c_step_, c_, a_);
     }
     return result;
   }
@@ -356,8 +363,7 @@ struct Exp final : LinearOperator<typename Op::VectorType> {
   }
 
   VectorType chebyshev_apply(const VectorType& v, const std::vector<RealType>& coeffs,
-                             RealType c_step, RealType c, RealType a) const {
-    const ScalarType exp_c = static_cast<ScalarType>(std::exp(c_step));
+                             ScalarType exp_c, RealType c, RealType a) const {
     if (coeffs.size() == 1) {
       return exp_c * static_cast<ScalarType>(coeffs.front()) * v;
     }
@@ -402,6 +408,15 @@ struct Exp final : LinearOperator<typename Op::VectorType> {
   Op op_;
   Options options_;
   Bounds<ScalarType> bounds_{};
+  size_t steps_ {1};
+  RealType a_{0};
+  RealType c_{0};
+  RealType c_step_{0};
+  RealType a_step_{0};
+  ScalarType exp_c_{0};
+  ScalarType exp_c_step_{0};
+  bool trivial_ {false};
+  std::vector<RealType> coeffs_{};
 };
 
 template <typename T, typename = void>
