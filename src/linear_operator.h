@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cstddef>
 #include <type_traits>
+#include <utility>
 
 template <typename Vector>
 struct LinearOperatorTraits {
@@ -25,13 +26,13 @@ struct Negated final : LinearOperator<typename Op::VectorType> {
   using VectorType = typename Op::VectorType;
   using ScalarType = typename Op::ScalarType;
 
-  explicit Negated(const Op& op) : op_(op) {}
+  explicit Negated(Op op) : op_(std::move(op)) {}
 
   VectorType apply(const VectorType& v) const override { return -op_.apply(v); }
   size_t dimension() const override { return op_.dimension(); }
 
  private:
-  const Op& op_;
+  Op op_;
 };
 
 template <typename Op>
@@ -39,13 +40,13 @@ struct Scaled final : LinearOperator<typename Op::VectorType> {
   using VectorType = typename Op::VectorType;
   using ScalarType = typename Op::ScalarType;
 
-  Scaled(const Op& op, ScalarType scale) : op_(op), scale_(scale) {}
+  Scaled(Op op, ScalarType scale) : op_(std::move(op)), scale_(scale) {}
 
   VectorType apply(const VectorType& v) const override { return scale_ * op_.apply(v); }
   size_t dimension() const override { return op_.dimension(); }
 
  private:
-  const Op& op_;
+  Op op_;
   ScalarType scale_{};
 };
 
@@ -59,7 +60,7 @@ struct Sum final : LinearOperator<typename LeftOp::VectorType> {
   static_assert(std::is_same_v<ScalarType, typename RightOp::ScalarType>,
                 "Sum requires matching scalar types.");
 
-  Sum(const LeftOp& lhs, const RightOp& rhs) : lhs_(lhs), rhs_(rhs) {
+  Sum(LeftOp lhs, RightOp rhs) : lhs_(std::move(lhs)), rhs_(std::move(rhs)) {
     assert(lhs_.dimension() == rhs_.dimension());
   }
 
@@ -67,8 +68,8 @@ struct Sum final : LinearOperator<typename LeftOp::VectorType> {
   size_t dimension() const override { return lhs_.dimension(); }
 
  private:
-  const LeftOp& lhs_;
-  const RightOp& rhs_;
+  LeftOp lhs_;
+  RightOp rhs_;
 };
 
 template <typename LeftOp, typename RightOp>
@@ -81,7 +82,7 @@ struct Difference final : LinearOperator<typename LeftOp::VectorType> {
   static_assert(std::is_same_v<ScalarType, typename RightOp::ScalarType>,
                 "Difference requires matching scalar types.");
 
-  Difference(const LeftOp& lhs, const RightOp& rhs) : lhs_(lhs), rhs_(rhs) {
+  Difference(LeftOp lhs, RightOp rhs) : lhs_(std::move(lhs)), rhs_(std::move(rhs)) {
     assert(lhs_.dimension() == rhs_.dimension());
   }
 
@@ -89,8 +90,8 @@ struct Difference final : LinearOperator<typename LeftOp::VectorType> {
   size_t dimension() const override { return lhs_.dimension(); }
 
  private:
-  const LeftOp& lhs_;
-  const RightOp& rhs_;
+  LeftOp lhs_;
+  RightOp rhs_;
 };
 
 template <typename LeftOp, typename RightOp>
@@ -103,7 +104,7 @@ struct Composed final : LinearOperator<typename LeftOp::VectorType> {
   static_assert(std::is_same_v<ScalarType, typename RightOp::ScalarType>,
                 "Composed requires matching scalar types.");
 
-  Composed(const LeftOp& lhs, const RightOp& rhs) : lhs_(lhs), rhs_(rhs) {
+  Composed(LeftOp lhs, RightOp rhs) : lhs_(std::move(lhs)), rhs_(std::move(rhs)) {
     assert(lhs_.dimension() == rhs_.dimension());
   }
 
@@ -111,8 +112,8 @@ struct Composed final : LinearOperator<typename LeftOp::VectorType> {
   size_t dimension() const override { return lhs_.dimension(); }
 
  private:
-  const LeftOp& lhs_;
-  const RightOp& rhs_;
+  LeftOp lhs_;
+  RightOp rhs_;
 };
 
 template <typename Vector>
