@@ -6,8 +6,17 @@ import glob
 import argparse
 import shlex
 
-CXX_COMPILER = "/opt/homebrew/opt/llvm/bin/clang++"
-CXX_FLAGS = ["-std=c++20", "-O2", "-Wall", "-Wextra"]
+LLVM_PREFIX = "/opt/homebrew/opt/llvm"
+CXX_COMPILER = os.path.join(LLVM_PREFIX, "bin", "clang++")
+CXX_FLAGS = [
+    "-std=c++20",
+    "-O2",
+    "-Wall",
+    "-Wextra",
+    "-stdlib=libc++",
+    "-isystem",
+    os.path.join(LLVM_PREFIX, "include", "c++", "v1"),
+]
 AR = "ar"
 
 BUILD_DIR = "build"
@@ -20,7 +29,15 @@ def pkg_config(package, flag):
 
 class OpenMP:
     Cflags = [""]
-    Libs = ["-L/opt/homebrew/Cellar/libomp/21.1.7/lib", "-fopenmp"]
+    Libs = ["-L/opt/homebrew/Cellar/libomp/21.1.8/lib", "-fopenmp"]
+
+class LibCxx:
+    Libs = [
+        f"-L{os.path.join(LLVM_PREFIX, 'lib', 'c++')}",
+        f"-Wl,-rpath,{os.path.join(LLVM_PREFIX, 'lib', 'c++')}",
+        "-lc++",
+        "-lc++abi",
+    ]
 
 class Armadillo:
     Cflags = pkg_config('armadillo', '--cflags')
@@ -226,7 +243,7 @@ manybody = Target(
         "third-party",
     ],
     flags=[*Armadillo.Cflags, *OpenMP.Cflags],
-    libraries=[*OpenMP.Libs],
+    libraries=[*OpenMP.Libs, *LibCxx.Libs],
     extra_deps=find_headers(["src"]),
 )
 
@@ -240,7 +257,7 @@ tests = Target(
         "third-party",
     ],
     flags =[*Armadillo.Cflags],
-    libraries=[*Armadillo.Libs, *OpenMP.Libs],
+    libraries=[*Armadillo.Libs, *OpenMP.Libs, *LibCxx.Libs],
     deps=[manybody],
     extra_deps=find_test_deps(),
 )
@@ -255,7 +272,7 @@ def example_target(name, source):
             "third-party",
         ],
         flags =[*Armadillo.Cflags],
-        libraries=[*Armadillo.Libs, *OpenMP.Libs],
+        libraries=[*Armadillo.Libs, *OpenMP.Libs, *LibCxx.Libs],
         deps=[manybody],
     )
 
