@@ -31,8 +31,7 @@ struct HubbardRelativeKinetic final : LinearOperator<arma::vec> {
   using VectorType = arma::vec;
   using ScalarType = double;
 
-  HubbardRelativeKinetic(size_t size, size_t total_momentum)
-      : size_(size), index_(DynamicIndex::container_type{size}) {
+  HubbardRelativeKinetic(size_t size, size_t total_momentum) : size_(size), index_({size}) {
     const double k_phase = 2.0 * std::numbers::pi_v<double> * static_cast<double>(total_momentum) /
                            static_cast<double>(size_);
     t_eff_ = 2.0 * std::cos(0.5 * k_phase);
@@ -42,7 +41,7 @@ struct HubbardRelativeKinetic final : LinearOperator<arma::vec> {
   ScalarType effective_hopping() const { return t_eff_; }
 
   VectorType apply(const VectorType& v) const override {
-    assert(v.n_elem == size_);
+    assert(v.n_elem == dimension());
     VectorType w(v.n_elem, arma::fill::zeros);
     for (size_t r = 0; r < size_; ++r) {
       const size_t i = index_({r});
