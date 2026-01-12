@@ -67,3 +67,48 @@ TEST(dynamic_index_zero_dimension_throws) {
   }
   EXPECT_TRUE(threw);
 }
+
+TEST(dynamic_index_operator_overloads) {
+  DynamicIndex index({3, 4});
+
+  const std::vector<DynamicIndex::size_type> coordinates{2, 1};
+  EXPECT_EQ(index(coordinates), index.to_orbital(coordinates));
+  EXPECT_EQ(index({2, 1}), index.to_orbital({2, 1}));
+
+  const auto round_trip = index(5);
+  EXPECT_EQ(round_trip[0], 2u);
+  EXPECT_EQ(round_trip[1], 1u);
+}
+
+TEST(dynamic_index_wrap_offsets) {
+  DynamicIndex index({4, 3});
+
+  const std::vector<DynamicIndex::size_type> coordinates{0, 2};
+  const std::vector<int> offsets{-1, 2};
+  const auto wrapped = index.wrap(coordinates, offsets);
+  EXPECT_EQ(wrapped[0], 3u);
+  EXPECT_EQ(wrapped[1], 1u);
+
+  EXPECT_EQ(index(coordinates, offsets), index.to_orbital(wrapped));
+  EXPECT_EQ(index({0, 2}, {-1, 2}), index.to_orbital({3, 1}));
+}
+
+TEST(dynamic_index_wrap_bounds_checks) {
+  DynamicIndex index({2, 2});
+
+  bool threw = false;
+  try {
+    (void)index.wrap({1, 0, 0}, {0, 0});
+  } catch (const std::out_of_range&) {
+    threw = true;
+  }
+  EXPECT_TRUE(threw);
+
+  threw = false;
+  try {
+    (void)index.wrap({1, 0}, {0});
+  } catch (const std::out_of_range&) {
+    threw = true;
+  }
+  EXPECT_TRUE(threw);
+}
