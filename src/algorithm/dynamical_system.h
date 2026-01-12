@@ -2,10 +2,16 @@
 
 #include <algorithm>
 #include <cmath>
+#include <utility>
 
 enum class IntegratorMethod {
   kEuler,
   kRungeKutta4,
+};
+
+struct NoopCallback {
+  template <typename... Args>
+  void operator()(Args&&...) const {}
 };
 
 template <typename System, typename State>
@@ -22,14 +28,16 @@ State rk4_step(const System& system, double t, double dt, const State& state) {
   return state + (dt / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4);
 }
 
-template <typename System, typename State>
+template <typename System, typename State, typename Callback>
 State integrate(const System& system, State state, double t0, double t1, double dt,
-                IntegratorMethod method) {
+                IntegratorMethod method, Callback callback) {
   if (dt <= 0.0 || t1 <= t0) {
+    callback(t0, state);
     return state;
   }
 
   double t = t0;
+  callback(t, state);
   while (t < t1) {
     const double step = std::min(dt, t1 - t);
     switch (method) {
@@ -41,6 +49,13 @@ State integrate(const System& system, State state, double t0, double t1, double 
         break;
     }
     t += step;
+    callback(t, state);
   }
   return state;
+}
+
+template <typename System, typename State>
+State integrate(const System& system, State state, double t0, double t1, double dt,
+                IntegratorMethod method) {
+  return integrate(system, std::move(state), t0, t1, dt, method, NoopCallback{});
 }

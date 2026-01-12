@@ -49,6 +49,17 @@ arma::cx_mat wegner_flow(const arma::cx_mat& h0, double lmax, double dl, Integra
   return integrate(system, h0, 0.0, lmax, dl, method);
 }
 
+arma::cx_mat wegner_flow(const arma::cx_mat& h0, double lmax, double dl,
+                         std::function<void(double, const arma::cx_mat&)> callback,
+                         IntegratorMethod method) {
+  if (lmax <= 0.0 || dl <= 0.0) {
+    return h0;
+  }
+
+  WegnerFlowSystem system;
+  return integrate(system, h0, 0.0, lmax, dl, method, std::move(callback));
+}
+
 arma::cx_mat block_wegner_flow(const arma::cx_mat& h0, size_t p_dim, double lmax, double dl,
                                IntegratorMethod method) {
   if (lmax <= 0.0 || dl <= 0.0 || p_dim == 0 || p_dim >= h0.n_rows) {
@@ -57,4 +68,15 @@ arma::cx_mat block_wegner_flow(const arma::cx_mat& h0, size_t p_dim, double lmax
 
   BlockWegnerFlowSystem system(p_dim);
   return integrate(system, h0, 0.0, lmax, dl, method);
+}
+
+arma::cx_mat block_wegner_flow(const arma::cx_mat& h0, size_t p_dim, double lmax, double dl,
+                               std::function<void(double, const arma::cx_mat&)> callback,
+                               IntegratorMethod method) {
+  if (lmax <= 0.0 || dl <= 0.0 || p_dim == 0 || p_dim >= h0.n_rows) {
+    return h0;
+  }
+
+  BlockWegnerFlowSystem system(p_dim);
+  return integrate(system, h0, 0.0, lmax, dl, method, std::move(callback));
 }

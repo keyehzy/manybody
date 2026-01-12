@@ -322,6 +322,11 @@ example_hubbard_relative_overlap = example_target(
     "examples/hubbard_relative_overlap.cpp",
 )
 
+example_hubbard_relative_block_wegner_flow = example_target(
+    "example_hubbard_relative_block_wegner_flow",
+    "examples/hubbard_relative_block_wegner_flow.cpp",
+)
+
 TARGETS = [
     manybody,
     app,
@@ -333,6 +338,7 @@ TARGETS = [
     example_tight_binding_fourier,
     example_hubbard_relative_linear_operator,
     example_hubbard_relative_overlap,
+    example_hubbard_relative_block_wegner_flow,
     tests,
 ]
 
