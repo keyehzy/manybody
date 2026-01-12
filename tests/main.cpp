@@ -15,5 +15,6 @@
 #include "schriffer_wolff.cpp"
 #include "static_vector.cpp"
 #include "term.cpp"
+#include "wegner_flow.cpp"
 
 int main() { return run_all_tests(); }
