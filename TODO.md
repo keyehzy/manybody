@@ -15,6 +15,7 @@ Refactor ideas discovered during codebase skim:
 - Clean up `NormalOrderer` API: remove or implement the unused overload and centralize
   consecutive-element checks in `src/normal_order.h` and `src/normal_order.cpp`.
 - Cache `DynamicIndex` total size to avoid repeated recomputation in `src/index.h`.
+- Add small guard/test for edge-case `p_dim` values in block Wegner flow API.
 - Add `EXPECT_FALSE` macro to `tests/framework.h` to avoid `EXPECT_TRUE(!...)` usage.
 - Add Lanczos, time evolution, etc.
 - Add Chebyshev, density of states, etc

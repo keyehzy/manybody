@@ -56,10 +56,12 @@ TEST(dynamic_index_bounds_checks) {
   EXPECT_TRUE(threw);
 }
 
-TEST(dynamic_index_constructor_limits_orbitals) {
+TEST(dynamic_index_zero_dimension_throws) {
+  DynamicIndex index({2, 0});
+
   bool threw = false;
   try {
-    DynamicIndex too_large({Operator::max_index() + 1});
+    (void)index.size();
   } catch (const std::out_of_range&) {
     threw = true;
   }
