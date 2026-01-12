@@ -50,6 +50,25 @@ void parse_cli_options(int argc, char** argv, CliOptions* options_out) {
   }
 }
 
+// Measures the magnitude of the off-block-diagonal elements
+// of a complex matrix H, assuming a block partition at index p_dim.
+//
+// The matrix is conceptually divided as:
+//
+//     [ A  B ]
+//     [ C  D ]
+//
+// where:
+//   - A is a p_dim x p_dim block,
+//   - B is the upper off-diagonal block (rows 0..p_dim-1, cols p_dim..end),
+//   - C is the lower off-diagonal block (rows p_dim..end, cols 0..p_dim-1),
+//   - D is the remaining block.
+//
+// The function computes:
+//
+//     sqrt( ||B||_F^2 + ||C||_F^2 )
+//
+// where ||·||_F denotes the Frobenius norm.
 double off_block_norm(const arma::cx_mat& H, size_t p_dim) {
   if (p_dim == 0 || p_dim >= H.n_rows) {
     return 0.0;
@@ -62,6 +81,13 @@ double off_block_norm(const arma::cx_mat& H, size_t p_dim) {
   return std::sqrt(upper_norm * upper_norm + lower_norm * lower_norm);
 }
 
+// Builds the explicit matrix form of a linear operator by
+// applying it to each vector of the canonical basis in R^dimension.
+// The resulting matrix H satisfies:
+//
+//     H.col(j) = hamiltonian * e_j
+//
+// where e_j is the j-th standard basis vector.
 arma::cx_mat build_hamiltonian_matrix(const LinearOperator<arma::vec>& hamiltonian,
                                       size_t dimension) {
   arma::mat h_real(dimension, dimension, arma::fill::zeros);
@@ -89,7 +115,7 @@ int main(int argc, char** argv) {
   const arma::cx_mat h0 = build_hamiltonian_matrix(hamiltonian, total_size);
 
   auto callback = [](double l, const arma::cx_mat& H) {
-    std::cout << l << " " << off_block_norm(H, kBlockDim) << "\n";
+    std::cout << l << " " << (off_block_norm(H, kBlockDim) / H(0, 0)).real() << "\n";
   };
 
   block_wegner_flow(h0, kBlockDim, opts.lmax, opts.dl, callback, IntegratorMethod::kRungeKutta4);
