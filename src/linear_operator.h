@@ -34,14 +34,9 @@ typename Op::VectorType make_seed_vector(const Op& op) {
 }
 
 template <typename Vector>
-struct LinearOperatorTraits {
-  using ScalarType = typename Vector::elem_type;
-};
-
-template <typename Vector>
 struct LinearOperator {
   using VectorType = Vector;
-  using ScalarType = typename LinearOperatorTraits<Vector>::ScalarType;
+  using ScalarType = typename Vector::elem_type;
 
   virtual ~LinearOperator() = default;
 
