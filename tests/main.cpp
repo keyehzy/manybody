@@ -8,6 +8,7 @@
 #include "framework.h"
 #include "index.cpp"
 #include "indexed_hash_set.cpp"
+#include "lanczos.cpp"
 #include "linear_operator.cpp"
 #include "model.cpp"
 #include "normal_order.cpp"
