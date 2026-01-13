@@ -222,6 +222,8 @@ def find_test_deps():
     patterns = [
         "tests/*.cpp",
         "tests/*.h",
+        "tests/**/*.cpp",
+        "tests/**/*.h",
         "src/*.cpp",
         "src/*.h",
         "src/**/*.cpp",
