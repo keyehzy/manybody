@@ -1,11 +1,11 @@
-#include "algebra/model.h"
+#include "algebra/model/model.h"
 
 #include <cmath>
 #include <numbers>
 #include <type_traits>
 
-#include "algebra/hubbard_model.h"
-#include "algebra/hubbard_model_relative.h"
+#include "algebra/model/hubbard_model.h"
+#include "algebra/model/hubbard_model_relative.h"
 #include "framework.h"
 
 namespace {

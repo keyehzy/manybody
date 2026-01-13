@@ -5,7 +5,7 @@
 #include <cstddef>
 #include <numbers>
 
-#include "algebra/model.h"
+#include "algebra/model/model.h"
 #include "algebra/term.h"
 
 // Two-particle Hubbard model in the relative coordinate basis with fixed total momentum K.

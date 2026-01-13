@@ -2,8 +2,8 @@
 #include <iostream>
 
 #include "algebra/basis.h"
-#include "algebra/hubbard_model.h"
 #include "algebra/matrix_elements.h"
+#include "algebra/model/hubbard_model.h"
 
 int main() {
   const size_t lattice_size = 4;

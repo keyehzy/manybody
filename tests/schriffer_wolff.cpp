@@ -4,8 +4,8 @@
 #include <cmath>
 
 #include "algebra/basis.h"
-#include "algebra/hubbard_model.h"
 #include "algebra/matrix_elements.h"
+#include "algebra/model/hubbard_model.h"
 #include "framework.h"
 
 TEST(schriffer_wolff_cluster_by_largest_gap) {

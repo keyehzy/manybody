@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <vector>
 
-#include "algebra/model.h"
+#include "algebra/model/model.h"
 #include "algebra/term.h"
 #include "utils/index.h"
 

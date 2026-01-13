@@ -2,7 +2,7 @@
 
 #include "algebra/basis.h"
 #include "algebra/commutator.h"
-#include "algebra/hubbard_model.h"
+#include "algebra/model/hubbard_model.h"
 #include "algorithms/schriffer_wolff.h"
 
 int main() {
