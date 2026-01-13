@@ -15,28 +15,32 @@ struct HubbardRelativeInteraction final : LinearOperator<arma::vec> {
   using VectorType = arma::vec;
   using ScalarType = double;
 
-  explicit HubbardRelativeInteraction(size_t size) : size_(size) {}
+  explicit HubbardRelativeInteraction(const std::vector<size_t>& size)
+      : size_(size), index_(size_) {
+    if (size_.empty()) {
+      throw std::invalid_argument("HubbardRelativeInteraction requires at least one dimension.");
+    }
+  }
 
-  size_t dimension() const override { return size_; }
+  size_t dimension() const override { return index_.size(); }
 
   VectorType apply(const VectorType& v) const override {
-    assert(v.n_elem == size_);
+    assert(v.n_elem == dimension());
     VectorType w(v.n_elem, arma::fill::zeros);
     w(0) = v(0);
     return w;
   }
 
-  size_t size_;
+  std::vector<size_t> size_;
+  DynamicIndex index_;
 };
 
 struct HubbardRelativeKinetic final : LinearOperator<arma::vec> {
   using VectorType = arma::vec;
   using ScalarType = double;
 
-  HubbardRelativeKinetic(std::vector<size_t> size, std::vector<size_t> total_momentum)
-      : size_(std::move(size)),
-        total_momentum_(std::move(total_momentum)),
-        index_(size_) {
+  HubbardRelativeKinetic(const std::vector<size_t>& size, const std::vector<size_t>& total_momentum)
+      : size_(size), total_momentum_(total_momentum), index_(size_) {
     if (size_.empty()) {
       throw std::invalid_argument("HubbardRelativeKinetic requires at least one dimension.");
     }

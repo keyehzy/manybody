@@ -9,7 +9,7 @@ int main() {
   const double U = 4.0;
 
   HubbardRelativeKinetic kinetic({lattice_size}, {total_momentum});
-  HubbardRelativeInteraction onsite(lattice_size);
+  HubbardRelativeInteraction onsite({lattice_size});
 
   auto hamiltonian = t * kinetic + U * onsite;
 

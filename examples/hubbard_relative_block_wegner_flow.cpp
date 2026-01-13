@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <exception>
 #include <iostream>
+#include <vector>
 
 #include "algorithms/wegner_flow.h"
 #include "cxxopts.hpp"
@@ -105,15 +106,15 @@ int main(int argc, char** argv) {
   CliOptions opts;
   parse_cli_options(argc, argv, &opts);
 
-  const size_t total_size = opts.lattice_size * opts.lattice_size * opts.lattice_size;
+  const std::vector<size_t> lattice_size{opts.lattice_size, opts.lattice_size, opts.lattice_size};
+  const std::vector<size_t> total_momentum{opts.total_momentum, opts.total_momentum,
+                                           opts.total_momentum};
   constexpr size_t kBlockDim = 1;
 
-  HubbardRelativeKinetic kinetic(
-      {opts.lattice_size, opts.lattice_size, opts.lattice_size},
-      {opts.total_momentum, opts.total_momentum, opts.total_momentum});
-  HubbardRelativeInteraction onsite(total_size);
+  HubbardRelativeKinetic kinetic(lattice_size, total_momentum);
+  HubbardRelativeInteraction onsite(lattice_size);
   auto hamiltonian = opts.t * kinetic + opts.U * onsite;
-  const arma::cx_mat h0 = build_hamiltonian_matrix(hamiltonian, total_size);
+  const arma::cx_mat h0 = build_hamiltonian_matrix(hamiltonian, kinetic.dimension());
 
   auto callback = [](double l, const arma::cx_mat& H) {
     std::cout << l << " " << (off_block_norm(H, kBlockDim) / H(0, 0)).real() << "\n";

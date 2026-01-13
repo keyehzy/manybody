@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <exception>
 #include <iostream>
+#include <vector>
 
 #include "cxxopts.hpp"
 #include "hubbard_relative_operators.h"
@@ -49,16 +50,16 @@ int main(int argc, char** argv) {
   CliOptions opts;
   parse_cli_options(argc, argv, &opts);
 
-  const size_t total_size = opts.lattice_size * opts.lattice_size * opts.lattice_size;
+  const std::vector<size_t> lattice_size{opts.lattice_size, opts.lattice_size, opts.lattice_size};
+  const std::vector<size_t> total_momentum{opts.total_momentum, opts.total_momentum,
+                                           opts.total_momentum};
 
-  HubbardRelativeKinetic kinetic(
-      {opts.lattice_size, opts.lattice_size, opts.lattice_size},
-      {opts.total_momentum, opts.total_momentum, opts.total_momentum});
-  HubbardRelativeInteraction onsite(total_size);
+  HubbardRelativeKinetic kinetic(lattice_size, total_momentum);
+  HubbardRelativeInteraction onsite(lattice_size);
 
   auto hamiltonian = opts.t * kinetic + opts.U * onsite;
 
-  arma::vec v0(total_size, arma::fill::zeros);
+  arma::vec v0(kinetic.dimension(), arma::fill::zeros);
   v0(0) = 1.0;
 
   arma::vec state = v0;
