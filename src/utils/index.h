@@ -36,33 +36,6 @@ class DynamicIndex {
     return to_orbital_wrapped_(container_type(coordinates), offset_type(offsets));
   }
 
-  [[nodiscard]] size_type to_orbital(const container_type& coordinates) const {
-    if (coordinates.size() != dimensions_.size()) {
-      throw std::out_of_range("Invalid number of coordinates.");
-    }
-
-    size_type orbital = 0;
-    for (size_type i = 0; i < dimensions_.size(); ++i) {
-      if (coordinates[i] >= dimensions_[i]) {
-        throw std::out_of_range("Coordinates out of bounds.");
-      }
-      orbital += coordinates[i] * strides_[i];
-    }
-    return orbital;
-  }
-
-  [[nodiscard]] container_type from_orbital(size_type orbital) const {
-    if (orbital >= total_size_) {
-      throw std::out_of_range("Orbital index out of bounds.");
-    }
-
-    container_type coordinates(dimensions_.size());
-    for (size_type i = 0; i < dimensions_.size(); ++i) {
-      coordinates[i] = (orbital / strides_[i]) % dimensions_[i];
-    }
-    return coordinates;
-  }
-
   [[nodiscard]] container_type operator()(size_type orbital) const { return from_orbital(orbital); }
 
   [[nodiscard]] size_type value_at(size_type orbital, size_type dimension) const {
@@ -110,6 +83,33 @@ class DynamicIndex {
       stride *= dimensions_[i];
     }
     total_size_ = stride;
+  }
+
+  [[nodiscard]] size_type to_orbital(const container_type& coordinates) const {
+    if (coordinates.size() != dimensions_.size()) {
+      throw std::out_of_range("Invalid number of coordinates.");
+    }
+
+    size_type orbital = 0;
+    for (size_type i = 0; i < dimensions_.size(); ++i) {
+      if (coordinates[i] >= dimensions_[i]) {
+        throw std::out_of_range("Coordinates out of bounds.");
+      }
+      orbital += coordinates[i] * strides_[i];
+    }
+    return orbital;
+  }
+
+  [[nodiscard]] container_type from_orbital(size_type orbital) const {
+    if (orbital >= total_size_) {
+      throw std::out_of_range("Orbital index out of bounds.");
+    }
+
+    container_type coordinates(dimensions_.size());
+    for (size_type i = 0; i < dimensions_.size(); ++i) {
+      coordinates[i] = (orbital / strides_[i]) % dimensions_[i];
+    }
+    return coordinates;
   }
 
   [[nodiscard]] size_type to_orbital_wrapped_(const container_type& coordinates,

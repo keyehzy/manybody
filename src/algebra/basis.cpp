@@ -12,7 +12,7 @@ DynamicIndex::container_type compute_total_momentum(const Basis::key_type& state
   const auto& dimensions = index.dimensions();
   DynamicIndex::container_type total(dimensions.size(), 0);
   for (const auto& op : state) {
-    const auto coordinates = index.from_orbital(op.value());
+    const auto coordinates = index(op.value());
     for (size_t i = 0; i < dimensions.size(); ++i) {
       total[i] = (total[i] + coordinates[i]) % dimensions[i];
     }

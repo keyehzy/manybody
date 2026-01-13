@@ -47,9 +47,9 @@ struct HubbardModel2D : Model {
     Expression kinetic_term;
     for (size_t x = 0; x < size_x; ++x) {
       for (size_t y = 0; y < size_y; ++y) {
-        const size_t site = index.to_orbital({x, y});
-        const size_t x_next = index.to_orbital({(x + 1) % size_x, y});
-        const size_t y_next = index.to_orbital({x, (y + 1) % size_y});
+        const size_t site = index({x, y});
+        const size_t x_next = index({(x + 1) % size_x, y});
+        const size_t y_next = index({x, (y + 1) % size_y});
         kinetic_term += t * hopping(site, x_next, Operator::Spin::Up);
         kinetic_term += t * hopping(site, x_next, Operator::Spin::Down);
         kinetic_term += t * hopping(site, y_next, Operator::Spin::Up);
@@ -63,7 +63,7 @@ struct HubbardModel2D : Model {
     Expression interaction_term;
     for (size_t x = 0; x < size_x; ++x) {
       for (size_t y = 0; y < size_y; ++y) {
-        const size_t site = index.to_orbital({x, y});
+        const size_t site = index({x, y});
         interaction_term +=
             u * density_density(Operator::Spin::Up, site, Operator::Spin::Down, site);
       }
@@ -98,10 +98,10 @@ struct HubbardModel3D : Model {
     for (size_t x = 0; x < size_x; ++x) {
       for (size_t y = 0; y < size_y; ++y) {
         for (size_t z = 0; z < size_z; ++z) {
-          const size_t site = index.to_orbital({x, y, z});
-          const size_t x_next = index.to_orbital({(x + 1) % size_x, y, z});
-          const size_t y_next = index.to_orbital({x, (y + 1) % size_y, z});
-          const size_t z_next = index.to_orbital({x, y, (z + 1) % size_z});
+          const size_t site = index({x, y, z});
+          const size_t x_next = index({(x + 1) % size_x, y, z});
+          const size_t y_next = index({x, (y + 1) % size_y, z});
+          const size_t z_next = index({x, y, (z + 1) % size_z});
           kinetic_term += t * hopping(site, x_next, Operator::Spin::Up);
           kinetic_term += t * hopping(site, x_next, Operator::Spin::Down);
           kinetic_term += t * hopping(site, y_next, Operator::Spin::Up);
@@ -119,7 +119,7 @@ struct HubbardModel3D : Model {
     for (size_t x = 0; x < size_x; ++x) {
       for (size_t y = 0; y < size_y; ++y) {
         for (size_t z = 0; z < size_z; ++z) {
-          const size_t site = index.to_orbital({x, y, z});
+          const size_t site = index({x, y, z});
           interaction_term +=
               u * density_density(Operator::Spin::Up, site, Operator::Spin::Down, site);
         }

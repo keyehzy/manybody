@@ -54,12 +54,12 @@ inline double momentum_phase(const DynamicIndex::container_type& orbital,
 inline Expression fourier_transform_operator(Operator op, const DynamicIndex& index) {
   Expression result;
   const double type_sign = (op.type() == Operator::Type::Annihilation) ? -1.0 : 1.0;
-  const auto orbital = index.from_orbital(op.value());
+  const auto orbital = index(op.value());
   const auto& dimensions = index.dimensions();
   const double normalization = 1.0 / std::sqrt(static_cast<double>(index.size()));
 
   for (size_t k = 0; k < index.size(); ++k) {
-    const auto momentum = index.from_orbital(k);
+    const auto momentum = index(k);
     const double phase = momentum_phase(orbital, momentum, dimensions);
     std::complex<double> coefficient(0.0, -type_sign * phase);
     coefficient = std::exp(coefficient) * normalization;

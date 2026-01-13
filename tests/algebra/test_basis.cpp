@@ -70,7 +70,7 @@ TEST(basis_fixed_spin_momentum_1d) {
 TEST(basis_fixed_spin_momentum_2d_single_particle) {
   DynamicIndex index({2, 2});
   DynamicIndex::container_type target_momentum{1, 0};
-  const size_t orbital = index.to_orbital({1, 0});
+  const size_t orbital = index({1, 0});
   Basis basis = Basis::with_fixed_particle_number_spin_momentum(4, 1, 1, index, target_momentum);
 
   EXPECT_EQ(basis.set.size(), 1u);

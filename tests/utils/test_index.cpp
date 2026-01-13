@@ -9,9 +9,9 @@ TEST(dynamic_index_round_trip) {
   EXPECT_EQ(index.size(), 24u);
 
   const std::vector<DynamicIndex::size_type> coordinates{1, 2, 3};
-  EXPECT_EQ(index.to_orbital(coordinates), 23u);
+  EXPECT_EQ(index(coordinates), 23u);
 
-  const auto recovered = index.from_orbital(23);
+  const auto recovered = index(23);
   EXPECT_EQ(recovered[0], 1u);
   EXPECT_EQ(recovered[1], 2u);
   EXPECT_EQ(recovered[2], 3u);
@@ -24,7 +24,7 @@ TEST(dynamic_index_bounds_checks) {
 
   bool threw = false;
   try {
-    (void)index.to_orbital({1, 2});
+    (void)index({1, 2});
   } catch (const std::out_of_range&) {
     threw = true;
   }
@@ -32,7 +32,7 @@ TEST(dynamic_index_bounds_checks) {
 
   threw = false;
   try {
-    (void)index.to_orbital({1});
+    (void)index({1});
   } catch (const std::out_of_range&) {
     threw = true;
   }
@@ -40,7 +40,7 @@ TEST(dynamic_index_bounds_checks) {
 
   threw = false;
   try {
-    (void)index.from_orbital(4);
+    (void)index(4);
   } catch (const std::out_of_range&) {
     threw = true;
   }
@@ -70,8 +70,8 @@ TEST(dynamic_index_operator_overloads) {
   DynamicIndex index({3, 4});
 
   const std::vector<DynamicIndex::size_type> coordinates{2, 1};
-  EXPECT_EQ(index(coordinates), index.to_orbital(coordinates));
-  EXPECT_EQ(index({2, 1}), index.to_orbital({2, 1}));
+  EXPECT_EQ(index(coordinates), index(coordinates));
+  EXPECT_EQ(index({2, 1}), index({2, 1}));
 
   const auto round_trip = index(5);
   EXPECT_EQ(round_trip[0], 2u);
@@ -83,9 +83,9 @@ TEST(dynamic_index_wrap_offsets) {
 
   const std::vector<DynamicIndex::size_type> coordinates{0, 2};
   const std::vector<int> offsets{-1, 2};
-  const auto expected = index.to_orbital({3, 1});
+  const auto expected = index({3, 1});
   EXPECT_EQ(index(coordinates, offsets), expected);
-  EXPECT_EQ(index({0, 2}, {-1, 2}), index.to_orbital({3, 1}));
+  EXPECT_EQ(index({0, 2}, {-1, 2}), index({3, 1}));
 }
 
 TEST(dynamic_index_wrap_bounds_checks) {
