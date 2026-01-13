@@ -6,30 +6,6 @@
 #include "framework.h"
 
 namespace test_lanczos {
-struct MatrixOperator final : LinearOperator<arma::vec> {
-  using VectorType = arma::vec;
-  using ScalarType = double;
-
-  explicit MatrixOperator(arma::mat matrix_in) : matrix(std::move(matrix_in)) {}
-
-  VectorType apply(const VectorType& v) const override { return matrix * v; }
-  size_t dimension() const override { return static_cast<size_t>(matrix.n_rows); }
-
-  arma::mat matrix;
-};
-
-struct DiagonalOperator final : LinearOperator<arma::vec> {
-  using VectorType = arma::vec;
-  using ScalarType = double;
-
-  explicit DiagonalOperator(arma::vec diag_in) : diag(std::move(diag_in)) {}
-
-  VectorType apply(const VectorType& v) const override { return diag % v; }
-  size_t dimension() const override { return static_cast<size_t>(diag.n_elem); }
-
-  arma::vec diag;
-};
-
 std::vector<double> solve_tridiagonal_system(const std::vector<double>& alphas,
                                              const std::vector<double>& betas) {
   const size_t n = alphas.size();

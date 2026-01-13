@@ -7,18 +7,6 @@
 #include "framework.h"
 #include "linear_operator_utils.h"
 
-struct DiagonalOperator final : LinearOperator<arma::vec> {
-  using VectorType = arma::vec;
-  using ScalarType = double;
-
-  explicit DiagonalOperator(arma::vec diag_in) : diag(std::move(diag_in)) {}
-
-  VectorType apply(const VectorType& v) const override { return diag % v; }
-  size_t dimension() const override { return static_cast<size_t>(diag.n_elem); }
-
-  arma::vec diag;
-};
-
 TEST(linear_operator_negated_applies_sign) {
   DiagonalOperator op(arma::vec{1.0, 2.0, -1.0});
   arma::vec v{2.0, -1.0, 3.0};
