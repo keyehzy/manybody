@@ -33,11 +33,11 @@ lanczos_recurrence_step(const Op& op, typename Op::VectorType& w,
     w -= static_cast<ScalarType>(beta_prev) * v_prev;
   }
 
-  const auto dot_product = vector_dot(v_curr, w);
-  const RealType alpha = real_part(dot_product);
+  const auto dot_product = arma::dot(v_curr, w);
+  const RealType alpha = std::real(dot_product);
   w -= static_cast<ScalarType>(alpha) * v_curr;
 
-  const RealType beta = vector_norm(w);
+  const RealType beta = arma::norm(w);
   if (beta <= breakdown_tolerance<ScalarType>()) {
     return {alpha, std::nullopt};
   }
@@ -145,7 +145,7 @@ LanczosDecomposition<typename Op::ScalarType> lanczos_pass_one(const Op& op,
   }
 
   LanczosDecomposition<ScalarType> decomp;
-  decomp.b_norm = vector_norm(b);
+  decomp.b_norm = arma::norm(b);
   if (decomp.b_norm <= breakdown_tolerance<ScalarType>()) {
     throw std::runtime_error("Input vector has zero norm");
   }

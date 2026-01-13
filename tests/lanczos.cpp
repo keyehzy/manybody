@@ -83,8 +83,8 @@ TEST(lanczos_max_eigenpair_matches_diagonal) {
   EXPECT_TRUE(std::abs(eigenpair.value - 3.0) < 1e-6);
 
   const auto applied = op.apply(eigenpair.vector);
-  const double rayleigh = real_part(vector_dot(eigenpair.vector, applied)) /
-                          real_part(vector_dot(eigenpair.vector, eigenpair.vector));
+  const double rayleigh = std::real(arma::dot(eigenpair.vector, applied)) /
+                          std::real(arma::dot(eigenpair.vector, eigenpair.vector));
   EXPECT_TRUE(std::abs(rayleigh - eigenpair.value) < 1e-6);
 }
 

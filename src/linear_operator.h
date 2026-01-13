@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <armadillo>
 #include <cassert>
 #include <complex>
 #include <cstddef>
@@ -23,26 +24,6 @@ struct ScalarRealType<std::complex<T>> {
 
 template <typename T>
 using scalar_real_t = typename ScalarRealType<T>::type;
-
-template <typename T>
-constexpr scalar_real_t<T> real_part(const T& value) {
-  if constexpr (std::is_same_v<T, std::complex<scalar_real_t<T>>>) {
-    return std::real(value);
-  } else {
-    return value;
-  }
-}
-
-template <typename Vector>
-auto vector_dot(const Vector& lhs, const Vector& rhs) {
-  return dot(lhs, rhs);
-}
-
-template <typename Vector>
-scalar_real_t<typename Vector::elem_type> vector_norm(const Vector& v) {
-  auto value = vector_dot(v, v);
-  return std::sqrt(real_part(value));
-}
 
 template <typename Op>
 typename Op::VectorType make_seed_vector(const Op& op) {
@@ -238,7 +219,7 @@ auto power_method(const OperatorType& op, typename OperatorType::VectorType v, s
     return static_cast<RealType>(0);
   }
 
-  RealType norm = vector_norm(v);
+  RealType norm = arma::norm(v);
   if (norm == static_cast<RealType>(0)) {
     return static_cast<RealType>(0);
   }
@@ -247,15 +228,15 @@ auto power_method(const OperatorType& op, typename OperatorType::VectorType v, s
   RealType eigenvalue = static_cast<RealType>(0);
   for (size_t i = 0; i < iterations; ++i) {
     auto w = op.apply(v);
-    const auto denom = vector_dot(v, v);
-    const auto numerator = vector_dot(v, w);
-    const RealType denom_real = real_part(denom);
+    const auto denom = arma::dot(v, v);
+    const auto numerator = arma::dot(v, w);
+    const RealType denom_real = std::real(denom);
     if (denom_real == static_cast<RealType>(0)) {
       return static_cast<RealType>(0);
     }
-    eigenvalue = real_part(numerator) / denom_real;
+    eigenvalue = std::real(numerator) / denom_real;
 
-    norm = vector_norm(w);
+    norm = arma::norm(w);
     if (norm == static_cast<RealType>(0)) {
       return static_cast<RealType>(0);
     }
@@ -325,7 +306,7 @@ struct Exp final : LinearOperator<typename Op::VectorType> {
   }
 
   VectorType apply(const VectorType& v) const override {
-    const auto v_norm = vector_norm(v);
+    const auto v_norm = arma::norm(v);
     if (v_norm == static_cast<RealType>(0)) {
       return v;
     }
