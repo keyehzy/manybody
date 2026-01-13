@@ -1,10 +1,9 @@
-#include "utils/static_vector.h"
-
 #include <array>
 #include <unordered_set>
 
 #include "algebra/operator.h"
 #include "framework.h"
+#include "utils/static_vector.h"
 
 TEST(static_vector_default_is_empty) {
   static_vector<int, 4> vec;

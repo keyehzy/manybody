@@ -1,10 +1,9 @@
-#include "numerics/linear_operator.h"
-
 #include <armadillo>
 #include <cmath>
 
 #include "framework.h"
 #include "numerics/exp_operator.h"
+#include "numerics/linear_operator.h"
 #include "numerics/linear_operator_utils.h"
 
 TEST(linear_operator_negated_applies_sign) {

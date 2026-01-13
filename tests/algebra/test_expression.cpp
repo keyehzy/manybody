@@ -1,7 +1,6 @@
-#include "algebra/expression.h"
-
 #include <limits>
 
+#include "algebra/expression.h"
 #include "framework.h"
 
 TEST(expression_construct_from_complex_identity) {

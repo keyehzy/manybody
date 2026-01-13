@@ -1,11 +1,10 @@
-#include "algorithms/schriffer_wolff.h"
-
 #include <armadillo>
 #include <cmath>
 
 #include "algebra/basis.h"
 #include "algebra/matrix_elements.h"
 #include "algebra/model/hubbard_model.h"
+#include "algorithms/schriffer_wolff.h"
 #include "framework.h"
 
 TEST(schriffer_wolff_cluster_by_largest_gap) {

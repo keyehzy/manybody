@@ -1,5 +1,4 @@
 #include "algebra/commutator.h"
-
 #include "framework.h"
 
 TEST(commutator_commuting_creations_doubles_ordered_term) {

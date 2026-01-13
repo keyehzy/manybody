@@ -1,5 +1,4 @@
 #include "algebra/basis.h"
-
 #include "framework.h"
 
 TEST(basis_restrict_single_particle) {

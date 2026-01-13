@@ -1,9 +1,8 @@
-#include "algebra/fourier_transform.h"
-
 #include <cmath>
 #include <complex>
 #include <numbers>
 
+#include "algebra/fourier_transform.h"
 #include "framework.h"
 #include "utils/index.h"
 

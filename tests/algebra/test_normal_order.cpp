@@ -1,5 +1,4 @@
 #include "algebra/normal_order.h"
-
 #include "framework.h"
 
 TEST(normal_order_zero_coefficient_returns_empty) {

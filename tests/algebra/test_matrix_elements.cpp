@@ -1,8 +1,7 @@
-#include "algebra/matrix_elements.h"
-
 #include <armadillo>
 
 #include "algebra/basis.h"
+#include "algebra/matrix_elements.h"
 #include "algebra/operator.h"
 #include "algebra/term.h"
 #include "framework.h"

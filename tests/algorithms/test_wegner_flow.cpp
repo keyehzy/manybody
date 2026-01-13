@@ -1,10 +1,9 @@
-#include "algorithms/wegner_flow.h"
-
 #include <armadillo>
 #include <cmath>
 #include <cstddef>
 
 #include "algorithms/dynamical_system.h"
+#include "algorithms/wegner_flow.h"
 #include "framework.h"
 
 namespace {

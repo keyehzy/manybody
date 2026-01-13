@@ -1,5 +1,4 @@
 #include "algebra/term.h"
-
 #include "framework.h"
 
 TEST(term_default_is_identity) {

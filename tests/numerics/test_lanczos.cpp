@@ -1,9 +1,8 @@
-#include "numerics/lanczos.h"
-
 #include <armadillo>
 #include <cmath>
 
 #include "framework.h"
+#include "numerics/lanczos.h"
 
 namespace test_lanczos {
 std::vector<double> solve_tridiagonal_system(const std::vector<double>& alphas,

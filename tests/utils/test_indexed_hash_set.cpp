@@ -1,8 +1,7 @@
-#include "utils/indexed_hash_set.h"
-
 #include <stdexcept>
 
 #include "framework.h"
+#include "utils/indexed_hash_set.h"
 
 TEST(indexed_hash_set_initializer_list_preserves_order) {
   IndexedHashSet<int> set{3, 1, 4};

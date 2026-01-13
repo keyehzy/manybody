@@ -1,8 +1,7 @@
-#include "utils/index.h"
-
 #include <stdexcept>
 
 #include "framework.h"
+#include "utils/index.h"
 
 TEST(dynamic_index_round_trip) {
   DynamicIndex index({2, 3, 4});

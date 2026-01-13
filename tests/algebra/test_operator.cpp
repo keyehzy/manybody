@@ -1,7 +1,6 @@
-#include "algebra/operator.h"
-
 #include <unordered_set>
 
+#include "algebra/operator.h"
 #include "framework.h"
 
 TEST(operator_bits_roundtrip) {
