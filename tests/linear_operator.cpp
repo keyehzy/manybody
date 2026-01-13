@@ -3,7 +3,9 @@
 #include <armadillo>
 #include <cmath>
 
+#include "exp_operator.h"
 #include "framework.h"
+#include "linear_operator_utils.h"
 
 struct DiagonalOperator final : LinearOperator<arma::vec> {
   using VectorType = arma::vec;
@@ -148,10 +150,7 @@ TEST(linear_operator_power_method_estimates_dominant_eigenvalue) {
 TEST(linear_operator_estimate_bounds_matches_diagonal_spectrum) {
   DiagonalOperator op(arma::vec{-2.0, 0.5, 4.0});
 
-  ExpOptions<double> options;
-  options.power_iterations = 40;
-  options.spectral_padding = 0.2;
-  const auto bounds = estimate_bounds(op, options.power_iterations, options.spectral_padding);
+  const auto bounds = estimate_bounds(op, 40, 0.2);
 
   EXPECT_TRUE(std::abs(bounds.alpha + 2.0) < 1e-3);
   EXPECT_TRUE(std::abs(bounds.beta - 4.0) < 1e-3);
@@ -162,9 +161,7 @@ TEST(linear_operator_exp_matches_diagonal_exponential) {
   arma::vec v{1.0, -2.0, 0.5};
 
   ExpOptions<double> options;
-  options.tolerance = 1e-10;
-  options.max_degree = 250;
-  options.scale_target = 10.0;
+  options.krylov_steps = op.dimension();
   Exp<DiagonalOperator> exp_op(op, options);
   arma::vec result = exp_op.apply(v);
 
@@ -180,10 +177,7 @@ TEST(linear_operator_exp_handles_scaled_steps) {
   arma::vec v{1.0, 2.0};
 
   ExpOptions<double> options;
-  options.tolerance = 1e-9;
-  options.max_degree = 200;
-  options.scale_target = 0.25;
-  options.max_scale_steps = 16;
+  options.krylov_steps = 50;
   Exp<DiagonalOperator> exp_op(op, options);
   arma::vec result = exp_op.apply(v);
 
