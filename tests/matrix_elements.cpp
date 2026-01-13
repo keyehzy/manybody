@@ -1,11 +1,11 @@
-#include "matrix_elements.h"
+#include "algebra/matrix_elements.h"
 
 #include <armadillo>
 
-#include "basis.h"
+#include "algebra/basis.h"
+#include "algebra/operator.h"
+#include "algebra/term.h"
 #include "framework.h"
-#include "operator.h"
-#include "term.h"
 
 TEST(matrix_elements_vector_serial_creation) {
   Basis basis(1, 1, Basis::Strategy::Restrict);

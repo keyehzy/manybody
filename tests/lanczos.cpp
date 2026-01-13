@@ -1,4 +1,4 @@
-#include "lanczos.h"
+#include "numerics/lanczos.h"
 
 #include <armadillo>
 #include <cmath>

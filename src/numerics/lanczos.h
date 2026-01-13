@@ -9,7 +9,7 @@
 #include <tuple>
 #include <vector>
 
-#include "linear_operator.h"
+#include "numerics/linear_operator.h"
 
 template <typename Scalar>
 constexpr scalar_real_t<Scalar> breakdown_tolerance() {

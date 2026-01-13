@@ -1,3 +1,3 @@
-#include "operator.h"
+#include "algebra/operator.h"
 
 int main() { return 0; }

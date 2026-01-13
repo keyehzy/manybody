@@ -3,11 +3,11 @@
 #include <iostream>
 #include <vector>
 
-#include "algorithm/schriffer_wolff.h"
-#include "basis.h"
-#include "commutator.h"
-#include "matrix_elements.h"
-#include "models/hubbard_model.h"
+#include "algebra/basis.h"
+#include "algebra/commutator.h"
+#include "algebra/hubbard_model.h"
+#include "algebra/matrix_elements.h"
+#include "algorithms/schriffer_wolff.h"
 
 arma::vec unique_eigenvalues(const arma::vec& values) {
   constexpr auto kTolerance = 0.01;

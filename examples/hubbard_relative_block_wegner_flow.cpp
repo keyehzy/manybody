@@ -4,7 +4,7 @@
 #include <exception>
 #include <iostream>
 
-#include "algorithm/wegner_flow.h"
+#include "algorithms/wegner_flow.h"
 #include "cxxopts.hpp"
 #include "hubbard_relative_operators.h"
 

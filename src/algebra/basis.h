@@ -1,8 +1,8 @@
 #pragma once
 
-#include "index.h"
-#include "indexed_hash_set.h"
-#include "term.h"
+#include "algebra/term.h"
+#include "utils/index.h"
+#include "utils/indexed_hash_set.h"
 
 struct Basis {
   using key_type = Term::container_type;

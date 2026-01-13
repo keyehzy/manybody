@@ -1,6 +1,6 @@
 #pragma once
 
-#include "expression.h"
+#include "algebra/expression.h"
 #include "robin_hood.h"
 
 struct NormalOrderer {

@@ -207,11 +207,14 @@ def find_headers(directories):
                 os.path.join(directory, "*.h"),
                 os.path.join(directory, "*.hpp"),
                 os.path.join(directory, "*.hh"),
+                os.path.join(directory, "**", "*.h"),
+                os.path.join(directory, "**", "*.hpp"),
+                os.path.join(directory, "**", "*.hh"),
             ]
         )
     headers = []
     for pattern in patterns:
-        headers.extend(glob.glob(pattern))
+        headers.extend(glob.glob(pattern, recursive=True))
     return filter_files(headers)
 
 
@@ -221,6 +224,8 @@ def find_test_deps():
         "tests/*.h",
         "src/*.cpp",
         "src/*.h",
+        "src/**/*.cpp",
+        "src/**/*.h",
     ]
     deps = []
     for pattern in patterns:

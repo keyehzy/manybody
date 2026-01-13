@@ -1,4 +1,4 @@
-#include "algorithm/wegner_flow.h"
+#include "algorithms/wegner_flow.h"
 
 namespace {
 

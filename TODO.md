@@ -5,7 +5,7 @@ Refactor ideas discovered during codebase skim:
 - Consolidate Basis combination generators into a single parameterized routine to reduce
   duplicated sorting/ordering logic in `src/basis.cpp`.
 - Generalize Hubbard models (1D/2D/3D) to a dimension-agnostic helper using `DynamicIndex`
-  to reduce duplicated neighbor enumeration in `src/models/hubbard_model.h`.
+  to reduce duplicated neighbor enumeration in `src/algebra/hubbard_model.h`.
 - Share inner loops between serial and OpenMP matrix element routines to avoid duplication
   in `src/matrix_elements.h`.
 - Merge duplicate initialization paths in `IndexedHashSet` (range vs moved vector) into a
@@ -24,5 +24,5 @@ Refactor ideas discovered during codebase skim:
 - LinearOperator perf: store operands by reference/pointer or use forwarding to avoid heavy operator copies in compositions.
 - LinearOperator perf: consider non-virtual/expression-template path for hot loops to reduce dispatch and allocations.
 - LinearOperator perf: reduce modulo cost in Hubbard relative kinetic operator (edge/inner loop or precomputed neighbors).
-- Remove trivial wrapper `diagonal_part` around `arma::diagmat(H.diag())` in `src/algorithm/wegner_flow.cpp`.
-- Remove trivial wrapper `pair_annihilation` around `pair_creation(r).adjoint()` in `src/models/hubbard_model_relative.h`.
+- Remove trivial wrapper `diagonal_part` around `arma::diagmat(H.diag())` in `src/algorithms/wegner_flow.cpp`.
+- Remove trivial wrapper `pair_annihilation` around `pair_creation(r).adjoint()` in `src/algebra/hubbard_model_relative.h`.

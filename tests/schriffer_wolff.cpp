@@ -1,12 +1,12 @@
-#include "algorithm/schriffer_wolff.h"
+#include "algorithms/schriffer_wolff.h"
 
 #include <armadillo>
 #include <cmath>
 
-#include "basis.h"
+#include "algebra/basis.h"
+#include "algebra/hubbard_model.h"
+#include "algebra/matrix_elements.h"
 #include "framework.h"
-#include "matrix_elements.h"
-#include "models/hubbard_model.h"
 
 TEST(schriffer_wolff_cluster_by_largest_gap) {
   arma::vec vals = {0.0, 0.5, 0.8, 2.0};

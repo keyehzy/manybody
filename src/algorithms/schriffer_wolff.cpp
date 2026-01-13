@@ -1,9 +1,9 @@
-#include "schriffer_wolff.h"
+#include "algorithms/schriffer_wolff.h"
 
 #include <complex>
 #include <limits>
 
-#include "matrix_elements.h"
+#include "algebra/matrix_elements.h"
 
 namespace {
 constexpr auto kTolerance =

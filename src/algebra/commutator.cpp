@@ -1,9 +1,9 @@
-#include "commutator.h"
+#include "algebra/commutator.h"
 
 #include <cmath>
 #include <limits>
 
-#include "normal_order.h"
+#include "algebra/normal_order.h"
 
 Expression commutator(const Term& A, const Term& B) {
   NormalOrderer orderer;

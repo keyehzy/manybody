@@ -1,8 +1,8 @@
-#include "normal_order.h"
+#include "algebra/normal_order.h"
 
 #include <limits>
 
-#include "expression.h"
+#include "algebra/expression.h"
 
 constexpr auto tolerance =
     1000.0 * std::numeric_limits<Expression::complex_type::value_type>::epsilon();

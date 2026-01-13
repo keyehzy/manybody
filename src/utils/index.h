@@ -5,7 +5,7 @@
 #include <utility>
 #include <vector>
 
-#include "operator.h"
+#include "algebra/operator.h"
 
 class DynamicIndex {
  public:

@@ -5,7 +5,7 @@
 #include <complex>
 #include <limits>
 
-#include "linear_operator.h"
+#include "numerics/linear_operator.h"
 
 template <typename Scalar>
 struct Bounds {

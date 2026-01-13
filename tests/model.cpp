@@ -1,12 +1,12 @@
-#include "models/model.h"
+#include "algebra/model.h"
 
 #include <cmath>
 #include <numbers>
 #include <type_traits>
 
+#include "algebra/hubbard_model.h"
+#include "algebra/hubbard_model_relative.h"
 #include "framework.h"
-#include "models/hubbard_model.h"
-#include "models/hubbard_model_relative.h"
 
 namespace {
 constexpr double kModelTolerance = 1e-6;

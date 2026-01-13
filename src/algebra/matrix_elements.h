@@ -5,8 +5,8 @@
 #include <utility>
 #include <vector>
 
-#include "expression.h"
-#include "normal_order.h"
+#include "algebra/expression.h"
+#include "algebra/normal_order.h"
 
 template <typename VectorType, typename Basis>
 VectorType compute_vector_elements_serial(const Basis& basis, const Expression& A,

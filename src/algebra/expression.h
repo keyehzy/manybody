@@ -5,8 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "algebra/term.h"
 #include "robin_hood.h"
-#include "term.h"
 
 struct Expression {
   using complex_type = Term::complex_type;

@@ -1,4 +1,4 @@
-#include "term.h"
+#include "algebra/term.h"
 
 #include <sstream>
 

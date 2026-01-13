@@ -48,6 +48,15 @@ simplifying maintenance and improving test coverage.
 
 - Refactor ideas are tracked in `TODO.md`.
 
+## Source layout
+
+- `src/algebra/` contains operator/term/expression/basis/models plus normal ordering,
+  commutators, matrix elements, and transforms.
+- `src/numerics/` contains linear operator abstractions plus Lanczos/Krylov helpers.
+- `src/algorithms/` contains flow/integration algorithms (Wegner flow, Schriffer-Wolff, etc.).
+- `src/utils/` contains shared containers, indexing (DynamicIndex), hashing, and special functions.
+- `src/main.cpp` stays at the top level.
+
 ## Benchmark
 
 - Use examples/hubbard_1d_schriffer_wolff_benchmark.cpp as a proxy benchmark for the library functionality.

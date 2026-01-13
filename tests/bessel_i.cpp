@@ -1,7 +1,7 @@
 #include <cmath>
 
 #include "framework.h"
-#include "special_functions.h"
+#include "utils/special_functions.h"
 
 TEST(bessel_i_handles_zero) {
   const double tol = 1e-12;

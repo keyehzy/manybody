@@ -1,4 +1,4 @@
-#include "commutator.h"
+#include "algebra/commutator.h"
 
 #include "framework.h"
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "expression.h"
+#include "algebra/expression.h"
 
 struct Model {
   virtual ~Model() = default;

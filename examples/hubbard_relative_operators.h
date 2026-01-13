@@ -6,8 +6,8 @@
 #include <cstddef>
 #include <numbers>
 
-#include "index.h"
-#include "linear_operator.h"
+#include "numerics/linear_operator.h"
+#include "utils/index.h"
 
 struct HubbardRelativeInteraction final : LinearOperator<arma::vec> {
   using VectorType = arma::vec;

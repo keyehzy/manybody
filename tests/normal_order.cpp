@@ -1,4 +1,4 @@
-#include "normal_order.h"
+#include "algebra/normal_order.h"
 
 #include "framework.h"
 

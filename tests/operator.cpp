@@ -1,4 +1,4 @@
-#include "operator.h"
+#include "algebra/operator.h"
 
 #include <unordered_set>
 

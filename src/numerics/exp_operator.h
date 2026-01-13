@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "lanczos.h"
+#include "numerics/lanczos.h"
 
 namespace exp_detail {
 template <typename RealType>

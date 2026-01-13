@@ -1,4 +1,4 @@
-#include "algorithm/diagonal_terms.h"
+#include "algorithms/diagonal_terms.h"
 
 #include <algorithm>
 

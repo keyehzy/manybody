@@ -1,11 +1,11 @@
-#include "linear_operator.h"
+#include "numerics/linear_operator.h"
 
 #include <armadillo>
 #include <cmath>
 
-#include "exp_operator.h"
 #include "framework.h"
-#include "linear_operator_utils.h"
+#include "numerics/exp_operator.h"
+#include "numerics/linear_operator_utils.h"
 
 TEST(linear_operator_negated_applies_sign) {
   DiagonalOperator op(arma::vec{1.0, 2.0, -1.0});

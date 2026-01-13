@@ -6,10 +6,10 @@
 #include <numbers>
 #include <vector>
 
-#include "expression.h"
-#include "fourier_transform.h"
-#include "index.h"
-#include "term.h"
+#include "algebra/expression.h"
+#include "algebra/fourier_transform.h"
+#include "algebra/term.h"
+#include "utils/index.h"
 
 int main() {
   const size_t sites = 6;

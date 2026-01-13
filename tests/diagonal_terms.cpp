@@ -1,9 +1,9 @@
-#include "algorithm/diagonal_terms.h"
+#include "algorithms/diagonal_terms.h"
 
 #include <algorithm>
 
+#include "algebra/term.h"
 #include "framework.h"
-#include "term.h"
 
 namespace {
 

@@ -3,9 +3,9 @@
 #include <cstddef>
 #include <vector>
 
-#include "index.h"
-#include "models/model.h"
-#include "term.h"
+#include "algebra/model.h"
+#include "algebra/term.h"
+#include "utils/index.h"
 
 struct HubbardModel : Model {
   HubbardModel(double t, double u, size_t size) : t(t), u(u), size(size) {}

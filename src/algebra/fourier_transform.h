@@ -7,8 +7,8 @@
 #include <type_traits>
 #include <utility>
 
-#include "expression.h"
-#include "index.h"
+#include "algebra/expression.h"
+#include "utils/index.h"
 
 template <typename F, typename... Args>
 using is_operator_callable = std::is_invocable<F, Operator, Args...>;

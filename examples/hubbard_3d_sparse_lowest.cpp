@@ -1,9 +1,9 @@
 #include <armadillo>
 #include <iostream>
 
-#include "basis.h"
-#include "matrix_elements.h"
-#include "models/hubbard_model.h"
+#include "algebra/basis.h"
+#include "algebra/hubbard_model.h"
+#include "algebra/matrix_elements.h"
 
 int main() {
   const size_t size_x = 2;

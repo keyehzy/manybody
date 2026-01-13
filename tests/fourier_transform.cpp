@@ -1,11 +1,11 @@
-#include "fourier_transform.h"
+#include "algebra/fourier_transform.h"
 
 #include <cmath>
 #include <complex>
 #include <numbers>
 
 #include "framework.h"
-#include "index.h"
+#include "utils/index.h"
 
 namespace {
 constexpr double kTolerance = 1e-6;

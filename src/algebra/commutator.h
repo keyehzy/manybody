@@ -1,6 +1,6 @@
 #pragma once
 
-#include "expression.h"
+#include "algebra/expression.h"
 
 Expression commutator(const Term& A, const Term& B);
 Expression commutator(const Expression& A, const Expression& B);

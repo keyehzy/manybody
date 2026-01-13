@@ -5,8 +5,8 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "operator.h"
-#include "static_vector.h"
+#include "algebra/operator.h"
+#include "utils/static_vector.h"
 
 constexpr size_t term_size = 24;
 

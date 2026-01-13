@@ -1,4 +1,4 @@
-#include "basis.h"
+#include "algebra/basis.h"
 
 #include <algorithm>
 #include <cassert>

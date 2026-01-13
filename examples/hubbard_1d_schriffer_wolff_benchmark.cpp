@@ -1,11 +1,11 @@
 #include <armadillo>
 #include <iostream>
 
-#include "algorithm/schriffer_wolff.h"
-#include "basis.h"
-#include "commutator.h"
-#include "matrix_elements.h"
-#include "models/hubbard_model.h"
+#include "algebra/basis.h"
+#include "algebra/commutator.h"
+#include "algebra/hubbard_model.h"
+#include "algebra/matrix_elements.h"
+#include "algorithms/schriffer_wolff.h"
 
 int main() {
   const size_t lattice_size = 15;

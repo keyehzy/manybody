@@ -1,4 +1,4 @@
-#include "expression.h"
+#include "algebra/expression.h"
 
 #include <limits>
 
