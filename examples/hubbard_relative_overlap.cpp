@@ -51,8 +51,9 @@ int main(int argc, char** argv) {
 
   const size_t total_size = opts.lattice_size * opts.lattice_size * opts.lattice_size;
 
-  HubbardRelativeKinetic3D kinetic(opts.lattice_size, opts.total_momentum, opts.total_momentum,
-                                   opts.total_momentum);
+  HubbardRelativeKinetic kinetic(
+      {opts.lattice_size, opts.lattice_size, opts.lattice_size},
+      {opts.total_momentum, opts.total_momentum, opts.total_momentum});
   HubbardRelativeInteraction onsite(total_size);
 
   auto hamiltonian = opts.t * kinetic + opts.U * onsite;

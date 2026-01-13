@@ -24,5 +24,7 @@ Refactor ideas discovered during codebase skim:
 - LinearOperator perf: store operands by reference/pointer or use forwarding to avoid heavy operator copies in compositions.
 - LinearOperator perf: consider non-virtual/expression-template path for hot loops to reduce dispatch and allocations.
 - LinearOperator perf: reduce modulo cost in Hubbard relative kinetic operator (edge/inner loop or precomputed neighbors).
+- Performance: the generic path uses per-site coordinate extraction and offset vectors, which is a bit heavier than hard-coded loops. For the examples, it should be fine; if performance
+  matters, you can reuse preallocated coords/offsets vectors inside the loop to avoid allocations.
 - Remove trivial wrapper `diagonal_part` around `arma::diagmat(H.diag())` in `src/algorithms/wegner_flow.cpp`.
 - Remove trivial wrapper `pair_annihilation` around `pair_creation(r).adjoint()` in `src/algebra/hubbard_model_relative.h`.

@@ -5,6 +5,8 @@
 #include <cmath>
 #include <cstddef>
 #include <numbers>
+#include <stdexcept>
+#include <vector>
 
 #include "numerics/linear_operator.h"
 #include "utils/index.h"
@@ -31,121 +33,51 @@ struct HubbardRelativeKinetic final : LinearOperator<arma::vec> {
   using VectorType = arma::vec;
   using ScalarType = double;
 
-  HubbardRelativeKinetic(size_t size, size_t total_momentum) : size_(size), index_({size}) {
-    const double k_phase = 2.0 * std::numbers::pi_v<double> * static_cast<double>(total_momentum) /
-                           static_cast<double>(size_);
-    t_eff_ = 2.0 * std::cos(0.5 * k_phase);
-  }
-
-  size_t dimension() const override { return size_; }
-  ScalarType effective_hopping() const { return t_eff_; }
-
-  VectorType apply(const VectorType& v) const override {
-    assert(v.n_elem == dimension());
-    VectorType w(v.n_elem, arma::fill::zeros);
-    for (size_t r = 0; r < size_; ++r) {
-      const size_t i = index_({r});
-      w(i) += t_eff_ * (v(index_({r}, {-1})) + v(index_({r}, {1})));
+  HubbardRelativeKinetic(std::vector<size_t> size, std::vector<size_t> total_momentum)
+      : size_(std::move(size)),
+        total_momentum_(std::move(total_momentum)),
+        index_(size_) {
+    if (size_.empty()) {
+      throw std::invalid_argument("HubbardRelativeKinetic requires at least one dimension.");
     }
-    return w;
+    if (size_.size() != total_momentum_.size()) {
+      throw std::invalid_argument("HubbardRelativeKinetic size and momentum must match.");
+    }
+    t_eff_.resize(size_.size());
+    for (size_t d = 0; d < size_.size(); ++d) {
+      const double k_phase = 2.0 * std::numbers::pi_v<double> *
+                             static_cast<double>(total_momentum_[d]) /
+                             static_cast<double>(size_[d]);
+      t_eff_[d] = 2.0 * std::cos(0.5 * k_phase);
+    }
   }
 
-  size_t size_;
-  DynamicIndex index_;
-  ScalarType t_eff_{};
-};
-
-struct HubbardRelativeKinetic2D final : LinearOperator<arma::vec> {
-  using VectorType = arma::vec;
-  using ScalarType = double;
-
-  HubbardRelativeKinetic2D(size_t size, size_t total_momentum_x, size_t total_momentum_y)
-      : size_(size),
-        total_momentum_x_(total_momentum_x),
-        total_momentum_y_(total_momentum_y),
-        index_({size, size}) {
-    const double kx_phase = 2.0 * std::numbers::pi_v<double> *
-                            static_cast<double>(total_momentum_x_) / static_cast<double>(size_);
-    const double ky_phase = 2.0 * std::numbers::pi_v<double> *
-                            static_cast<double>(total_momentum_y_) / static_cast<double>(size_);
-    tx_eff_ = 2.0 * std::cos(0.5 * kx_phase);
-    ty_eff_ = 2.0 * std::cos(0.5 * ky_phase);
+  size_t dimension() const override { return index_.size(); }
+  ScalarType effective_hopping(size_t dim) const {
+    assert(dim < t_eff_.size());
+    return t_eff_[dim];
   }
-
-  size_t dimension() const override { return size_ * size_; }
-  ScalarType effective_hopping_x() const { return tx_eff_; }
-  ScalarType effective_hopping_y() const { return ty_eff_; }
 
   VectorType apply(const VectorType& v) const override {
     assert(v.n_elem == dimension());
     VectorType w(v.n_elem, arma::fill::zeros);
-    for (size_t y = 0; y < size_; ++y) {
-      for (size_t x = 0; x < size_; ++x) {
-        const size_t i = index_({x, y});
-        w(i) += tx_eff_ * (v(index_({x, y}, {-1, 0})) + v(index_({x, y}, {1, 0})));
-        w(i) += ty_eff_ * (v(index_({x, y}, {0, -1})) + v(index_({x, y}, {0, 1})));
+    const size_t dims = size_.size();
+    DynamicIndex::offset_type offsets(dims, 0);
+    for (size_t orbital = 0; orbital < dimension(); ++orbital) {
+      const auto coords = index_(orbital);
+      for (size_t d = 0; d < dims; ++d) {
+        offsets[d] = -1;
+        w(orbital) += t_eff_[d] * v(index_(coords, offsets));
+        offsets[d] = 1;
+        w(orbital) += t_eff_[d] * v(index_(coords, offsets));
+        offsets[d] = 0;
       }
     }
     return w;
   }
 
-  size_t size_;
-  size_t total_momentum_x_;
-  size_t total_momentum_y_;
+  std::vector<size_t> size_;
+  std::vector<size_t> total_momentum_;
   DynamicIndex index_;
-  ScalarType tx_eff_{};
-  ScalarType ty_eff_{};
-};
-
-struct HubbardRelativeKinetic3D final : LinearOperator<arma::vec> {
-  using VectorType = arma::vec;
-  using ScalarType = double;
-
-  HubbardRelativeKinetic3D(size_t size, size_t total_momentum_x, size_t total_momentum_y,
-                           size_t total_momentum_z)
-      : size_(size),
-        total_momentum_x_(total_momentum_x),
-        total_momentum_y_(total_momentum_y),
-        total_momentum_z_(total_momentum_z),
-        index_({size, size, size}) {
-    const double kx_phase = 2.0 * std::numbers::pi_v<double> *
-                            static_cast<double>(total_momentum_x_) / static_cast<double>(size_);
-    const double ky_phase = 2.0 * std::numbers::pi_v<double> *
-                            static_cast<double>(total_momentum_y_) / static_cast<double>(size_);
-    const double kz_phase = 2.0 * std::numbers::pi_v<double> *
-                            static_cast<double>(total_momentum_z_) / static_cast<double>(size_);
-    tx_eff_ = 2.0 * std::cos(0.5 * kx_phase);
-    ty_eff_ = 2.0 * std::cos(0.5 * ky_phase);
-    tz_eff_ = 2.0 * std::cos(0.5 * kz_phase);
-  }
-
-  size_t dimension() const override { return size_ * size_ * size_; }
-  ScalarType effective_hopping_x() const { return tx_eff_; }
-  ScalarType effective_hopping_y() const { return ty_eff_; }
-  ScalarType effective_hopping_z() const { return tz_eff_; }
-
-  VectorType apply(const VectorType& v) const override {
-    assert(v.n_elem == dimension());
-    VectorType w(v.n_elem, arma::fill::zeros);
-    for (size_t z = 0; z < size_; ++z) {
-      for (size_t y = 0; y < size_; ++y) {
-        for (size_t x = 0; x < size_; ++x) {
-          const size_t i = index_({x, y, z});
-          w(i) += tx_eff_ * (v(index_({x, y, z}, {-1, 0, 0})) + v(index_({x, y, z}, {1, 0, 0})));
-          w(i) += ty_eff_ * (v(index_({x, y, z}, {0, -1, 0})) + v(index_({x, y, z}, {0, 1, 0})));
-          w(i) += tz_eff_ * (v(index_({x, y, z}, {0, 0, -1})) + v(index_({x, y, z}, {0, 0, 1})));
-        }
-      }
-    }
-    return w;
-  }
-
-  size_t size_;
-  size_t total_momentum_x_;
-  size_t total_momentum_y_;
-  size_t total_momentum_z_;
-  DynamicIndex index_;
-  ScalarType tx_eff_{};
-  ScalarType ty_eff_{};
-  ScalarType tz_eff_{};
+  std::vector<ScalarType> t_eff_{};
 };

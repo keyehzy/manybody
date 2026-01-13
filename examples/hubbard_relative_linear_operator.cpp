@@ -8,7 +8,7 @@ int main() {
   const double t = 1.0;
   const double U = 4.0;
 
-  HubbardRelativeKinetic kinetic(lattice_size, total_momentum);
+  HubbardRelativeKinetic kinetic({lattice_size}, {total_momentum});
   HubbardRelativeInteraction onsite(lattice_size);
 
   auto hamiltonian = t * kinetic + U * onsite;
@@ -21,8 +21,8 @@ int main() {
   arma::vec result = hamiltonian.apply(state);
 
   std::cout << "Relative-coordinate Hubbard Hamiltonian\n";
-  std::cout << "L=" << lattice_size << ", K=" << total_momentum << ", t_eff=" << kinetic.t_eff_ * t
-            << ", U=" << U << "\n";
+  std::cout << "L=" << lattice_size << ", K=" << total_momentum
+            << ", t_eff=" << kinetic.effective_hopping(0) * t << ", U=" << U << "\n";
   std::cout << "H|psi> = " << result.t();
   return 0;
 }

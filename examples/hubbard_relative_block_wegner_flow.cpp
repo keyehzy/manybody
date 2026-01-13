@@ -108,8 +108,9 @@ int main(int argc, char** argv) {
   const size_t total_size = opts.lattice_size * opts.lattice_size * opts.lattice_size;
   constexpr size_t kBlockDim = 1;
 
-  HubbardRelativeKinetic3D kinetic(opts.lattice_size, opts.total_momentum, opts.total_momentum,
-                                   opts.total_momentum);
+  HubbardRelativeKinetic kinetic(
+      {opts.lattice_size, opts.lattice_size, opts.lattice_size},
+      {opts.total_momentum, opts.total_momentum, opts.total_momentum});
   HubbardRelativeInteraction onsite(total_size);
   auto hamiltonian = opts.t * kinetic + opts.U * onsite;
   const arma::cx_mat h0 = build_hamiltonian_matrix(hamiltonian, total_size);
