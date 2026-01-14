@@ -1,3 +1,4 @@
+#define CATCH_CONFIG_MAIN
 #include "algebra/test_basis.cpp"
 #include "algebra/test_commutator.cpp"
 #include "algebra/test_expression.cpp"
@@ -9,7 +10,7 @@
 #include "algorithms/test_diagonal_terms.cpp"
 #include "algorithms/test_schriffer_wolff.cpp"
 #include "algorithms/test_wegner_flow.cpp"
-#include "framework.h"
+#include "catch.hpp"
 #include "numerics/test_evolve_state.cpp"
 #include "numerics/test_lanczos.cpp"
 #include "numerics/test_linear_operator.cpp"
@@ -17,5 +18,3 @@
 #include "utils/test_index.cpp"
 #include "utils/test_indexed_hash_set.cpp"
 #include "utils/test_static_vector.cpp"
-
-int main() { return run_all_tests(); }
