@@ -34,6 +34,22 @@ arma::cx_vec exact_time_evolution(const arma::cx_mat& H, const arma::cx_vec& psi
   const arma::cx_mat exp_H = eigenvectors * arma::diagmat(phases) * eigenvectors.t();
   return exp_H * psi0;
 }
+
+arma::cx_vec exact_imaginary_time_evolution(const arma::cx_mat& H, const arma::cx_vec& psi0,
+                                            double t) {
+  arma::vec eigenvalues;
+  arma::cx_mat eigenvectors;
+  if (!arma::eig_sym(eigenvalues, eigenvectors, H)) {
+    throw std::runtime_error("Eigenvalue decomposition failed for exact evolution");
+  }
+
+  arma::cx_vec factors(eigenvalues.n_elem);
+  for (size_t i = 0; i < eigenvalues.n_elem; ++i) {
+    factors(i) = std::exp(-t * eigenvalues(i));
+  }
+  const arma::cx_mat exp_H = eigenvectors * arma::diagmat(factors) * eigenvectors.t();
+  return exp_H * psi0;
+}
 }  // namespace
 
 TEST(time_evolve_state_steps_matches_exact_expm) {
@@ -90,5 +106,28 @@ TEST(time_evolve_state_steps_calls_callback_and_matches_exact_expm) {
   EXPECT_TRUE(std::abs(times.back() - t1) < 1e-12);
 
   const double rel_error = arma::norm(stepped - direct) / arma::norm(direct);
+  EXPECT_TRUE(rel_error < 1e-8);
+}
+
+TEST(imaginary_time_evolve_state_matches_exact_expm) {
+  arma::vec diag = {0.2, 1.1};
+  arma::cx_mat H(2, 2, arma::fill::zeros);
+  H(0, 0) = diag(0);
+  H(1, 1) = diag(1);
+
+  arma::cx_vec psi0(2);
+  psi0(0) = arma::cx_double(0.4, -0.1);
+  psi0(1) = arma::cx_double(-0.2, 0.3);
+
+  EvolutionOptions<arma::cx_double> opts;
+  opts.krylov_steps = 2;
+
+  ComplexMatrixOperator op(H);
+
+  const double t = 0.7;
+  const auto evolved = imaginary_time_evolve_state(op, psi0, t, opts);
+  const auto expected = exact_imaginary_time_evolution(H, psi0, t);
+
+  const double rel_error = arma::norm(evolved - expected) / arma::norm(expected);
   EXPECT_TRUE(rel_error < 1e-8);
 }
