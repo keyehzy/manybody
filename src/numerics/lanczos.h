@@ -180,21 +180,6 @@ LanczosDecomposition<typename Op::ScalarType> lanczos_pass_one(const Op& op,
   return decomp;
 }
 
-// Generic scaling used by Krylov/Lanczos projection methods.
-//
-// The coefficient type is typically either:
-//   - RealType (e.g. double) for exp(H) * v in imaginary-time / thermal contexts
-//   - ScalarType (e.g. std::complex<double>) for unitary time evolution exp(-i t H) * v
-template <typename Scalar>
-std::vector<Scalar> scale_coefficients(const std::vector<Scalar>& y, scalar_real_t<Scalar> scale) {
-  std::vector<Scalar> scaled;
-  scaled.reserve(y.size());
-  for (const auto& value : y) {
-    scaled.push_back(value * scale);
-  }
-  return scaled;
-}
-
 template <typename Op, typename Scalar>
 typename Op::VectorType lanczos_pass_two(
     const Op& op, const typename Op::VectorType& b,
@@ -247,9 +232,11 @@ typename Op::VectorType solve(const Op& op, const typename Op::VectorType& b, si
     return typename Op::VectorType(b.n_elem, arma::fill::zeros);
   }
 
-  const auto y_k_unscaled = solver(decomp.alphas, decomp.betas);
-  using CoeffType = typename decltype(y_k_unscaled)::value_type;
-  const auto y_k = scale_coefficients<CoeffType>(y_k_unscaled, decomp.b_norm);
+  auto y_k = solver(decomp.alphas, decomp.betas);
+  using CoeffType = typename decltype(y_k)::value_type;
+  for (auto& value : y_k) {
+    value *= decomp.b_norm;
+  }
 
   return lanczos_pass_two<Op, CoeffType>(op, b, decomp, y_k);
 }
