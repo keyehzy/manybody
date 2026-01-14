@@ -1,7 +1,7 @@
 #include "algebra/commutator.h"
-#include "framework.h"
+#include "catch.hpp"
 
-TEST(commutator_commuting_creations_doubles_ordered_term) {
+TEST_CASE("commutator_commuting_creations_doubles_ordered_term") {
   Operator a = Operator::creation(Operator::Spin::Up, 1);
   Operator b = Operator::creation(Operator::Spin::Up, 2);
   Term left(a);
@@ -11,22 +11,22 @@ TEST(commutator_commuting_creations_doubles_ordered_term) {
 
   Expression::container_type ordered{a, b};
   auto it = result.hashmap.find(ordered);
-  EXPECT_TRUE(it != result.hashmap.end());
-  EXPECT_EQ(it->second, Expression::complex_type(2.0f, 0.0f));
-  EXPECT_EQ(result.size(), 1u);
+  CHECK(it != result.hashmap.end());
+  CHECK((it->second) == (Expression::complex_type(2.0f, 0.0f)));
+  CHECK((result.size()) == (1u));
 }
 
-TEST(anticommutator_commuting_creations_vanishes) {
+TEST_CASE("anticommutator_commuting_creations_vanishes") {
   Operator a = Operator::creation(Operator::Spin::Up, 1);
   Operator b = Operator::creation(Operator::Spin::Up, 2);
   Term left(a);
   Term right(b);
 
   Expression result = anticommutator(left, right);
-  EXPECT_EQ(result.size(), 0u);
+  CHECK((result.size()) == (0u));
 }
 
-TEST(commutator_creation_annihilation_same_orbital) {
+TEST_CASE("commutator_creation_annihilation_same_orbital") {
   Operator create = Operator::creation(Operator::Spin::Down, 3);
   Operator annihilate = Operator::annihilation(Operator::Spin::Down, 3);
   Term left(create);
@@ -36,17 +36,17 @@ TEST(commutator_creation_annihilation_same_orbital) {
 
   Expression::container_type empty{};
   auto it_empty = result.hashmap.find(empty);
-  EXPECT_TRUE(it_empty != result.hashmap.end());
-  EXPECT_EQ(it_empty->second, Expression::complex_type(-1.0f, 0.0f));
+  CHECK(it_empty != result.hashmap.end());
+  CHECK((it_empty->second) == (Expression::complex_type(-1.0f, 0.0f)));
 
   Expression::container_type ordered{create, annihilate};
   auto it_ordered = result.hashmap.find(ordered);
-  EXPECT_TRUE(it_ordered != result.hashmap.end());
-  EXPECT_EQ(it_ordered->second, Expression::complex_type(2.0f, 0.0f));
-  EXPECT_EQ(result.size(), 2u);
+  CHECK(it_ordered != result.hashmap.end());
+  CHECK((it_ordered->second) == (Expression::complex_type(2.0f, 0.0f)));
+  CHECK((result.size()) == (2u));
 }
 
-TEST(anticommutator_creation_annihilation_same_orbital_is_identity) {
+TEST_CASE("anticommutator_creation_annihilation_same_orbital_is_identity") {
   Operator create = Operator::creation(Operator::Spin::Down, 3);
   Operator annihilate = Operator::annihilation(Operator::Spin::Down, 3);
   Term left(create);
@@ -56,12 +56,12 @@ TEST(anticommutator_creation_annihilation_same_orbital_is_identity) {
 
   Expression::container_type empty{};
   auto it_empty = result.hashmap.find(empty);
-  EXPECT_TRUE(it_empty != result.hashmap.end());
-  EXPECT_EQ(it_empty->second, Expression::complex_type(1.0f, 0.0f));
-  EXPECT_EQ(result.size(), 1u);
+  CHECK(it_empty != result.hashmap.end());
+  CHECK((it_empty->second) == (Expression::complex_type(1.0f, 0.0f)));
+  CHECK((result.size()) == (1u));
 }
 
-TEST(commutator_expression_distributes_over_terms) {
+TEST_CASE("commutator_expression_distributes_over_terms") {
   Operator a = Operator::creation(Operator::Spin::Up, 1);
   Operator b = Operator::creation(Operator::Spin::Up, 2);
   Operator annihilate = Operator::annihilation(Operator::Spin::Up, 1);
@@ -76,15 +76,15 @@ TEST(commutator_expression_distributes_over_terms) {
   Expression expected = commutator(term_a, term_c);
   expected += commutator(term_b, term_c);
 
-  EXPECT_EQ(result.size(), expected.size());
+  CHECK((result.size()) == (expected.size()));
   for (const auto& [ops, coeff] : expected.hashmap) {
     auto it = result.hashmap.find(ops);
-    EXPECT_TRUE(it != result.hashmap.end());
-    EXPECT_EQ(it->second, coeff);
+    CHECK(it != result.hashmap.end());
+    CHECK((it->second) == (coeff));
   }
 }
 
-TEST(bch_order_one_matches_first_commutator_term) {
+TEST_CASE("bch_order_one_matches_first_commutator_term") {
   Operator create = Operator::creation(Operator::Spin::Down, 3);
   Operator annihilate = Operator::annihilation(Operator::Spin::Down, 3);
   Expression A{Term(create)};
@@ -94,15 +94,15 @@ TEST(bch_order_one_matches_first_commutator_term) {
   Expression result = BCH(A, B, lambda, 1);
 
   Expression expected = B + (commutator(A, B) * lambda);
-  EXPECT_EQ(result.size(), expected.size());
+  CHECK((result.size()) == (expected.size()));
   for (const auto& [ops, coeff] : expected.hashmap) {
     auto it = result.hashmap.find(ops);
-    EXPECT_TRUE(it != result.hashmap.end());
-    EXPECT_EQ(it->second, coeff);
+    CHECK(it != result.hashmap.end());
+    CHECK((it->second) == (coeff));
   }
 }
 
-TEST(bch_zero_lambda_returns_b) {
+TEST_CASE("bch_zero_lambda_returns_b") {
   Operator create = Operator::creation(Operator::Spin::Up, 2);
   Operator annihilate = Operator::annihilation(Operator::Spin::Up, 2);
   Expression A{Term(create)};
@@ -110,25 +110,25 @@ TEST(bch_zero_lambda_returns_b) {
 
   Expression result = BCH(A, B, 0.0, 5);
 
-  EXPECT_EQ(result.size(), B.size());
+  CHECK((result.size()) == (B.size()));
   for (const auto& [ops, coeff] : B.hashmap) {
     auto it = result.hashmap.find(ops);
-    EXPECT_TRUE(it != result.hashmap.end());
-    EXPECT_EQ(it->second, coeff);
+    CHECK(it != result.hashmap.end());
+    CHECK((it->second) == (coeff));
   }
 }
 
-TEST(bch_identity_generator_leaves_b) {
+TEST_CASE("bch_identity_generator_leaves_b") {
   Operator create = Operator::creation(Operator::Spin::Down, 1);
   Expression A(Expression::complex_type(1.0f, 0.0f));
   Expression B{Term(create)};
 
   Expression result = BCH(A, B, 0.75, 4);
 
-  EXPECT_EQ(result.size(), B.size());
+  CHECK((result.size()) == (B.size()));
   for (const auto& [ops, coeff] : B.hashmap) {
     auto it = result.hashmap.find(ops);
-    EXPECT_TRUE(it != result.hashmap.end());
-    EXPECT_EQ(it->second, coeff);
+    CHECK(it != result.hashmap.end());
+    CHECK((it->second) == (coeff));
   }
 }

@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "framework.h"
+#include "catch.hpp"
 #include "numerics/evolve_state.h"
 #include "numerics/linear_operator.h"
 
@@ -52,7 +52,7 @@ arma::cx_vec exact_imaginary_time_evolution(const arma::cx_mat& H, const arma::c
 }
 }  // namespace
 
-TEST(time_evolve_state_steps_matches_exact_expm) {
+TEST_CASE("time_evolve_state_steps_matches_exact_expm") {
   arma::vec diag = {1.0, 2.0};
   arma::cx_mat H(2, 2, arma::fill::zeros);
   H(0, 0) = diag(0);
@@ -73,10 +73,10 @@ TEST(time_evolve_state_steps_matches_exact_expm) {
   const auto expected = exact_time_evolution(H, psi0, t1 - t0);
 
   const double rel_error = arma::norm(evolved - expected) / arma::norm(expected);
-  EXPECT_TRUE(rel_error < 1e-8);
+  CHECK(rel_error < 1e-8);
 }
 
-TEST(time_evolve_state_steps_calls_callback_and_matches_exact_expm) {
+TEST_CASE("time_evolve_state_steps_calls_callback_and_matches_exact_expm") {
   arma::vec diag = {0.5, 1.5};
   arma::cx_mat H(2, 2, arma::fill::zeros);
   H(0, 0) = diag(0);
@@ -101,15 +101,15 @@ TEST(time_evolve_state_steps_calls_callback_and_matches_exact_expm) {
   const auto stepped = time_evolve_state_steps(op, psi0, t0, t1, dt, opts, callback);
   const auto direct = exact_time_evolution(H, psi0, t1 - t0);
 
-  EXPECT_EQ(times.size(), 4u);
-  EXPECT_TRUE(std::abs(times.front() - t0) < 1e-12);
-  EXPECT_TRUE(std::abs(times.back() - t1) < 1e-12);
+  CHECK((times.size()) == (4u));
+  CHECK(std::abs(times.front() - t0) < 1e-12);
+  CHECK(std::abs(times.back() - t1) < 1e-12);
 
   const double rel_error = arma::norm(stepped - direct) / arma::norm(direct);
-  EXPECT_TRUE(rel_error < 1e-8);
+  CHECK(rel_error < 1e-8);
 }
 
-TEST(imaginary_time_evolve_state_matches_exact_expm) {
+TEST_CASE("imaginary_time_evolve_state_matches_exact_expm") {
   arma::vec diag = {0.2, 1.1};
   arma::cx_mat H(2, 2, arma::fill::zeros);
   H(0, 0) = diag(0);
@@ -129,5 +129,5 @@ TEST(imaginary_time_evolve_state_matches_exact_expm) {
   const auto expected = exact_imaginary_time_evolution(H, psi0, t);
 
   const double rel_error = arma::norm(evolved - expected) / arma::norm(expected);
-  EXPECT_TRUE(rel_error < 1e-8);
+  CHECK(rel_error < 1e-8);
 }

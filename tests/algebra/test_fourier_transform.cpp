@@ -3,7 +3,7 @@
 #include <numbers>
 
 #include "algebra/fourier_transform.h"
-#include "framework.h"
+#include "catch.hpp"
 #include "utils/index.h"
 
 namespace {
@@ -33,7 +33,7 @@ Term::complex_type expected_coefficient(Operator op, const Index& index,
 }
 }  // namespace
 
-TEST(fourier_transform_operator_multidimensional_coefficients) {
+TEST_CASE("fourier_transform_operator_multidimensional_coefficients") {
   Index index({2, 3, 2});
   const auto orbital = index({1, 2, 0});
   const auto momentum = Index::container_type{1, 0, 1};
@@ -51,12 +51,12 @@ TEST(fourier_transform_operator_multidimensional_coefficients) {
 
   auto annihilation_it = annihilation_expr.hashmap.find(annihilation_ops);
   auto creation_it = creation_expr.hashmap.find(creation_ops);
-  EXPECT_TRUE(annihilation_it != annihilation_expr.hashmap.end());
-  EXPECT_TRUE(creation_it != creation_expr.hashmap.end());
+  CHECK(annihilation_it != annihilation_expr.hashmap.end());
+  CHECK(creation_it != creation_expr.hashmap.end());
 
   const auto expected_annihilation = expected_coefficient(annihilation, index, momentum);
   const auto expected_creation = std::conj(expected_annihilation);
 
-  EXPECT_TRUE(complex_near(annihilation_it->second, expected_annihilation, kTolerance));
-  EXPECT_TRUE(complex_near(creation_it->second, expected_creation, kTolerance));
+  CHECK(complex_near(annihilation_it->second, expected_annihilation, kTolerance));
+  CHECK(complex_near(creation_it->second, expected_creation, kTolerance));
 }
