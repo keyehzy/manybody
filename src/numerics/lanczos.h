@@ -138,7 +138,6 @@ LanczosDecomposition<typename Op::ScalarType> lanczos_pass_one(const Op& op,
                                                                const typename Op::VectorType& b,
                                                                size_t k) {
   using ScalarType = typename Op::ScalarType;
-  using RealType = scalar_real_t<ScalarType>;
 
   if (op.dimension() != static_cast<size_t>(b.n_elem)) {
     throw std::runtime_error("Operator dimension does not match input vector");
@@ -184,6 +183,7 @@ template <typename Op, typename Scalar>
 typename Op::VectorType lanczos_pass_two(
     const Op& op, const typename Op::VectorType& b,
     const LanczosDecomposition<typename Op::ScalarType>& decomp, const std::vector<Scalar>& y_k) {
+  using VectorType = typename Op::VectorType;
   using ScalarType = typename Op::ScalarType;
   using RealType = scalar_real_t<ScalarType>;
 
@@ -196,14 +196,14 @@ typename Op::VectorType lanczos_pass_two(
   }
 
   if (decomp.steps_taken == 0) {
-    return typename Op::VectorType(b.n_elem, arma::fill::zeros);
+    return VectorType(b.n_elem, arma::fill::zeros);
   }
 
-  typename Op::VectorType v_prev(b.n_elem, arma::fill::zeros);
-  typename Op::VectorType v_curr = b / static_cast<ScalarType>(decomp.b_norm);
+  VectorType v_prev(b.n_elem, arma::fill::zeros);
+  VectorType v_curr = b / static_cast<ScalarType>(decomp.b_norm);
 
-  typename Op::VectorType x_k = v_curr * static_cast<ScalarType>(y_k[0]);
-  typename Op::VectorType work(b.n_elem, arma::fill::zeros);
+  VectorType x_k = v_curr * static_cast<ScalarType>(y_k[0]);
+  VectorType work(b.n_elem, arma::fill::zeros);
 
   for (size_t j = 0; j < decomp.steps_taken - 1; ++j) {
     const RealType alpha_j = decomp.alphas[j];
@@ -225,20 +225,21 @@ typename Op::VectorType lanczos_pass_two(
 template <typename Op, typename Solver>
 typename Op::VectorType solve(const Op& op, const typename Op::VectorType& b, size_t k,
                               Solver&& solver) {
+  using VectorType = typename Op::VectorType;
   using ScalarType = typename Op::ScalarType;
 
   const auto decomp = lanczos_pass_one(op, b, k);
   if (decomp.steps_taken == 0) {
-    return typename Op::VectorType(b.n_elem, arma::fill::zeros);
+    return VectorType(b.n_elem, arma::fill::zeros);
   }
 
   auto y_k = solver(decomp.alphas, decomp.betas);
-  using CoeffType = typename decltype(y_k)::value_type;
+
   for (auto& value : y_k) {
     value *= decomp.b_norm;
   }
 
-  return lanczos_pass_two<Op, CoeffType>(op, b, decomp, y_k);
+  return lanczos_pass_two<Op, typename decltype(y_k)::value_type>(op, b, decomp, y_k);
 }
 
 template <typename Scalar>
