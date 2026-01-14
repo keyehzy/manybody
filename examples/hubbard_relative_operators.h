@@ -32,7 +32,7 @@ struct HubbardRelativeInteraction final : LinearOperator<arma::vec> {
   }
 
   std::vector<size_t> size_;
-  DynamicIndex index_;
+  Index index_;
 };
 
 struct HubbardRelativeKinetic final : LinearOperator<arma::vec> {
@@ -66,7 +66,7 @@ struct HubbardRelativeKinetic final : LinearOperator<arma::vec> {
     assert(v.n_elem == dimension());
     VectorType w(v.n_elem, arma::fill::zeros);
     const size_t dims = size_.size();
-    DynamicIndex::offset_type offsets(dims, 0);
+    Index::offset_type offsets(dims, 0);
     for (size_t orbital = 0; orbital < dimension(); ++orbital) {
       const auto coords = index_(orbital);
       for (size_t d = 0; d < dims; ++d) {
@@ -82,7 +82,7 @@ struct HubbardRelativeKinetic final : LinearOperator<arma::vec> {
 
   std::vector<size_t> size_;
   std::vector<size_t> total_momentum_;
-  DynamicIndex index_;
+  Index index_;
   std::vector<ScalarType> t_eff_{};
 };
 
@@ -115,7 +115,7 @@ struct HubbardRelativeCurrent final : LinearOperator<arma::vec> {
     assert(v.n_elem == dimension());
     VectorType w(v.n_elem, arma::fill::zeros);
 
-    DynamicIndex::offset_type offsets(size_.size(), 0);
+    Index::offset_type offsets(size_.size(), 0);
     for (size_t orbital = 0; orbital < dimension(); ++orbital) {
       const auto coords = index_(orbital);
 
@@ -133,5 +133,5 @@ struct HubbardRelativeCurrent final : LinearOperator<arma::vec> {
   std::vector<size_t> total_momentum_;
   ScalarType current_coeff_{};
   size_t direction_{0};
-  DynamicIndex index_;
+  Index index_;
 };

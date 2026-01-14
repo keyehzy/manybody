@@ -81,7 +81,7 @@ struct HubbardModel2D : Model {
   double u;
   size_t size_x;
   size_t size_y;
-  DynamicIndex index;
+  Index index;
 };
 
 struct HubbardModel3D : Model {
@@ -139,5 +139,5 @@ struct HubbardModel3D : Model {
   size_t size_x;
   size_t size_y;
   size_t size_z;
-  DynamicIndex index;
+  Index index;
 };

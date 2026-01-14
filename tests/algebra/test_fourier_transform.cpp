@@ -14,8 +14,8 @@ bool complex_near(const Term::complex_type& lhs, const Term::complex_type& rhs, 
   return std::abs(delta) <= tol;
 }
 
-Term::complex_type expected_coefficient(Operator op, const DynamicIndex& index,
-                                        const DynamicIndex::container_type& momentum) {
+Term::complex_type expected_coefficient(Operator op, const Index& index,
+                                        const Index::container_type& momentum) {
   const auto orbital = index(op.value());
   const auto& dimensions = index.dimensions();
   double phase = 0.0;
@@ -34,9 +34,9 @@ Term::complex_type expected_coefficient(Operator op, const DynamicIndex& index,
 }  // namespace
 
 TEST(fourier_transform_operator_multidimensional_coefficients) {
-  DynamicIndex index({2, 3, 2});
+  Index index({2, 3, 2});
   const auto orbital = index({1, 2, 0});
-  const auto momentum = DynamicIndex::container_type{1, 0, 1};
+  const auto momentum = Index::container_type{1, 0, 1};
   const auto momentum_orbital = index(momentum);
 
   Operator annihilation = Operator::annihilation(Operator::Spin::Up, orbital);

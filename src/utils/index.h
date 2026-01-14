@@ -6,17 +6,15 @@
 #include <utility>
 #include <vector>
 
-class DynamicIndex {
+class Index {
  public:
   using size_type = std::size_t;
   using container_type = std::vector<size_type>;
   using offset_type = std::vector<int>;
 
-  explicit DynamicIndex(container_type dimensions) { init_(std::move(dimensions)); }
+  explicit Index(container_type dimensions) { init_(std::move(dimensions)); }
 
-  explicit DynamicIndex(std::initializer_list<size_type> dimensions) {
-    init_(container_type(dimensions));
-  }
+  explicit Index(std::initializer_list<size_type> dimensions) { init_(container_type(dimensions)); }
 
   [[nodiscard]] size_type operator()(const container_type& coordinates) const {
     return to_orbital(coordinates);

@@ -14,7 +14,7 @@
 int main() {
   const size_t sites = 6;
   const double hopping = 1.0;
-  DynamicIndex index({sites});
+  Index index({sites});
 
   Expression real_space;
   const Term::complex_type coeff(static_cast<float>(-hopping), 0.0f);

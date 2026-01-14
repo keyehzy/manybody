@@ -7,10 +7,9 @@
 #include <vector>
 
 namespace {
-DynamicIndex::container_type compute_total_momentum(const Basis::key_type& state,
-                                                    const DynamicIndex& index) {
+Index::container_type compute_total_momentum(const Basis::key_type& state, const Index& index) {
   const auto& dimensions = index.dimensions();
-  DynamicIndex::container_type total(dimensions.size(), 0);
+  Index::container_type total(dimensions.size(), 0);
   for (const auto& op : state) {
     const auto coordinates = index(op.value());
     for (size_t i = 0; i < dimensions.size(); ++i) {
@@ -20,8 +19,8 @@ DynamicIndex::container_type compute_total_momentum(const Basis::key_type& state
   return total;
 }
 
-bool matches_momentum(const Basis::key_type& state, const DynamicIndex& index,
-                      const DynamicIndex::container_type& momentum) {
+bool matches_momentum(const Basis::key_type& state, const Index& index,
+                      const Index::container_type& momentum) {
   const auto& dimensions = index.dimensions();
   assert(momentum.size() == dimensions.size());
   for (size_t i = 0; i < dimensions.size(); ++i) {
@@ -101,9 +100,9 @@ Basis Basis::with_fixed_particle_number_and_spin(size_t orbitals, size_t particl
   return basis;
 }
 
-Basis Basis::with_fixed_particle_number_spin_momentum(
-    size_t orbitals, size_t particles, int spin_projection, const DynamicIndex& index,
-    const DynamicIndex::container_type& momentum) {
+Basis Basis::with_fixed_particle_number_spin_momentum(size_t orbitals, size_t particles,
+                                                      int spin_projection, const Index& index,
+                                                      const Index::container_type& momentum) {
   Basis basis;
   basis.orbitals = orbitals;
   basis.particles = particles;

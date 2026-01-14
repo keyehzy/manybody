@@ -4,11 +4,11 @@
 #include "utils/index.h"
 
 TEST(dynamic_index_round_trip) {
-  DynamicIndex index({2, 3, 4});
+  Index index({2, 3, 4});
 
   EXPECT_EQ(index.size(), 24u);
 
-  const std::vector<DynamicIndex::size_type> coordinates{1, 2, 3};
+  const std::vector<Index::size_type> coordinates{1, 2, 3};
   EXPECT_EQ(index(coordinates), 23u);
 
   const auto recovered = index(23);
@@ -20,7 +20,7 @@ TEST(dynamic_index_round_trip) {
 }
 
 TEST(dynamic_index_bounds_checks) {
-  DynamicIndex index({2, 2});
+  Index index({2, 2});
 
   bool threw = false;
   try {
@@ -58,7 +58,7 @@ TEST(dynamic_index_bounds_checks) {
 TEST(dynamic_index_zero_dimension_throws) {
   bool threw = false;
   try {
-    DynamicIndex index({2, 0});
+    Index index({2, 0});
     (void)index.size();
   } catch (const std::out_of_range&) {
     threw = true;
@@ -67,9 +67,9 @@ TEST(dynamic_index_zero_dimension_throws) {
 }
 
 TEST(dynamic_index_operator_overloads) {
-  DynamicIndex index({3, 4});
+  Index index({3, 4});
 
-  const std::vector<DynamicIndex::size_type> coordinates{2, 1};
+  const std::vector<Index::size_type> coordinates{2, 1};
   EXPECT_EQ(index(coordinates), index(coordinates));
   EXPECT_EQ(index({2, 1}), index({2, 1}));
 
@@ -79,9 +79,9 @@ TEST(dynamic_index_operator_overloads) {
 }
 
 TEST(dynamic_index_wrap_offsets) {
-  DynamicIndex index({4, 3});
+  Index index({4, 3});
 
-  const std::vector<DynamicIndex::size_type> coordinates{0, 2};
+  const std::vector<Index::size_type> coordinates{0, 2};
   const std::vector<int> offsets{-1, 2};
   const auto expected = index({3, 1});
   EXPECT_EQ(index(coordinates, offsets), expected);
@@ -89,7 +89,7 @@ TEST(dynamic_index_wrap_offsets) {
 }
 
 TEST(dynamic_index_wrap_bounds_checks) {
-  DynamicIndex index({2, 2});
+  Index index({2, 2});
 
   bool threw = false;
   try {

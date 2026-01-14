@@ -52,8 +52,8 @@ TEST(basis_all_orders_by_size) {
 }
 
 TEST(basis_fixed_spin_momentum_1d) {
-  DynamicIndex index({4});
-  DynamicIndex::container_type target_momentum{1};
+  Index index({4});
+  Index::container_type target_momentum{1};
   Basis basis = Basis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, target_momentum);
 
   EXPECT_EQ(basis.set.size(), 4u);
@@ -68,8 +68,8 @@ TEST(basis_fixed_spin_momentum_1d) {
 }
 
 TEST(basis_fixed_spin_momentum_2d_single_particle) {
-  DynamicIndex index({2, 2});
-  DynamicIndex::container_type target_momentum{1, 0};
+  Index index({2, 2});
+  Index::container_type target_momentum{1, 0};
   const size_t orbital = index({1, 0});
   Basis basis = Basis::with_fixed_particle_number_spin_momentum(4, 1, 1, index, target_momentum);
 

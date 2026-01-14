@@ -40,9 +40,9 @@ auto transform_expression(F&& f, const Expression& expr, Args&&... args)
   return result;
 }
 
-inline double momentum_phase(const DynamicIndex::container_type& orbital,
-                             const DynamicIndex::container_type& momentum,
-                             const DynamicIndex::container_type& dimensions) {
+inline double momentum_phase(const Index::container_type& orbital,
+                             const Index::container_type& momentum,
+                             const Index::container_type& dimensions) {
   double phase = 0.0;
   for (size_t i = 0; i < dimensions.size(); ++i) {
     phase += (static_cast<double>(orbital[i]) * static_cast<double>(momentum[i])) /
@@ -51,7 +51,7 @@ inline double momentum_phase(const DynamicIndex::container_type& orbital,
   return 2.0 * std::numbers::pi_v<double> * phase;
 }
 
-inline Expression fourier_transform_operator(Operator op, const DynamicIndex& index) {
+inline Expression fourier_transform_operator(Operator op, const Index& index) {
   Expression result;
   const double type_sign = (op.type() == Operator::Type::Annihilation) ? -1.0 : 1.0;
   const auto orbital = index(op.value());
