@@ -180,22 +180,25 @@ LanczosDecomposition<typename Op::ScalarType> lanczos_pass_one(const Op& op,
   return decomp;
 }
 
+// Generic scaling used by Krylov/Lanczos projection methods.
+//
+// The coefficient type is typically either:
+//   - RealType (e.g. double) for exp(H) * v in imaginary-time / thermal contexts
+//   - ScalarType (e.g. std::complex<double>) for unitary time evolution exp(-i t H) * v
 template <typename Scalar>
-std::vector<scalar_real_t<Scalar>> scale_coefficients(const std::vector<scalar_real_t<Scalar>>& y,
-                                                      scalar_real_t<Scalar> scale) {
-  std::vector<scalar_real_t<Scalar>> scaled;
+std::vector<Scalar> scale_coefficients(const std::vector<Scalar>& y, scalar_real_t<Scalar> scale) {
+  std::vector<Scalar> scaled;
   scaled.reserve(y.size());
-  for (const auto value : y) {
+  for (const auto& value : y) {
     scaled.push_back(value * scale);
   }
   return scaled;
 }
 
-template <typename Op>
+template <typename Op, typename Scalar>
 typename Op::VectorType lanczos_pass_two(
     const Op& op, const typename Op::VectorType& b,
-    const LanczosDecomposition<typename Op::ScalarType>& decomp,
-    const std::vector<scalar_real_t<typename Op::ScalarType>>& y_k) {
+    const LanczosDecomposition<typename Op::ScalarType>& decomp, const std::vector<Scalar>& y_k) {
   using ScalarType = typename Op::ScalarType;
   using RealType = scalar_real_t<ScalarType>;
 
@@ -245,9 +248,10 @@ typename Op::VectorType solve(const Op& op, const typename Op::VectorType& b, si
   }
 
   const auto y_k_unscaled = solver(decomp.alphas, decomp.betas);
-  const auto y_k = scale_coefficients<ScalarType>(y_k_unscaled, decomp.b_norm);
+  using CoeffType = typename decltype(y_k_unscaled)::value_type;
+  const auto y_k = scale_coefficients<CoeffType>(y_k_unscaled, decomp.b_norm);
 
-  return lanczos_pass_two(op, b, decomp, y_k);
+  return lanczos_pass_two<Op, CoeffType>(op, b, decomp, y_k);
 }
 
 template <typename Scalar>
