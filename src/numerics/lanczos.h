@@ -33,8 +33,7 @@ lanczos_recurrence_step(const Op& op, typename Op::VectorType& w,
     w -= static_cast<ScalarType>(beta_prev) * v_prev;
   }
 
-  const auto dot_product = arma::dot(v_curr, w);
-  const RealType alpha = std::real(dot_product);
+  const RealType alpha = std::real(arma::cdot(v_curr, w));
   w -= static_cast<ScalarType>(alpha) * v_curr;
 
   const RealType beta = arma::norm(w);

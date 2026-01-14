@@ -10,6 +10,7 @@
 #include "algorithms/test_schriffer_wolff.cpp"
 #include "algorithms/test_wegner_flow.cpp"
 #include "framework.h"
+#include "numerics/test_evolve_state.cpp"
 #include "numerics/test_lanczos.cpp"
 #include "numerics/test_linear_operator.cpp"
 #include "utils/test_bessel_i.cpp"
