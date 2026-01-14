@@ -85,3 +85,53 @@ struct HubbardRelativeKinetic final : LinearOperator<arma::vec> {
   DynamicIndex index_;
   std::vector<ScalarType> t_eff_{};
 };
+
+struct HubbardRelativeCurrent final : LinearOperator<arma::vec> {
+  using VectorType = arma::vec;
+  using ScalarType = double;
+
+  HubbardRelativeCurrent(const std::vector<size_t>& size, const std::vector<size_t>& total_momentum,
+                         double t, size_t direction)
+      : size_(size), total_momentum_(total_momentum), index_(size_) {
+    if (size_.empty()) {
+      throw std::invalid_argument("HubbardRelativeCurrent requires at least one dimension.");
+    }
+    if (size_.size() != total_momentum_.size()) {
+      throw std::invalid_argument("HubbardRelativeCurrent size and momentum must match.");
+    }
+    if (direction >= size_.size()) {
+      throw std::invalid_argument("HubbardRelativeCurrent direction out of bounds.");
+    }
+    const double k_phase = 2.0 * std::numbers::pi_v<double> *
+                           static_cast<double>(total_momentum_[direction]) /
+                           static_cast<double>(size_[direction]);
+    current_coeff_ = ScalarType(2.0 * t * std::sin(0.5 * k_phase));
+    direction_ = direction;
+  }
+
+  size_t dimension() const override { return index_.size(); }
+
+  VectorType apply(const VectorType& v) const override {
+    assert(v.n_elem == dimension());
+    VectorType w(v.n_elem, arma::fill::zeros);
+
+    DynamicIndex::offset_type offsets(size_.size(), 0);
+    for (size_t orbital = 0; orbital < dimension(); ++orbital) {
+      const auto coords = index_(orbital);
+
+      offsets[direction_] = -1;
+      w(orbital) += current_coeff_ * v(index_(coords, offsets));
+      offsets[direction_] = 1;
+      w(orbital) += current_coeff_ * v(index_(coords, offsets));
+      offsets[direction_] = 0;
+    }
+
+    return w;
+  }
+
+  std::vector<size_t> size_;
+  std::vector<size_t> total_momentum_;
+  ScalarType current_coeff_{};
+  size_t direction_{0};
+  DynamicIndex index_;
+};
