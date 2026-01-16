@@ -2,13 +2,13 @@ name: ci
 
 on:
   push:
-    branches:
-      - master
-      - staging
+    branches: [master, staging]
   pull_request:
-    branches:
-      - master
-      - staging
+    branches: [master, staging]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-test:
@@ -21,38 +21,50 @@ jobs:
             cc: gcc
             cxx: g++
             build_type: Debug
-            cxx_flags: "-O0 -g"
           - compiler: gcc
             cc: gcc
             cxx: g++
             build_type: Release
-            cxx_flags: "-O3 -DNDEBUG"
           - compiler: clang
             cc: clang
             cxx: clang++
             build_type: Debug
-            cxx_flags: "-O0 -g"
           - compiler: clang
             cc: clang
             cxx: clang++
             build_type: Release
-            cxx_flags: "-O3 -DNDEBUG"
-    env:
-      CC: ${{ matrix.cc }}
-      CXX: ${{ matrix.cxx }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libarmadillo-dev libomp-dev
+          sudo apt-get install -y --no-install-recommends \
+            cmake ninja-build ccache \
+            libarmadillo-dev libomp-dev
+
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ccache
+          key: ${{ runner.os }}-ccache-${{ matrix.compiler }}-${{ matrix.build_type }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-${{ matrix.compiler }}-${{ matrix.build_type }}-
+            ${{ runner.os }}-ccache-${{ matrix.compiler }}-
+
       - name: Configure
-        run: >
-          cmake -S . -B build
-          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-          -DCMAKE_CXX_FLAGS="${{ matrix.cxx_flags }}"
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DCMAKE_C_COMPILER=${{ matrix.cc }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+
       - name: Build
-        run: cmake --build build --config ${{ matrix.build_type }}
+        run: cmake --build build --parallel
+
       - name: Test
-        run: ctest --test-dir build --output-on-failure
+        run: ctest --test-dir build -C ${{ matrix.build_type }} --output-on-failure
