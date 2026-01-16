@@ -161,8 +161,6 @@ struct CurrentRelative_Q final : LinearOperator<arma::cx_vec> {
       throw std::invalid_argument("CurrentRelative_Q: direction out of bounds.");
     }
 
-    prefactor_ = 2.0 * t_;
-
     half_total_momentum_.resize(dims);
     half_transfer_momentum_.resize(dims);
     for (size_t d = 0; d < dims; ++d) {
@@ -204,9 +202,9 @@ struct CurrentRelative_Q final : LinearOperator<arma::cx_vec> {
       offsets[direction_] = 0;
 
       const ScalarType weight_left =
-          static_cast<ScalarType>(-prefactor_ * std::sin((theta - hqd) - hKd));
+          static_cast<ScalarType>(-2.0 * t_ * std::sin((theta - hqd) - hKd));
       const ScalarType weight_right =
-          static_cast<ScalarType>(prefactor_ * std::sin((theta + hqd) + hKd));
+          static_cast<ScalarType>(2.0 * t_ * std::sin((theta + hqd) + hKd));
 
       w(orbital) += weight_left * v(j_minus);
       w(orbital) += weight_right * v(j_plus);
@@ -224,5 +222,4 @@ struct CurrentRelative_Q final : LinearOperator<arma::cx_vec> {
   Index index_;
   std::vector<double> half_total_momentum_;
   std::vector<double> half_transfer_momentum_;
-  double prefactor_{0};
 };
