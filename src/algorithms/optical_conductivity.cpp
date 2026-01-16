@@ -26,8 +26,7 @@ OpticalConductivityResult compute_optical_conductivity(
   const double eta = 4.0 / total_time;
   const double dw = eta / 4.0;
 
-  const std::size_t n_freqs =
-      static_cast<std::size_t>(std::floor((w_max - w_min) / dw)) + 1;
+  const std::size_t n_freqs = static_cast<std::size_t>(std::floor((w_max - w_min) / dw)) + 1;
 
   std::vector<std::complex<double>> series(n_samples);
 
@@ -54,8 +53,7 @@ OpticalConductivityResult compute_optical_conductivity(
     const double omega = w_min + static_cast<double>(i) * dw;
     result.frequencies.push_back(omega);
 
-    const std::complex<double> phase_step =
-        std::exp(std::complex<double>(0.0, omega * dt));
+    const std::complex<double> phase_step = std::exp(std::complex<double>(0.0, omega * dt));
 
     std::complex<double> phase(1.0, 0.0);
     std::complex<double> integral(0.0, 0.0);

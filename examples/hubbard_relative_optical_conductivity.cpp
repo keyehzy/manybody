@@ -62,8 +62,8 @@ int main(int argc, char** argv) {
 
   const double L = static_cast<double>(opts.lattice_size);
   const double volume = L * L * L;
-  const OpticalConductivityResult result = compute_optical_conductivity(
-      correlation, opts.dt, opts.beta, volume);
+  const OpticalConductivityResult result =
+      compute_optical_conductivity(correlation, opts.dt, opts.beta, volume);
 
   std::cout << std::setprecision(10);
   for (size_t i = 0; i < result.frequencies.size(); ++i) {

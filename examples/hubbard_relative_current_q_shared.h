@@ -32,7 +32,7 @@ class CurrentCorrelation {
 
   const CurrentCorrelationOptions& options() const { return options_; }
 
- std::vector<std::complex<double>> compute_current_current_correlation_q(
+  std::vector<std::complex<double>> compute_current_current_correlation_q(
       std::ostream* log_stream = nullptr) const;
 
  private:

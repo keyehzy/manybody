@@ -98,8 +98,8 @@ std::vector<std::complex<double>> CurrentCorrelation::compute_current_current_co
 
       EvolutionOptions evolve_options;
       evolve_options.krylov_steps = options_.krylov_steps;
-      v_beta = imaginary_time_evolve_state(hamiltonian, v_beta, 0.5 * options_.beta,
-                                           evolve_options);
+      v_beta =
+          imaginary_time_evolve_state(hamiltonian, v_beta, 0.5 * options_.beta, evolve_options);
 
       const double Z = std::real(arma::cdot(v_beta, v_beta));
 

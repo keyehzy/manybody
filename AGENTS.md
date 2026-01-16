@@ -4,10 +4,11 @@
 
 We use CMake as the build system.
 
-## Commit message
+## Commit
 
-Example:
+- Format files using script/format.sh before commiting
 
+Example COMMIT:
 ```
 Refactor user service to reduce duplication
 
