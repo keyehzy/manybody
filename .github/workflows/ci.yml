@@ -1,0 +1,58 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - master
+      - staging
+  pull_request:
+    branches:
+      - master
+      - staging
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - compiler: gcc
+            cc: gcc
+            cxx: g++
+            build_type: Debug
+            cxx_flags: "-O0 -g"
+          - compiler: gcc
+            cc: gcc
+            cxx: g++
+            build_type: Release
+            cxx_flags: "-O3 -DNDEBUG"
+          - compiler: clang
+            cc: clang
+            cxx: clang++
+            build_type: Debug
+            cxx_flags: "-O0 -g"
+          - compiler: clang
+            cc: clang
+            cxx: clang++
+            build_type: Release
+            cxx_flags: "-O3 -DNDEBUG"
+    env:
+      CC: ${{ matrix.cc }}
+      CXX: ${{ matrix.cxx }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libarmadillo-dev libomp-dev
+      - name: Configure
+        run: >
+          cmake -S . -B build
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+          -DCMAKE_CXX_FLAGS="${{ matrix.cxx_flags }}"
+      - name: Build
+        run: cmake --build build --config ${{ matrix.build_type }}
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
