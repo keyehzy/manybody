@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 
+#include "algorithms/optical_conductivity.h"
 #include "cxxopts.hpp"
 #include "hubbard_relative_current_q_shared.h"
 
@@ -13,8 +14,8 @@ CurrentCorrelationOptions parse_cli_options(int argc, char** argv) {
   CurrentCorrelationOptions o;
 
   cxxopts::Options cli(
-      "hubbard_relative_current_q",
-      "Compute q-dependent current-current correlator for the 3D relative Hubbard model");
+      "hubbard_relative_optical_conductivity",
+      "Compute optical conductivity from the q-dependent current-current correlator");
   // clang-format off
   cli.add_options()
       ("L,lattice-size", "Lattice size per dimension",  cxxopts::value(o.lattice_size)->default_value("8"))
@@ -48,7 +49,6 @@ CurrentCorrelationOptions parse_cli_options(int argc, char** argv) {
 
   return o;
 }
-
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -57,13 +57,21 @@ int main(int argc, char** argv) {
 
   const CurrentCorrelation correlator(opts);
 
-  const std::vector<std::complex<double>> global_correlator =
-      correlator.compute_current_current_correlation_q(&std::cout);
+  const std::vector<std::complex<double>> correlation =
+      correlator.compute_current_current_correlation_q(&std::cerr);
+
+  const double L = static_cast<double>(opts.lattice_size);
+  const double volume = L * L * L;
+  const OpticalConductivityResult result = compute_optical_conductivity(
+      correlation, opts.dt, opts.beta, volume);
 
   std::cout << std::setprecision(10);
-  for (size_t i = 0; i < opts.steps; ++i) {
-    std::cout << (static_cast<double>(i) * opts.dt) << " " << global_correlator[i].real() << " "
-              << global_correlator[i].imag() << "\n";
+  for (size_t i = 0; i < result.frequencies.size(); ++i) {
+    std::cout << result.frequencies[i] << " " << result.sigma[i].real() << " "
+              << result.sigma[i].imag() << "\n";
   }
+
+  std::cerr << "Optical Sum Rule Check\n";
+  std::cerr << "Integral Re[sigma(w)] dw: " << result.sum_rule << "\n";
   return 0;
 }

@@ -1,5 +1,5 @@
-function(add_example name source)
-    add_executable(${name} ${source})
+function(add_example name)
+    add_executable(${name} ${ARGN})
     target_link_libraries(${name} PRIVATE manybody)
 endfunction()
 
@@ -14,4 +14,9 @@ add_example(example_hubbard_relative_overlap hubbard_relative_overlap.cpp)
 add_example(example_hubbard_relative_lowest_lanczos hubbard_relative_lowest_lanczos.cpp)
 add_example(example_hubbard_relative_block_wegner_flow hubbard_relative_block_wegner_flow.cpp)
 add_example(example_hubbard_relative_current hubbard_relative_current.cpp)
-add_example(example_hubbard_relative_current_q hubbard_relative_current_q.cpp)
+add_example(example_hubbard_relative_current_q
+    hubbard_relative_current_q.cpp
+    hubbard_relative_current_q_shared.cpp)
+add_example(example_hubbard_relative_optical_conductivity
+    hubbard_relative_optical_conductivity.cpp
+    hubbard_relative_current_q_shared.cpp)
