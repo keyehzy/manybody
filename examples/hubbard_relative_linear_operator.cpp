@@ -4,7 +4,7 @@
 
 int main() {
   const size_t lattice_size = 8;
-  const size_t total_momentum = 2;
+  const int64_t total_momentum = 2;
   const double t = 1.0;
   const double U = 4.0;
 

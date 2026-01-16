@@ -17,12 +17,12 @@
 
 struct CliOptions {
   size_t lattice_size = 8;
-  size_t kx = 0;
-  size_t ky = 0;
-  size_t kz = 0;
-  size_t qx = 1;
-  size_t qy = 0;
-  size_t qz = 0;
+  int64_t kx = 0;
+  int64_t ky = 0;
+  int64_t kz = 0;
+  int64_t qx = 1;
+  int64_t qy = 0;
+  int64_t qz = 0;
   size_t direction = 0;
   double t = 1.0;
   double U = -10.0;
@@ -43,18 +43,6 @@ arma::cx_vec random_complex_vector(size_t dimension, std::mt19937& rng) {
   return v;
 }
 
-size_t wrap_momentum(long long value, size_t lattice_size) {
-  if (lattice_size == 0) {
-    return 0;
-  }
-  const long long L = static_cast<long long>(lattice_size);
-  long long mod = value % L;
-  if (mod < 0) {
-    mod += L;
-  }
-  return static_cast<size_t>(mod);
-}
-
 void parse_cli_options(int argc, char** argv, CliOptions* options_out) {
   cxxopts::Options options(
       "hubbard_relative_current_q",
@@ -62,12 +50,12 @@ void parse_cli_options(int argc, char** argv, CliOptions* options_out) {
   // clang-format off
   options.add_options()
       ("L,lattice-size", "Lattice size per dimension",     cxxopts::value<size_t>()->default_value("8"))
-      ("x,kx", "Total momentum Kx component",              cxxopts::value<size_t>()->default_value("0"))
-      ("y,ky", "Total momentum Ky component",              cxxopts::value<size_t>()->default_value("0"))
-      ("z,kz", "Total momentum Kz component",              cxxopts::value<size_t>()->default_value("0"))
-      ("Qx,qx", "Transfer momentum qx component",          cxxopts::value<size_t>()->default_value("1"))
-      ("Qy,qy", "Transfer momentum qy component",          cxxopts::value<size_t>()->default_value("0"))
-      ("Qz,qz", "Transfer momentum qz component",          cxxopts::value<size_t>()->default_value("0"))
+      ("x,kx", "Total momentum Kx component",              cxxopts::value<int64_t>()->default_value("0"))
+      ("y,ky", "Total momentum Ky component",              cxxopts::value<int64_t>()->default_value("0"))
+      ("z,kz", "Total momentum Kz component",              cxxopts::value<int64_t>()->default_value("0"))
+      ("Qx,qx", "Transfer momentum qx component",          cxxopts::value<int64_t>()->default_value("1"))
+      ("Qy,qy", "Transfer momentum qy component",          cxxopts::value<int64_t>()->default_value("0"))
+      ("Qz,qz", "Transfer momentum qz component",          cxxopts::value<int64_t>()->default_value("0"))
       ("d,direction", "Current operator direction",        cxxopts::value<size_t>()->default_value("0"))
       ("t,hopping", "Hopping amplitude",                   cxxopts::value<double>()->default_value("1.0"))
       ("U,interaction", "On-site interaction strength",    cxxopts::value<double>()->default_value("-10.0"))
@@ -86,12 +74,12 @@ void parse_cli_options(int argc, char** argv, CliOptions* options_out) {
       std::exit(0);
     }
     options_out->lattice_size = result["lattice-size"].as<size_t>();
-    options_out->kx = result["kx"].as<size_t>();
-    options_out->ky = result["ky"].as<size_t>();
-    options_out->kz = result["kz"].as<size_t>();
-    options_out->qx = result["qx"].as<size_t>();
-    options_out->qy = result["qy"].as<size_t>();
-    options_out->qz = result["qz"].as<size_t>();
+    options_out->kx = result["kx"].as<int64_t>();
+    options_out->ky = result["ky"].as<int64_t>();
+    options_out->kz = result["kz"].as<int64_t>();
+    options_out->qx = result["qx"].as<int64_t>();
+    options_out->qy = result["qy"].as<int64_t>();
+    options_out->qz = result["qz"].as<int64_t>();
     options_out->direction = result["direction"].as<size_t>();
     options_out->t = result["hopping"].as<double>();
     options_out->U = result["interaction"].as<double>();
@@ -114,16 +102,6 @@ int main(int argc, char** argv) {
 
   if (opts.lattice_size == 0) {
     std::cerr << "Lattice size must be positive.\n";
-    return 1;
-  }
-  if (opts.kx >= opts.lattice_size || opts.ky >= opts.lattice_size ||
-      opts.kz >= opts.lattice_size) {
-    std::cerr << "Total momentum components must be smaller than lattice size.\n";
-    return 1;
-  }
-  if (opts.qx >= opts.lattice_size || opts.qy >= opts.lattice_size ||
-      opts.qz >= opts.lattice_size) {
-    std::cerr << "Transfer momentum components must be smaller than lattice size.\n";
     return 1;
   }
   if (opts.beta <= 0.0) {
@@ -154,19 +132,11 @@ int main(int argc, char** argv) {
   }
 
   const std::vector<size_t> lattice_size{opts.lattice_size, opts.lattice_size, opts.lattice_size};
-  const std::vector<size_t> total_momentum{opts.kx, opts.ky, opts.kz};
-  const std::vector<size_t> transfer_momentum{opts.qx, opts.qy, opts.qz};
-  const std::vector<size_t> total_momentum_q{
-      wrap_momentum(static_cast<long long>(opts.kx) + static_cast<long long>(opts.qx),
-                    opts.lattice_size),
-      wrap_momentum(static_cast<long long>(opts.ky) + static_cast<long long>(opts.qy),
-                    opts.lattice_size),
-      wrap_momentum(static_cast<long long>(opts.kz) + static_cast<long long>(opts.qz),
-                    opts.lattice_size)};
-  const std::vector<size_t> transfer_momentum_neg{
-      wrap_momentum(-static_cast<long long>(opts.qx), opts.lattice_size),
-      wrap_momentum(-static_cast<long long>(opts.qy), opts.lattice_size),
-      wrap_momentum(-static_cast<long long>(opts.qz), opts.lattice_size)};
+  const std::vector<int64_t> total_momentum{opts.kx, opts.ky, opts.kz};
+  const std::vector<int64_t> transfer_momentum{opts.qx, opts.qy, opts.qz};
+  const std::vector<int64_t> total_momentum_q{opts.kx + opts.qx, opts.ky + opts.qy,
+                                              opts.kz + opts.qz};
+  const std::vector<int64_t> transfer_momentum_neg{-opts.qx, -opts.qy, -opts.qz};
 
   const HubbardRelative hamiltonian(lattice_size, total_momentum, opts.t, opts.U);
   const HubbardRelative hamiltonian_q(lattice_size, total_momentum_q, opts.t, opts.U);

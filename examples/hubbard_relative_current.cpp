@@ -17,9 +17,9 @@
 
 struct CliOptions {
   size_t lattice_size = 8;
-  size_t kx = 1;
-  size_t ky = 0;
-  size_t kz = 0;
+  int64_t kx = 1;
+  int64_t ky = 0;
+  int64_t kz = 0;
   double t = 1.0;
   double U = -10.0;
   double beta = 10.0;
@@ -45,9 +45,9 @@ void parse_cli_options(int argc, char** argv, CliOptions* options_out) {
   // clang-format off
   options.add_options()
       ("L,lattice-size", "Lattice size per dimension",     cxxopts::value<size_t>()->default_value("8"))
-      ("x,kx", "Total momentum Kx component",              cxxopts::value<size_t>()->default_value("1"))
-      ("y,ky", "Total momentum Ky component",              cxxopts::value<size_t>()->default_value("0"))
-      ("z,kz", "Total momentum Kz component",              cxxopts::value<size_t>()->default_value("0"))
+      ("x,kx", "Total momentum Kx component",              cxxopts::value<int64_t>()->default_value("1"))
+      ("y,ky", "Total momentum Ky component",              cxxopts::value<int64_t>()->default_value("0"))
+      ("z,kz", "Total momentum Kz component",              cxxopts::value<int64_t>()->default_value("0"))
       ("t,hopping", "Hopping amplitude",                   cxxopts::value<double>()->default_value("1.0"))
       ("U,interaction", "On-site interaction strength",    cxxopts::value<double>()->default_value("-10.0"))
       ("b,beta", "Inverse temperature",                    cxxopts::value<double>()->default_value("10.0"))
@@ -65,9 +65,9 @@ void parse_cli_options(int argc, char** argv, CliOptions* options_out) {
       std::exit(0);
     }
     options_out->lattice_size = result["lattice-size"].as<size_t>();
-    options_out->kx = result["kx"].as<size_t>();
-    options_out->ky = result["ky"].as<size_t>();
-    options_out->kz = result["kz"].as<size_t>();
+    options_out->kx = result["kx"].as<int64_t>();
+    options_out->ky = result["ky"].as<int64_t>();
+    options_out->kz = result["kz"].as<int64_t>();
     options_out->t = result["hopping"].as<double>();
     options_out->U = result["interaction"].as<double>();
     options_out->beta = result["beta"].as<double>();
@@ -89,11 +89,6 @@ int main(int argc, char** argv) {
 
   if (opts.lattice_size == 0) {
     std::cerr << "Lattice size must be positive.\n";
-    return 1;
-  }
-  if (opts.kx >= opts.lattice_size || opts.ky >= opts.lattice_size ||
-      opts.kz >= opts.lattice_size) {
-    std::cerr << "Total momentum components must be smaller than lattice size.\n";
     return 1;
   }
   if (opts.beta <= 0.0) {
@@ -118,7 +113,7 @@ int main(int argc, char** argv) {
   }
 
   const std::vector<size_t> lattice_size{opts.lattice_size, opts.lattice_size, opts.lattice_size};
-  const std::vector<size_t> total_momentum{opts.kx, opts.ky, opts.kz};
+  const std::vector<int64_t> total_momentum{opts.kx, opts.ky, opts.kz};
 
   const HubbardRelative hamiltonian(lattice_size, total_momentum, opts.t, opts.U);
 

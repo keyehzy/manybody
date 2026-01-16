@@ -3,18 +3,36 @@
 #include <cmath>
 #include <complex>
 #include <cstddef>
+#include <cstdint>
 #include <numbers>
 
 #include "algebra/model/model.h"
 #include "algebra/term.h"
+
+namespace detail {
+inline size_t canonicalize_momentum(int64_t value, size_t lattice_size) {
+  if (lattice_size == 0) {
+    return 0;
+  }
+  const int64_t L = static_cast<int64_t>(lattice_size);
+  int64_t mod = value % L;
+  if (mod < 0) {
+    mod += L;
+  }
+  return static_cast<size_t>(mod);
+}
+}  // namespace detail
 
 // Two-particle Hubbard model in the relative coordinate basis with fixed total momentum K.
 // B^+_{K,p} = c^+_{p,up} c^+_{K-p,down}
 // B^+_{K,r} = (1/sqrt(N)) sum_p exp(i p r) B^+_{K,p}
 // H(K) = t_eff(K) * sum_r (B^+_{K,r} B_{K,r+1} + B^+_{K,r+1} B_{K,r}) + U B^+_{K,0} B_{K,0}
 struct HubbardModelRelative : Model {
-  HubbardModelRelative(double t, double u, size_t size, size_t total_momentum)
-      : t(t), u(u), size(size), total_momentum(total_momentum) {}
+  HubbardModelRelative(double t, double u, size_t size, int64_t total_momentum)
+      : t(t),
+        u(u),
+        size(size),
+        total_momentum(detail::canonicalize_momentum(total_momentum, size)) {}
 
   double effective_hopping() const {
     const double k_phase = 2.0 * std::numbers::pi_v<double> * static_cast<double>(total_momentum) /

@@ -4,12 +4,36 @@
 #include <cassert>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <numbers>
 #include <stdexcept>
 #include <vector>
 
 #include "numerics/linear_operator.h"
 #include "utils/index.h"
+
+namespace detail {
+inline size_t canonicalize_momentum(int64_t value, size_t lattice_size) {
+  if (lattice_size == 0) {
+    return 0;
+  }
+  const int64_t L = static_cast<int64_t>(lattice_size);
+  int64_t mod = value % L;
+  if (mod < 0) {
+    mod += L;
+  }
+  return static_cast<size_t>(mod);
+}
+
+inline std::vector<size_t> canonicalize_momentum(const std::vector<int64_t>& momentum,
+                                                 const std::vector<size_t>& size) {
+  std::vector<size_t> result(momentum.size());
+  for (size_t d = 0; d < momentum.size(); ++d) {
+    result[d] = canonicalize_momentum(momentum[d], size[d]);
+  }
+  return result;
+}
+}  // namespace detail
 
 struct HubbardRelativeInteraction final : LinearOperator<arma::cx_vec> {
   using VectorType = arma::cx_vec;
@@ -39,12 +63,15 @@ struct HubbardRelativeKinetic final : LinearOperator<arma::cx_vec> {
   using VectorType = arma::cx_vec;
   using ScalarType = std::complex<double>;
 
-  HubbardRelativeKinetic(const std::vector<size_t>& size, const std::vector<size_t>& total_momentum)
-      : size_(size), total_momentum_(total_momentum), index_(size_) {
+  HubbardRelativeKinetic(const std::vector<size_t>& size,
+                         const std::vector<int64_t>& total_momentum)
+      : size_(size),
+        total_momentum_(detail::canonicalize_momentum(total_momentum, size)),
+        index_(size_) {
     if (size_.empty()) {
       throw std::invalid_argument("HubbardRelativeKinetic requires at least one dimension.");
     }
-    if (size_.size() != total_momentum_.size()) {
+    if (size_.size() != total_momentum.size()) {
       throw std::invalid_argument("HubbardRelativeKinetic size and momentum must match.");
     }
     t_eff_.resize(size_.size());
@@ -90,7 +117,7 @@ struct HubbardRelative final : LinearOperator<arma::cx_vec> {
   using VectorType = arma::cx_vec;
   using ScalarType = std::complex<double>;
 
-  HubbardRelative(const std::vector<size_t>& size, const std::vector<size_t>& total_momentum,
+  HubbardRelative(const std::vector<size_t>& size, const std::vector<int64_t>& total_momentum,
                   double t, double U)
       : kinetic_(size, total_momentum), interaction_(size), t_(t), U_(U) {}
 
@@ -111,13 +138,15 @@ struct HubbardRelativeCurrent final : LinearOperator<arma::cx_vec> {
   using VectorType = arma::cx_vec;
   using ScalarType = std::complex<double>;
 
-  HubbardRelativeCurrent(const std::vector<size_t>& size, const std::vector<size_t>& total_momentum,
-                         double t, size_t direction)
-      : size_(size), total_momentum_(total_momentum), index_(size_) {
+  HubbardRelativeCurrent(const std::vector<size_t>& size,
+                         const std::vector<int64_t>& total_momentum, double t, size_t direction)
+      : size_(size),
+        total_momentum_(detail::canonicalize_momentum(total_momentum, size)),
+        index_(size_) {
     if (size_.empty()) {
       throw std::invalid_argument("HubbardRelativeCurrent requires at least one dimension.");
     }
-    if (size_.size() != total_momentum_.size()) {
+    if (size_.size() != total_momentum.size()) {
       throw std::invalid_argument("HubbardRelativeCurrent size and momentum must match.");
     }
     if (direction >= size_.size()) {
@@ -162,19 +191,19 @@ struct CurrentRelative_Q final : LinearOperator<arma::cx_vec> {
   using ScalarType = std::complex<double>;
 
   CurrentRelative_Q(const std::vector<size_t>& size, double t,
-                    const std::vector<size_t>& total_momentum,
-                    const std::vector<size_t>& transfer_momentum, size_t direction)
+                    const std::vector<int64_t>& total_momentum,
+                    const std::vector<int64_t>& transfer_momentum, size_t direction)
       : size_(size),
         t_(t),
-        total_momentum_(total_momentum),
-        transfer_momentum_(transfer_momentum),
+        total_momentum_(detail::canonicalize_momentum(total_momentum, size)),
+        transfer_momentum_(detail::canonicalize_momentum(transfer_momentum, size)),
         direction_(direction),
         index_(size_) {
     if (size_.empty()) {
       throw std::invalid_argument("CurrentRelative_Q requires at least one dimension.");
     }
     const size_t dims = size_.size();
-    if (total_momentum_.size() != dims || transfer_momentum_.size() != dims) {
+    if (total_momentum.size() != dims || transfer_momentum.size() != dims) {
       throw std::invalid_argument(
           "CurrentRelative_Q: total and transfer momentum must match the number of dimensions.");
     }

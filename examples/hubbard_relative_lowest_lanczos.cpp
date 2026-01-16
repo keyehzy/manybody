@@ -11,7 +11,7 @@
 
 struct CliOptions {
   size_t lattice_size = 16;
-  size_t total_momentum = 0;
+  int64_t total_momentum = 0;
   double t = 1.0;
   double U = -4.0;
   size_t lanczos_steps = 50;
@@ -23,7 +23,7 @@ void parse_cli_options(int argc, char** argv, CliOptions* options_out) {
   // clang-format off
   options.add_options()
       ("L,lattice-size", "Lattice size per dimension",  cxxopts::value<size_t>()->default_value("16"))
-      ("P,total-momentum", "Total momentum value",      cxxopts::value<size_t>()->default_value("0"))
+      ("P,total-momentum", "Total momentum value",      cxxopts::value<int64_t>()->default_value("0"))
       ("t,hopping", "Hopping amplitude",                cxxopts::value<double>()->default_value("1.0"))
       ("U,interaction", "On-site interaction strength", cxxopts::value<double>()->default_value("-4.0"))
       ("k,lanczos-steps", "Lanczos iteration steps",    cxxopts::value<size_t>()->default_value("50"))
@@ -37,7 +37,7 @@ void parse_cli_options(int argc, char** argv, CliOptions* options_out) {
       std::exit(0);
     }
     options_out->lattice_size = result["lattice-size"].as<size_t>();
-    options_out->total_momentum = result["total-momentum"].as<size_t>();
+    options_out->total_momentum = result["total-momentum"].as<int64_t>();
     options_out->t = result["hopping"].as<double>();
     options_out->U = result["interaction"].as<double>();
     options_out->lanczos_steps = result["lanczos-steps"].as<size_t>();
@@ -56,18 +56,14 @@ int main(int argc, char** argv) {
     std::cerr << "Lattice size must be positive.\n";
     return 1;
   }
-  if (opts.total_momentum >= opts.lattice_size) {
-    std::cerr << "Total momentum must be smaller than lattice size.\n";
-    return 1;
-  }
   if (opts.lanczos_steps == 0) {
     std::cerr << "Lanczos steps must be positive.\n";
     return 1;
   }
 
   const std::vector<size_t> lattice_size{opts.lattice_size, opts.lattice_size, opts.lattice_size};
-  const std::vector<size_t> total_momentum{opts.total_momentum, opts.total_momentum,
-                                           opts.total_momentum};
+  const std::vector<int64_t> total_momentum{opts.total_momentum, opts.total_momentum,
+                                            opts.total_momentum};
 
   HubbardRelative hamiltonian(lattice_size, total_momentum, opts.t, opts.U);
 

@@ -11,7 +11,7 @@
 
 struct CliOptions {
   size_t lattice_size = 6;
-  size_t total_momentum = 0;
+  int64_t total_momentum = 0;
   double t = 1.0;
   double U = -4.0;
   double lmax = 5.0;
@@ -24,7 +24,7 @@ void parse_cli_options(int argc, char** argv, CliOptions* options_out) {
   // clang-format off
   options.add_options()
       ("L,lattice-size", "Lattice size per dimension",  cxxopts::value<size_t>()->default_value("6"))
-      ("P,total-momentum", "Total momentum value",      cxxopts::value<size_t>()->default_value("0"))
+      ("P,total-momentum", "Total momentum value",      cxxopts::value<int64_t>()->default_value("0"))
       ("t,hopping", "Hopping amplitude",                cxxopts::value<double>()->default_value("1.0"))
       ("U,interaction", "On-site interaction strength", cxxopts::value<double>()->default_value("-4.0"))
       ("l,lmax", "Maximum flow parameter",              cxxopts::value<double>()->default_value("5.0"))
@@ -39,7 +39,7 @@ void parse_cli_options(int argc, char** argv, CliOptions* options_out) {
       std::exit(0);
     }
     options_out->lattice_size = result["lattice-size"].as<size_t>();
-    options_out->total_momentum = result["total-momentum"].as<size_t>();
+    options_out->total_momentum = result["total-momentum"].as<int64_t>();
     options_out->t = result["hopping"].as<double>();
     options_out->U = result["interaction"].as<double>();
     options_out->lmax = result["lmax"].as<double>();
@@ -107,8 +107,8 @@ int main(int argc, char** argv) {
   parse_cli_options(argc, argv, &opts);
 
   const std::vector<size_t> lattice_size{opts.lattice_size, opts.lattice_size, opts.lattice_size};
-  const std::vector<size_t> total_momentum{opts.total_momentum, opts.total_momentum,
-                                           opts.total_momentum};
+  const std::vector<int64_t> total_momentum{opts.total_momentum, opts.total_momentum,
+                                            opts.total_momentum};
   constexpr size_t kBlockDim = 1;
 
   HubbardRelative hamiltonian(lattice_size, total_momentum, opts.t, opts.U);
