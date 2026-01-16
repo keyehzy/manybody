@@ -4,12 +4,7 @@ project(manybody LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Compiler warnings
-add_compile_options(-Wall -Wextra)
-
-# Find dependencies
 find_package(Armadillo REQUIRED)
-
 find_package(OpenMP REQUIRED)
 
 add_subdirectory(src)
