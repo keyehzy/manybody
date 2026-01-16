@@ -344,6 +344,11 @@ example_hubbard_relative_current = example_target(
     "examples/hubbard_relative_current.cpp",
 )
 
+example_hubbard_relative_current_q = example_target(
+    "example_hubbard_relative_current_q",
+    "examples/hubbard_relative_current_q.cpp",
+)
+
 TARGETS = [
     manybody,
     app,
@@ -358,6 +363,7 @@ TARGETS = [
     example_hubbard_relative_lowest_lanczos,
     example_hubbard_relative_block_wegner_flow,
     example_hubbard_relative_current,
+    example_hubbard_relative_current_q,
     tests,
 ]
 
