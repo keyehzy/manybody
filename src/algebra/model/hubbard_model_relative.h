@@ -8,20 +8,7 @@
 
 #include "algebra/model/model.h"
 #include "algebra/term.h"
-
-namespace detail {
-inline size_t canonicalize_momentum(int64_t value, size_t lattice_size) {
-  if (lattice_size == 0) {
-    return 0;
-  }
-  const int64_t L = static_cast<int64_t>(lattice_size);
-  int64_t mod = value % L;
-  if (mod < 0) {
-    mod += L;
-  }
-  return static_cast<size_t>(mod);
-}
-}  // namespace detail
+#include "utils/canonicalize_momentum.h"
 
 // Two-particle Hubbard model in the relative coordinate basis with fixed total momentum K.
 // B^+_{K,p} = c^+_{p,up} c^+_{K-p,down}
@@ -32,7 +19,7 @@ struct HubbardModelRelative : Model {
       : t(t),
         u(u),
         size(size),
-        total_momentum(detail::canonicalize_momentum(total_momentum, size)) {}
+        total_momentum(utils::canonicalize_momentum(total_momentum, size)) {}
 
   double effective_hopping() const {
     const double k_phase = 2.0 * std::numbers::pi_v<double> * static_cast<double>(total_momentum) /

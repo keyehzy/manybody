@@ -10,30 +10,8 @@
 #include <vector>
 
 #include "numerics/linear_operator.h"
+#include "utils/canonicalize_momentum.h"
 #include "utils/index.h"
-
-namespace detail {
-inline size_t canonicalize_momentum(int64_t value, size_t lattice_size) {
-  if (lattice_size == 0) {
-    return 0;
-  }
-  const int64_t L = static_cast<int64_t>(lattice_size);
-  int64_t mod = value % L;
-  if (mod < 0) {
-    mod += L;
-  }
-  return static_cast<size_t>(mod);
-}
-
-inline std::vector<size_t> canonicalize_momentum(const std::vector<int64_t>& momentum,
-                                                 const std::vector<size_t>& size) {
-  std::vector<size_t> result(momentum.size());
-  for (size_t d = 0; d < momentum.size(); ++d) {
-    result[d] = canonicalize_momentum(momentum[d], size[d]);
-  }
-  return result;
-}
-}  // namespace detail
 
 struct HubbardRelativeInteraction final : LinearOperator<arma::cx_vec> {
   using VectorType = arma::cx_vec;
@@ -66,7 +44,7 @@ struct HubbardRelativeKinetic final : LinearOperator<arma::cx_vec> {
   HubbardRelativeKinetic(const std::vector<size_t>& size,
                          const std::vector<int64_t>& total_momentum)
       : size_(size),
-        total_momentum_(detail::canonicalize_momentum(total_momentum, size)),
+        total_momentum_(utils::canonicalize_momentum(total_momentum, size)),
         index_(size_) {
     if (size_.empty()) {
       throw std::invalid_argument("HubbardRelativeKinetic requires at least one dimension.");
@@ -141,7 +119,7 @@ struct HubbardRelativeCurrent final : LinearOperator<arma::cx_vec> {
   HubbardRelativeCurrent(const std::vector<size_t>& size,
                          const std::vector<int64_t>& total_momentum, double t, size_t direction)
       : size_(size),
-        total_momentum_(detail::canonicalize_momentum(total_momentum, size)),
+        total_momentum_(utils::canonicalize_momentum(total_momentum, size)),
         index_(size_) {
     if (size_.empty()) {
       throw std::invalid_argument("HubbardRelativeCurrent requires at least one dimension.");
@@ -195,8 +173,8 @@ struct CurrentRelative_Q final : LinearOperator<arma::cx_vec> {
                     const std::vector<int64_t>& transfer_momentum, size_t direction)
       : size_(size),
         t_(t),
-        total_momentum_(detail::canonicalize_momentum(total_momentum, size)),
-        transfer_momentum_(detail::canonicalize_momentum(transfer_momentum, size)),
+        total_momentum_(utils::canonicalize_momentum(total_momentum, size)),
+        transfer_momentum_(utils::canonicalize_momentum(transfer_momentum, size)),
         direction_(direction),
         index_(size_) {
     if (size_.empty()) {
