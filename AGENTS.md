@@ -2,40 +2,11 @@
 
 ## Build System
 
-The build system is located in @build.py.
-
-```bash
-./build.py --help
-usage: build.py [-h] [--format] [--run] [--flags FLAGS] [--includes INCLUDES] [--libs LIBS]
-
-Build system for the project
-
-options:
-  -h, --help           show this help message and exit
-  --format             Run clang-format on all C++ source files
-  --run                Run the target
-  --flags FLAGS        Additional compiler flags
-  --includes INCLUDES  Additional INCLUDES
-  --libs LIBS          Additional LIBRARIES
-
-Compilation finished at Thu Jan  1 17:59:12, duration 0.77 s
-```
+We use CMake as the build system.
 
 ## Commit message
 
-Use the following git commit template:
-
-```
-<Short summary in imperative mood, ≤ 50 chars>
-
-<Optional body wrapped at ~72 chars explaining:
-- what changed
-- why it changed
-- side effects or constraints>
-```
-
 Example:
-
 
 ```
 Refactor user service to reduce duplication
@@ -43,20 +14,3 @@ Refactor user service to reduce duplication
 Extract shared validation logic into a helper module,
 simplifying maintenance and improving test coverage.
 ```
-
-## Project notes
-
-- Refactor ideas are tracked in `TODO.md`.
-
-## Source layout
-
-- `src/algebra/` contains operator/term/expression/basis/models plus normal ordering,
-  commutators, matrix elements, and transforms.
-- `src/numerics/` contains linear operator abstractions plus Lanczos/Krylov helpers.
-- `src/algorithms/` contains flow/integration algorithms (Wegner flow, Schriffer-Wolff, etc.).
-- `src/utils/` contains shared containers, indexing (DynamicIndex), hashing, and special functions.
-- `src/main.cpp` stays at the top level.
-
-## Benchmark
-
-- Use examples/hubbard_1d_schriffer_wolff_benchmark.cpp as a proxy benchmark for the library functionality.
