@@ -17,49 +17,49 @@ struct CliOptions {
   size_t lanczos_steps = 50;
 };
 
-void parse_cli_options(int argc, char** argv, CliOptions* options_out) {
-  cxxopts::Options options("hubbard_relative_lowest_lanczos",
-                           "Compute the lowest eigenvalue for the 3D relative Hubbard model");
+CliOptions parse_cli_options(int argc, char** argv) {
+  CliOptions o;
+
+  cxxopts::Options cli("hubbard_relative_lowest_lanczos",
+                       "Compute the lowest eigenvalue for the 3D relative Hubbard model");
   // clang-format off
-  options.add_options()
-      ("L,lattice-size", "Lattice size per dimension",  cxxopts::value<size_t>()->default_value("16"))
-      ("P,total-momentum", "Total momentum value",      cxxopts::value<int64_t>()->default_value("0"))
-      ("t,hopping", "Hopping amplitude",                cxxopts::value<double>()->default_value("1.0"))
-      ("U,interaction", "On-site interaction strength", cxxopts::value<double>()->default_value("-4.0"))
-      ("k,lanczos-steps", "Lanczos iteration steps",    cxxopts::value<size_t>()->default_value("50"))
+  cli.add_options()
+      ("L,lattice-size", "Lattice size per dimension",  cxxopts::value(o.lattice_size)->default_value("16"))
+      ("P,total-momentum", "Total momentum value",      cxxopts::value(o.total_momentum)->default_value("0"))
+      ("t,hopping", "Hopping amplitude",                cxxopts::value(o.t)->default_value("1.0"))
+      ("U,interaction", "On-site interaction strength", cxxopts::value(o.U)->default_value("-4.0"))
+      ("k,lanczos-steps", "Lanczos iteration steps",    cxxopts::value(o.lanczos_steps)->default_value("50"))
       ("h,help", "Print usage");
   // clang-format on
 
   try {
-    const auto result = options.parse(argc, argv);
-    if (result.count("help") > 0) {
-      std::cout << options.help() << "\n";
+    auto result = cli.parse(argc, argv);
+    if (result.count("help")) {
+      std::cout << cli.help() << "\n";
       std::exit(0);
     }
-    options_out->lattice_size = result["lattice-size"].as<size_t>();
-    options_out->total_momentum = result["total-momentum"].as<int64_t>();
-    options_out->t = result["hopping"].as<double>();
-    options_out->U = result["interaction"].as<double>();
-    options_out->lanczos_steps = result["lanczos-steps"].as<size_t>();
-  } catch (const std::exception& ex) {
-    std::cerr << "Argument error: " << ex.what() << "\n";
-    std::cerr << options.help() << "\n";
+  } catch (const std::exception& e) {
+    std::cerr << "Argument error: " << e.what() << "\n" << cli.help() << "\n";
+    std::exit(1);
+  }
+
+  return o;
+}
+
+void validate_options(const CliOptions& opts) {
+  if (opts.lattice_size == 0) {
+    std::cerr << "Lattice size must be positive.\n";
+    std::exit(1);
+  }
+  if (opts.lanczos_steps == 0) {
+    std::cerr << "Lanczos steps must be positive.\n";
     std::exit(1);
   }
 }
 
 int main(int argc, char** argv) {
-  CliOptions opts;
-  parse_cli_options(argc, argv, &opts);
-
-  if (opts.lattice_size == 0) {
-    std::cerr << "Lattice size must be positive.\n";
-    return 1;
-  }
-  if (opts.lanczos_steps == 0) {
-    std::cerr << "Lanczos steps must be positive.\n";
-    return 1;
-  }
+  const CliOptions opts = parse_cli_options(argc, argv);
+  validate_options(opts);
 
   const std::vector<size_t> lattice_size{opts.lattice_size, opts.lattice_size, opts.lattice_size};
   const std::vector<int64_t> total_momentum{opts.total_momentum, opts.total_momentum,

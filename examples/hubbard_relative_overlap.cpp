@@ -16,40 +16,37 @@ struct CliOptions {
   size_t num_steps = 100;
 };
 
-void parse_cli_options(int argc, char** argv, CliOptions* options_out) {
-  cxxopts::Options options("hubbard_relative_overlap",
-                           "Compute overlap decay for the 3D Hubbard relative model");
+CliOptions parse_cli_options(int argc, char** argv) {
+  CliOptions o;
+
+  cxxopts::Options cli("hubbard_relative_overlap",
+                       "Compute overlap decay for the 3D Hubbard relative model");
   // clang-format off
-  options.add_options()
-      ("L,lattice-size", "Lattice size per dimension",  cxxopts::value<size_t>()->default_value("16"))
-      ("P,total-momentum", "Total momentum value",      cxxopts::value<int64_t>()->default_value("0"))
-      ("t,hopping", "Hopping amplitude",                cxxopts::value<double>()->default_value("1.0"))
-      ("U,interaction", "On-site interaction strength", cxxopts::value<double>()->default_value("-4.0"))
-      ("n,num-steps", "Number of normalization steps",  cxxopts::value<size_t>()->default_value("100"))
+  cli.add_options()
+      ("L,lattice-size", "Lattice size per dimension",  cxxopts::value(o.lattice_size)->default_value("16"))
+      ("P,total-momentum", "Total momentum value",      cxxopts::value(o.total_momentum)->default_value("0"))
+      ("t,hopping", "Hopping amplitude",                cxxopts::value(o.t)->default_value("1.0"))
+      ("U,interaction", "On-site interaction strength", cxxopts::value(o.U)->default_value("-4.0"))
+      ("n,num-steps", "Number of normalization steps",  cxxopts::value(o.num_steps)->default_value("100"))
       ("h,help", "Print usage");
   // clang-format on
 
   try {
-    const auto result = options.parse(argc, argv);
-    if (result.count("help") > 0) {
-      std::cout << options.help() << "\n";
+    auto result = cli.parse(argc, argv);
+    if (result.count("help")) {
+      std::cout << cli.help() << "\n";
       std::exit(0);
     }
-    options_out->lattice_size = result["lattice-size"].as<size_t>();
-    options_out->total_momentum = result["total-momentum"].as<int64_t>();
-    options_out->t = result["hopping"].as<double>();
-    options_out->U = result["interaction"].as<double>();
-    options_out->num_steps = result["num-steps"].as<size_t>();
-  } catch (const std::exception& ex) {
-    std::cerr << "Argument error: " << ex.what() << "\n";
-    std::cerr << options.help() << "\n";
+  } catch (const std::exception& e) {
+    std::cerr << "Argument error: " << e.what() << "\n" << cli.help() << "\n";
     std::exit(1);
   }
+
+  return o;
 }
 
 int main(int argc, char** argv) {
-  CliOptions opts;
-  parse_cli_options(argc, argv, &opts);
+  const CliOptions opts = parse_cli_options(argc, argv);
 
   const std::vector<size_t> lattice_size{opts.lattice_size, opts.lattice_size, opts.lattice_size};
   const std::vector<int64_t> total_momentum{opts.total_momentum, opts.total_momentum,

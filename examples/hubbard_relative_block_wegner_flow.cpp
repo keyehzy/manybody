@@ -18,37 +18,34 @@ struct CliOptions {
   double dl = 0.01;
 };
 
-void parse_cli_options(int argc, char** argv, CliOptions* options_out) {
-  cxxopts::Options options("hubbard_relative_block_wegner_flow",
-                           "Track block Wegner flow for the 3D relative Hubbard model");
+CliOptions parse_cli_options(int argc, char** argv) {
+  CliOptions o;
+
+  cxxopts::Options cli("hubbard_relative_block_wegner_flow",
+                       "Track block Wegner flow for the 3D relative Hubbard model");
   // clang-format off
-  options.add_options()
-      ("L,lattice-size", "Lattice size per dimension",  cxxopts::value<size_t>()->default_value("6"))
-      ("P,total-momentum", "Total momentum value",      cxxopts::value<int64_t>()->default_value("0"))
-      ("t,hopping", "Hopping amplitude",                cxxopts::value<double>()->default_value("1.0"))
-      ("U,interaction", "On-site interaction strength", cxxopts::value<double>()->default_value("-4.0"))
-      ("l,lmax", "Maximum flow parameter",              cxxopts::value<double>()->default_value("5.0"))
-      ("d,dl", "Flow step size",                         cxxopts::value<double>()->default_value("0.01"))
+  cli.add_options()
+      ("L,lattice-size", "Lattice size per dimension",  cxxopts::value(o.lattice_size)->default_value("6"))
+      ("P,total-momentum", "Total momentum value",      cxxopts::value(o.total_momentum)->default_value("0"))
+      ("t,hopping", "Hopping amplitude",                cxxopts::value(o.t)->default_value("1.0"))
+      ("U,interaction", "On-site interaction strength", cxxopts::value(o.U)->default_value("-4.0"))
+      ("l,lmax", "Maximum flow parameter",              cxxopts::value(o.lmax)->default_value("5.0"))
+      ("d,dl", "Flow step size",                        cxxopts::value(o.dl)->default_value("0.01"))
       ("h,help", "Print usage");
   // clang-format on
 
   try {
-    const auto result = options.parse(argc, argv);
-    if (result.count("help") > 0) {
-      std::cout << options.help() << "\n";
+    auto result = cli.parse(argc, argv);
+    if (result.count("help")) {
+      std::cout << cli.help() << "\n";
       std::exit(0);
     }
-    options_out->lattice_size = result["lattice-size"].as<size_t>();
-    options_out->total_momentum = result["total-momentum"].as<int64_t>();
-    options_out->t = result["hopping"].as<double>();
-    options_out->U = result["interaction"].as<double>();
-    options_out->lmax = result["lmax"].as<double>();
-    options_out->dl = result["dl"].as<double>();
-  } catch (const std::exception& ex) {
-    std::cerr << "Argument error: " << ex.what() << "\n";
-    std::cerr << options.help() << "\n";
+  } catch (const std::exception& e) {
+    std::cerr << "Argument error: " << e.what() << "\n" << cli.help() << "\n";
     std::exit(1);
   }
+
+  return o;
 }
 
 // Measures the magnitude of the off-block-diagonal elements
@@ -103,8 +100,7 @@ arma::cx_mat build_hamiltonian_matrix(const LinearOperator<arma::cx_vec>& hamilt
 }
 
 int main(int argc, char** argv) {
-  CliOptions opts;
-  parse_cli_options(argc, argv, &opts);
+  const CliOptions opts = parse_cli_options(argc, argv);
 
   const std::vector<size_t> lattice_size{opts.lattice_size, opts.lattice_size, opts.lattice_size};
   const std::vector<int64_t> total_momentum{opts.total_momentum, opts.total_momentum,

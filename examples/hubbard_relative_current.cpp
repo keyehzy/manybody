@@ -39,78 +39,72 @@ arma::cx_vec random_complex_vector(size_t dimension, std::mt19937& rng) {
   return v;
 }
 
-void parse_cli_options(int argc, char** argv, CliOptions* options_out) {
-  cxxopts::Options options("hubbard_relative_current",
-                           "Compute current-current correlator for the 3D relative Hubbard model");
+CliOptions parse_cli_options(int argc, char** argv) {
+  CliOptions o;
+
+  cxxopts::Options cli("hubbard_relative_current",
+                       "Compute current-current correlator for the 3D relative Hubbard model");
   // clang-format off
-  options.add_options()
-      ("L,lattice-size", "Lattice size per dimension",     cxxopts::value<size_t>()->default_value("8"))
-      ("x,kx", "Total momentum Kx component",              cxxopts::value<int64_t>()->default_value("1"))
-      ("y,ky", "Total momentum Ky component",              cxxopts::value<int64_t>()->default_value("0"))
-      ("z,kz", "Total momentum Kz component",              cxxopts::value<int64_t>()->default_value("0"))
-      ("t,hopping", "Hopping amplitude",                   cxxopts::value<double>()->default_value("1.0"))
-      ("U,interaction", "On-site interaction strength",    cxxopts::value<double>()->default_value("-10.0"))
-      ("b,beta", "Inverse temperature",                    cxxopts::value<double>()->default_value("10.0"))
-      ("d,dt", "Real-time step size",                      cxxopts::value<double>()->default_value("0.01"))
-      ("k,krylov-steps", "Krylov subspace dimension",      cxxopts::value<size_t>()->default_value("20"))
-      ("s,steps", "Real-time evolution steps",             cxxopts::value<size_t>()->default_value("1000"))
-      ("n,num-samples", "Number of stochastic samples",    cxxopts::value<size_t>()->default_value("5"))
+  cli.add_options()
+      ("L,lattice-size", "Lattice size per dimension",  cxxopts::value(o.lattice_size)->default_value("8"))
+      ("x,kx", "Total momentum Kx component",           cxxopts::value(o.kx)->default_value("1"))
+      ("y,ky", "Total momentum Ky component",           cxxopts::value(o.ky)->default_value("0"))
+      ("z,kz", "Total momentum Kz component",           cxxopts::value(o.kz)->default_value("0"))
+      ("t,hopping", "Hopping amplitude",                cxxopts::value(o.t)->default_value("1.0"))
+      ("U,interaction", "On-site interaction strength", cxxopts::value(o.U)->default_value("-10.0"))
+      ("b,beta", "Inverse temperature",                 cxxopts::value(o.beta)->default_value("10.0"))
+      ("d,dt", "Real-time step size",                   cxxopts::value(o.dt)->default_value("0.01"))
+      ("k,krylov-steps", "Krylov subspace dimension",   cxxopts::value(o.krylov_steps)->default_value("20"))
+      ("s,steps", "Real-time evolution steps",          cxxopts::value(o.steps)->default_value("1000"))
+      ("n,num-samples", "Number of stochastic samples", cxxopts::value(o.num_samples)->default_value("5"))
       ("h,help", "Print usage");
   // clang-format on
 
   try {
-    const auto result = options.parse(argc, argv);
-    if (result.count("help") > 0) {
-      std::cout << options.help() << "\n";
+    auto result = cli.parse(argc, argv);
+    if (result.count("help")) {
+      std::cout << cli.help() << "\n";
       std::exit(0);
     }
-    options_out->lattice_size = result["lattice-size"].as<size_t>();
-    options_out->kx = result["kx"].as<int64_t>();
-    options_out->ky = result["ky"].as<int64_t>();
-    options_out->kz = result["kz"].as<int64_t>();
-    options_out->t = result["hopping"].as<double>();
-    options_out->U = result["interaction"].as<double>();
-    options_out->beta = result["beta"].as<double>();
-    options_out->dt = result["dt"].as<double>();
-    options_out->krylov_steps = result["krylov-steps"].as<size_t>();
-    options_out->steps = result["steps"].as<size_t>();
-    options_out->num_samples = result["num-samples"].as<size_t>();
-  } catch (const std::exception& ex) {
-    std::cerr << "Argument error: " << ex.what() << "\n";
-    std::cerr << options.help() << "\n";
+  } catch (const std::exception& e) {
+    std::cerr << "Argument error: " << e.what() << "\n" << cli.help() << "\n";
+    std::exit(1);
+  }
+
+  return o;
+}
+
+void validate_options(const CliOptions& opts) {
+  if (opts.lattice_size == 0) {
+    std::cerr << "Lattice size must be positive.\n";
+    std::exit(1);
+  }
+  if (opts.beta <= 0.0) {
+    std::cerr << "Inverse temperature must be positive.\n";
+    std::exit(1);
+  }
+  if (opts.dt <= 0.0) {
+    std::cerr << "Time step must be positive.\n";
+    std::exit(1);
+  }
+  if (opts.krylov_steps == 0) {
+    std::cerr << "Krylov steps must be positive.\n";
+    std::exit(1);
+  }
+  if (opts.steps == 0) {
+    std::cerr << "Steps must be positive.\n";
+    std::exit(1);
+  }
+  if (opts.num_samples == 0) {
+    std::cerr << "Number of samples must be positive.\n";
     std::exit(1);
   }
 }
 }  // namespace
 
 int main(int argc, char** argv) {
-  CliOptions opts;
-  parse_cli_options(argc, argv, &opts);
-
-  if (opts.lattice_size == 0) {
-    std::cerr << "Lattice size must be positive.\n";
-    return 1;
-  }
-  if (opts.beta <= 0.0) {
-    std::cerr << "Inverse temperature must be positive.\n";
-    return 1;
-  }
-  if (opts.dt <= 0.0) {
-    std::cerr << "Time step must be positive.\n";
-    return 1;
-  }
-  if (opts.krylov_steps == 0) {
-    std::cerr << "Krylov steps must be positive.\n";
-    return 1;
-  }
-  if (opts.steps == 0) {
-    std::cerr << "Steps must be positive.\n";
-    return 1;
-  }
-  if (opts.num_samples == 0) {
-    std::cerr << "Number of samples must be positive.\n";
-    return 1;
-  }
+  const CliOptions opts = parse_cli_options(argc, argv);
+  validate_options(opts);
 
   const std::vector<size_t> lattice_size{opts.lattice_size, opts.lattice_size, opts.lattice_size};
   const std::vector<int64_t> total_momentum{opts.kx, opts.ky, opts.kz};
