@@ -107,7 +107,6 @@ std::vector<ScalarType> expm_tridiagonal_first_column_imaginary(
 
 }  // namespace detail
 
-template <typename Scalar>
 struct EvolutionOptions {
   size_t krylov_steps = 30;
 };
@@ -121,8 +120,7 @@ struct EvolutionNoopCallback {
 template <typename Op, typename Solver>
 typename Op::VectorType evolve_state(const Op& H, const typename Op::VectorType& psi0,
                                      scalar_real_t<typename Op::ScalarType> t,
-                                     EvolutionOptions<typename Op::ScalarType> opts,
-                                     Solver&& solver) {
+                                     EvolutionOptions opts, Solver&& solver) {
   using ScalarType = typename Op::ScalarType;
   using RealType = scalar_real_t<ScalarType>;
 
@@ -155,8 +153,7 @@ typename Op::VectorType evolve_state(const Op& H, const typename Op::VectorType&
 template <typename Op, typename Solver>
 typename Op::VectorType evolve_state(const Op& H, const typename Op::VectorType& psi0,
                                      scalar_real_t<typename Op::ScalarType> t, Solver&& solver) {
-  return evolve_state(H, psi0, t, EvolutionOptions<typename Op::ScalarType>{},
-                      std::forward<Solver>(solver));
+  return evolve_state(H, psi0, t, EvolutionOptions{}, std::forward<Solver>(solver));
 }
 
 // Compute psi(t) = exp(-i t H) psi(0) using a Lanczos/Krylov expmv method.
@@ -167,7 +164,7 @@ typename Op::VectorType evolve_state(const Op& H, const typename Op::VectorType&
 template <typename Op>
 typename Op::VectorType time_evolve_state(const Op& H, const typename Op::VectorType& psi0,
                                           scalar_real_t<typename Op::ScalarType> t,
-                                          EvolutionOptions<typename Op::ScalarType> opts = {}) {
+                                          EvolutionOptions opts = {}) {
   using ScalarType = typename Op::ScalarType;
   using RealType = scalar_real_t<ScalarType>;
   static_assert(std::is_same_v<ScalarType, std::complex<RealType>>,
@@ -185,9 +182,10 @@ typename Op::VectorType time_evolve_state(const Op& H, const typename Op::Vector
 // Requirements:
 //   - H must be Hermitian with respect to the Armadillo inner product used in lanczos.h.
 template <typename Op>
-typename Op::VectorType imaginary_time_evolve_state(
-    const Op& H, const typename Op::VectorType& psi0, scalar_real_t<typename Op::ScalarType> t,
-    EvolutionOptions<typename Op::ScalarType> opts = {}) {
+typename Op::VectorType imaginary_time_evolve_state(const Op& H,
+                                                    const typename Op::VectorType& psi0,
+                                                    scalar_real_t<typename Op::ScalarType> t,
+                                                    EvolutionOptions opts = {}) {
   using ScalarType = typename Op::ScalarType;
   using RealType = scalar_real_t<ScalarType>;
 
@@ -208,7 +206,7 @@ typename Op::VectorType time_evolve_state_steps(const Op& H, typename Op::Vector
                                                 scalar_real_t<typename Op::ScalarType> t0,
                                                 scalar_real_t<typename Op::ScalarType> t1,
                                                 scalar_real_t<typename Op::ScalarType> dt,
-                                                EvolutionOptions<typename Op::ScalarType> opts = {},
+                                                EvolutionOptions opts = {},
                                                 Callback callback = {}) {
   using ScalarType = typename Op::ScalarType;
   using RealType = scalar_real_t<ScalarType>;

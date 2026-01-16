@@ -65,7 +65,7 @@ TEST_CASE("time_evolve_state_steps_matches_exact_expm") {
   const double t0 = 0.0;
   const double t1 = 0.3;
   const double dt = 0.1;
-  EvolutionOptions<arma::cx_double> opts;
+  EvolutionOptions opts;
   opts.krylov_steps = 2;
 
   ComplexMatrixOperator op(H);
@@ -86,7 +86,7 @@ TEST_CASE("time_evolve_state_steps_calls_callback_and_matches_exact_expm") {
   psi0(0) = arma::cx_double(0.3, -0.4);
   psi0(1) = arma::cx_double(0.2, 0.1);
 
-  EvolutionOptions<arma::cx_double> opts;
+  EvolutionOptions opts;
   opts.krylov_steps = 2;
 
   ComplexMatrixOperator op(H);
@@ -119,7 +119,7 @@ TEST_CASE("imaginary_time_evolve_state_matches_exact_expm") {
   psi0(0) = arma::cx_double(0.4, -0.1);
   psi0(1) = arma::cx_double(-0.2, 0.3);
 
-  EvolutionOptions<arma::cx_double> opts;
+  EvolutionOptions opts;
   opts.krylov_steps = 2;
 
   ComplexMatrixOperator op(H);

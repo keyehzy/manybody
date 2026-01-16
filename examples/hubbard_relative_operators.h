@@ -11,9 +11,9 @@
 #include "numerics/linear_operator.h"
 #include "utils/index.h"
 
-struct HubbardRelativeInteraction final : LinearOperator<arma::vec> {
-  using VectorType = arma::vec;
-  using ScalarType = double;
+struct HubbardRelativeInteraction final : LinearOperator<arma::cx_vec> {
+  using VectorType = arma::cx_vec;
+  using ScalarType = std::complex<double>;
 
   explicit HubbardRelativeInteraction(const std::vector<size_t>& size)
       : size_(size), index_(size_) {
@@ -35,9 +35,9 @@ struct HubbardRelativeInteraction final : LinearOperator<arma::vec> {
   Index index_;
 };
 
-struct HubbardRelativeKinetic final : LinearOperator<arma::vec> {
-  using VectorType = arma::vec;
-  using ScalarType = double;
+struct HubbardRelativeKinetic final : LinearOperator<arma::cx_vec> {
+  using VectorType = arma::cx_vec;
+  using ScalarType = std::complex<double>;
 
   HubbardRelativeKinetic(const std::vector<size_t>& size, const std::vector<size_t>& total_momentum)
       : size_(size), total_momentum_(total_momentum), index_(size_) {
@@ -86,9 +86,9 @@ struct HubbardRelativeKinetic final : LinearOperator<arma::vec> {
   std::vector<ScalarType> t_eff_{};
 };
 
-struct HubbardRelativeCurrent final : LinearOperator<arma::vec> {
-  using VectorType = arma::vec;
-  using ScalarType = double;
+struct HubbardRelativeCurrent final : LinearOperator<arma::cx_vec> {
+  using VectorType = arma::cx_vec;
+  using ScalarType = std::complex<double>;
 
   HubbardRelativeCurrent(const std::vector<size_t>& size, const std::vector<size_t>& total_momentum,
                          double t, size_t direction)
