@@ -89,17 +89,17 @@ double off_block_norm(const arma::cx_mat& H, size_t p_dim) {
 //     H.col(j) = hamiltonian * e_j
 //
 // where e_j is the j-th standard basis vector.
-arma::cx_mat build_hamiltonian_matrix(const LinearOperator<arma::vec>& hamiltonian,
+arma::cx_mat build_hamiltonian_matrix(const LinearOperator<arma::cx_vec>& hamiltonian,
                                       size_t dimension) {
-  arma::mat h_real(dimension, dimension, arma::fill::zeros);
-  arma::vec basis_vector(dimension, arma::fill::zeros);
+  arma::cx_mat h(dimension, dimension, arma::fill::zeros);
+  arma::cx_vec basis_vector(dimension, arma::fill::zeros);
   for (size_t j = 0; j < dimension; ++j) {
     basis_vector.zeros();
     basis_vector(j) = 1.0;
-    const arma::vec column = hamiltonian.apply(basis_vector);
-    h_real.col(j) = column;
+    const arma::cx_vec column = hamiltonian.apply(basis_vector);
+    h.col(j) = column;
   }
-  return arma::cx_mat(h_real, arma::mat(dimension, dimension, arma::fill::zeros));
+  return h;
 }
 
 int main(int argc, char** argv) {
@@ -111,10 +111,8 @@ int main(int argc, char** argv) {
                                            opts.total_momentum};
   constexpr size_t kBlockDim = 1;
 
-  HubbardRelativeKinetic kinetic(lattice_size, total_momentum);
-  HubbardRelativeInteraction onsite(lattice_size);
-  auto hamiltonian = opts.t * kinetic + opts.U * onsite;
-  const arma::cx_mat h0 = build_hamiltonian_matrix(hamiltonian, kinetic.dimension());
+  HubbardRelative hamiltonian(lattice_size, total_momentum, opts.t, opts.U);
+  const arma::cx_mat h0 = build_hamiltonian_matrix(hamiltonian, hamiltonian.dimension());
 
   auto callback = [](double l, const arma::cx_mat& H) {
     std::cout << l << " " << (off_block_norm(H, kBlockDim) / H(0, 0)).real() << "\n";

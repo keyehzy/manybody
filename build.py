@@ -339,9 +339,9 @@ example_hubbard_relative_block_wegner_flow = example_target(
     "examples/hubbard_relative_block_wegner_flow.cpp",
 )
 
-example_hubbard_relative_current_q0 = example_target(
-    "example_hubbard_relative_current_q0",
-    "examples/hubbard_relative_current_q0.cpp",
+example_hubbard_relative_current = example_target(
+    "example_hubbard_relative_current",
+    "examples/hubbard_relative_current.cpp",
 )
 
 TARGETS = [
@@ -357,7 +357,7 @@ TARGETS = [
     example_hubbard_relative_overlap,
     example_hubbard_relative_lowest_lanczos,
     example_hubbard_relative_block_wegner_flow,
-    example_hubbard_relative_current_q0,
+    example_hubbard_relative_current,
     tests,
 ]
 

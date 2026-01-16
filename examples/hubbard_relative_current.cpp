@@ -120,11 +120,9 @@ int main(int argc, char** argv) {
   const std::vector<size_t> lattice_size{opts.lattice_size, opts.lattice_size, opts.lattice_size};
   const std::vector<size_t> total_momentum{opts.kx, opts.ky, opts.kz};
 
-  HubbardRelativeKinetic kinetic(lattice_size, total_momentum);
-  HubbardRelativeInteraction onsite(lattice_size);
-  const auto hamiltonian = opts.t * kinetic + opts.U * onsite;
+  const HubbardRelative hamiltonian(lattice_size, total_momentum, opts.t, opts.U);
 
-  HubbardRelativeCurrent jx(lattice_size, total_momentum, opts.t, 0);
+  const HubbardRelativeCurrent jx(lattice_size, total_momentum, opts.t, 0);
 
   std::vector<std::complex<double>> global_correlator(opts.steps, std::complex<double>(0.0, 0.0));
 

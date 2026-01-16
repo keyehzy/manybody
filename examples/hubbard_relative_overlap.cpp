@@ -1,4 +1,5 @@
 #include <armadillo>
+#include <complex>
 #include <cstddef>
 #include <exception>
 #include <iostream>
@@ -54,17 +55,14 @@ int main(int argc, char** argv) {
   const std::vector<size_t> total_momentum{opts.total_momentum, opts.total_momentum,
                                            opts.total_momentum};
 
-  HubbardRelativeKinetic kinetic(lattice_size, total_momentum);
-  HubbardRelativeInteraction onsite(lattice_size);
+  HubbardRelative hamiltonian(lattice_size, total_momentum, opts.t, opts.U);
 
-  auto hamiltonian = opts.t * kinetic + opts.U * onsite;
-
-  arma::vec v0(kinetic.dimension(), arma::fill::zeros);
+  arma::cx_vec v0(hamiltonian.dimension(), arma::fill::zeros);
   v0(0) = 1.0;
 
-  arma::vec state = v0;
+  arma::cx_vec state = v0;
   for (size_t i = 0; i <= opts.num_steps; ++i) {
-    const double c_i = std::pow(arma::dot(v0, state), 2);
+    const double c_i = std::norm(arma::cdot(v0, state));
     std::cout << i << " " << c_i << "\n";
     state = arma::normalise(hamiltonian.apply(state));
   }

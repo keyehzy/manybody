@@ -86,6 +86,27 @@ struct HubbardRelativeKinetic final : LinearOperator<arma::cx_vec> {
   std::vector<ScalarType> t_eff_{};
 };
 
+struct HubbardRelative final : LinearOperator<arma::cx_vec> {
+  using VectorType = arma::cx_vec;
+  using ScalarType = std::complex<double>;
+
+  HubbardRelative(const std::vector<size_t>& size, const std::vector<size_t>& total_momentum,
+                  double t, double U)
+      : kinetic_(size, total_momentum), interaction_(size), t_(t), U_(U) {}
+
+  size_t dimension() const override { return kinetic_.dimension(); }
+
+  VectorType apply(const VectorType& v) const override {
+    assert(v.n_elem == dimension());
+    return t_ * kinetic_.apply(v) + U_ * interaction_.apply(v);
+  }
+
+  HubbardRelativeKinetic kinetic_;
+  HubbardRelativeInteraction interaction_;
+  double t_{};
+  double U_{};
+};
+
 struct HubbardRelativeCurrent final : LinearOperator<arma::cx_vec> {
   using VectorType = arma::cx_vec;
   using ScalarType = std::complex<double>;

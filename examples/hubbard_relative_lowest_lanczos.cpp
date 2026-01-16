@@ -69,16 +69,13 @@ int main(int argc, char** argv) {
   const std::vector<size_t> total_momentum{opts.total_momentum, opts.total_momentum,
                                            opts.total_momentum};
 
-  HubbardRelativeKinetic kinetic(lattice_size, total_momentum);
-  HubbardRelativeInteraction onsite(lattice_size);
-
-  auto hamiltonian = opts.t * kinetic + opts.U * onsite;
+  HubbardRelative hamiltonian(lattice_size, total_momentum, opts.t, opts.U);
 
   const size_t dimension = hamiltonian.dimension();
   const size_t lanczos_steps = std::min(opts.lanczos_steps, dimension);
   const auto eigenpair = find_min_eigenpair(hamiltonian, lanczos_steps);
 
-  const arma::vec residual =
+  const arma::cx_vec residual =
       hamiltonian.apply(eigenpair.vector) - eigenpair.value * eigenpair.vector;
   const double residual_norm = arma::norm(residual);
 
