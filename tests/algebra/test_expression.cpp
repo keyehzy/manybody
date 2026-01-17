@@ -1,7 +1,6 @@
-#include <limits>
-
 #include "algebra/expression.h"
 #include "catch.hpp"
+#include "utils/tolerances.h"
 
 TEST_CASE("expression_construct_from_complex_identity") {
   Expression expr(Expression::complex_type(2.0f, -1.0f));
@@ -85,7 +84,7 @@ TEST_CASE("expression_multiply_term_appends_ops") {
 
 TEST_CASE("expression_ignores_near_zero_coefficients") {
   constexpr auto tolerance =
-      1000.0 * std::numeric_limits<Expression::complex_type::value_type>::epsilon();
+      tolerances::tolerance<Expression::complex_type::value_type>();
   auto small = Expression::complex_type(0.5f * tolerance, 0.0f);
   Expression expr(small);
   CHECK((expr.size()) == (0u));
@@ -93,7 +92,7 @@ TEST_CASE("expression_ignores_near_zero_coefficients") {
 
 TEST_CASE("expression_cancels_terms_within_tolerance") {
   constexpr auto tolerance =
-      1000.0 * std::numeric_limits<Expression::complex_type::value_type>::epsilon();
+      tolerances::tolerance<Expression::complex_type::value_type>();
   Operator op = Operator::creation(Operator::Spin::Up, 2);
   Expression expr(Term(Expression::complex_type(1.0f, 0.0f), {op}));
   expr += Term(Expression::complex_type(-1.0f + 0.5f * tolerance, 0.0f), {op});

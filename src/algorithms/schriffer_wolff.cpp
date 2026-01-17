@@ -1,14 +1,13 @@
 #include "algorithms/schriffer_wolff.h"
 
 #include <complex>
-#include <limits>
 
 #include "algebra/matrix_elements.h"
+#include "utils/tolerances.h"
 
 namespace {
-constexpr auto kTolerance =
-    1000.0 * std::numeric_limits<Expression::complex_type::value_type>::epsilon();
-constexpr double kConvergenceTol = 1e-12;
+constexpr auto tolerance =
+    tolerances::tolerance<Expression::complex_type::value_type>();
 }  // namespace
 
 std::pair<size_t, double> cluster_by_largest_gap(const arma::vec& vals) {
@@ -56,7 +55,7 @@ Expression schriffer_wolff(const Expression& kinetic, const Expression& interact
     for (size_t i = 0; i < n; ++i) {
       for (size_t j = n; j < H_in.n_rows; ++j) {
         std::complex<double> denom = vals(i) - vals(j);
-        if (std::abs(denom) <= kTolerance) {
+        if (std::abs(denom) <= tolerance) {
           continue;
         }
         Atilde(i, j) = H_in(i, j) / denom;
@@ -65,7 +64,7 @@ Expression schriffer_wolff(const Expression& kinetic, const Expression& interact
     }
 
     const double max_val = arma::abs(Atilde).max();
-    if (max_val > kConvergenceTol) {
+    if (max_val > 1e-12) {
       converged = false;
     }
 
@@ -86,7 +85,7 @@ Expression schriffer_wolff(const Expression& kinetic, const Expression& interact
   for (size_t i = 0; i < basis.set.size(); ++i) {
     for (size_t j = 0; j < basis.set.size(); ++j) {
       const auto coeff = static_cast<Expression::complex_type>(Afinal(j, i));
-      if (std::norm(coeff) < kTolerance * kTolerance) {
+      if (std::norm(coeff) < tolerance * tolerance) {
         continue;
       }
       Term a = Term(basis.set.at(i));

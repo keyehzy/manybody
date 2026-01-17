@@ -1,12 +1,13 @@
 #include "algebra/expression.h"
 
 #include <algorithm>
-#include <limits>
 #include <sstream>
 #include <utility>
 
+#include "utils/tolerances.h"
+
 constexpr auto tolerance =
-    1000.0 * std::numeric_limits<Expression::complex_type::value_type>::epsilon();
+    tolerances::tolerance<Expression::complex_type::value_type>();
 
 bool Expression::is_zero(const complex_type& value) {
   return std::norm(value) < tolerance * tolerance;

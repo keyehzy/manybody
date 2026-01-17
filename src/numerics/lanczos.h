@@ -9,13 +9,8 @@
 #include <tuple>
 #include <vector>
 
+#include "utils/tolerances.h"
 #include "numerics/linear_operator.h"
-
-template <typename Scalar>
-constexpr scalar_real_t<Scalar> breakdown_tolerance() {
-  using RealType = scalar_real_t<Scalar>;
-  return static_cast<RealType>(100) * std::numeric_limits<RealType>::epsilon();
-}
 
 template <typename Op>
 std::tuple<scalar_real_t<typename Op::ScalarType>,
@@ -37,7 +32,7 @@ lanczos_recurrence_step(const Op& op, typename Op::VectorType& w,
   w -= static_cast<ScalarType>(alpha) * v_curr;
 
   const RealType beta = arma::norm(w);
-  if (beta <= breakdown_tolerance<ScalarType>()) {
+  if (beta <= tolerances::tolerance<RealType>()) {
     return {alpha, std::nullopt};
   }
 
@@ -93,7 +88,7 @@ struct LanczosIteration {
 
   static LanczosIteration create(const Op& op, const VectorType& b, size_t max_steps,
                                  RealType b_norm) {
-    if (b_norm <= breakdown_tolerance<ScalarType>()) {
+    if (b_norm <= tolerances::tolerance<RealType>()) {
       throw std::runtime_error("Input vector has zero norm");
     }
 
@@ -137,6 +132,7 @@ LanczosDecomposition<typename Op::ScalarType> lanczos_pass_one(const Op& op,
                                                                const typename Op::VectorType& b,
                                                                size_t k) {
   using ScalarType = typename Op::ScalarType;
+  using RealType = scalar_real_t<ScalarType>;
 
   if (op.dimension() != static_cast<size_t>(b.n_elem)) {
     throw std::runtime_error("Operator dimension does not match input vector");
@@ -144,7 +140,7 @@ LanczosDecomposition<typename Op::ScalarType> lanczos_pass_one(const Op& op,
 
   LanczosDecomposition<ScalarType> decomp;
   decomp.b_norm = arma::norm(b);
-  if (decomp.b_norm <= breakdown_tolerance<ScalarType>()) {
+  if (decomp.b_norm <= tolerances::tolerance<RealType>()) {
     throw std::runtime_error("Input vector has zero norm");
   }
 
@@ -166,7 +162,7 @@ LanczosDecomposition<typename Op::ScalarType> lanczos_pass_one(const Op& op,
     decomp.alphas.push_back(step->alpha);
     decomp.steps_taken += 1;
 
-    if (step->beta <= breakdown_tolerance<ScalarType>()) {
+    if (step->beta <= tolerances::tolerance<RealType>()) {
       break;
     }
 
@@ -190,7 +186,7 @@ typename Op::VectorType lanczos_pass_two(
     throw std::runtime_error("Dimension mismatch: y_k size must match decomposition steps");
   }
 
-  if (decomp.b_norm <= breakdown_tolerance<ScalarType>()) {
+  if (decomp.b_norm <= tolerances::tolerance<RealType>()) {
     throw std::runtime_error("Input vector has zero norm");
   }
 

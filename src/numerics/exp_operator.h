@@ -62,7 +62,7 @@ struct Exp final : LinearOperator<typename Op::VectorType> {
     }
 
     const RealType v_norm = arma::norm(v);
-    if (v_norm <= breakdown_tolerance<ScalarType>()) {
+    if (v_norm <= tolerances::tolerance<RealType>()) {
       return v;
     }
 

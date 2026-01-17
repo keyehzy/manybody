@@ -1,9 +1,8 @@
 #include "algebra/commutator.h"
 
 #include <cmath>
-#include <limits>
-
 #include "algebra/normal_order.h"
+#include "utils/tolerances.h"
 
 Expression commutator(const Term& A, const Term& B) {
   NormalOrderer orderer;
@@ -40,7 +39,7 @@ Expression BCH(const Expression& A, const Expression& B,
   Expression::complex_type::value_type coeff{1.0};
   Expression result = current * coeff;
   constexpr auto tolerance =
-      1000.0 * std::numeric_limits<Expression::complex_type::value_type>::epsilon();
+      tolerances::tolerance<Expression::complex_type::value_type>();
 
   for (size_t n = 1; n <= order; ++n) {
     current = commutator(A, current);

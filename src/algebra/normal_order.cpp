@@ -1,11 +1,10 @@
 #include "algebra/normal_order.h"
 
-#include <limits>
-
 #include "algebra/expression.h"
+#include "utils/tolerances.h"
 
 constexpr auto tolerance =
-    1000.0 * std::numeric_limits<Expression::complex_type::value_type>::epsilon();
+    tolerances::tolerance<Expression::complex_type::value_type>();
 
 Expression NormalOrderer::normal_order(const complex_type& c, const container_type& ops) {
   if (std::norm(c) < tolerance * tolerance) {

@@ -129,7 +129,7 @@ typename Op::VectorType evolve_state(const Op& H, const typename Op::VectorType&
   }
 
   const RealType psi_norm = arma::norm(psi0);
-  if (psi_norm <= breakdown_tolerance<ScalarType>()) {
+  if (psi_norm <= tolerances::tolerance<RealType>()) {
     return psi0;
   }
 
