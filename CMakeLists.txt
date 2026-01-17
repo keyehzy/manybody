@@ -6,6 +6,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Armadillo REQUIRED)
 find_package(OpenMP REQUIRED)
+find_package(OpenBLAS REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(FFTW3 REQUIRED IMPORTED_TARGET fftw3)
+pkg_check_modules(ARPACK REQUIRED IMPORTED_TARGET arpack)
+pkg_check_modules(SuperLU REQUIRED IMPORTED_TARGET superlu)
+
 
 add_subdirectory(src)
 add_subdirectory(examples)

@@ -42,8 +42,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            cmake ninja-build ccache \
-            libarmadillo-dev libomp-dev
+            cmake ninja-build ccache pkg-config \
+            libarmadillo-dev libomp-dev libopenblas-dev libarpack2-dev libsuperlu-dev libfftw3-dev
 
       - name: Cache ccache
         uses: actions/cache@v4
