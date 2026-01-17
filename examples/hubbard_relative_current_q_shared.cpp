@@ -62,15 +62,14 @@ std::vector<std::complex<double>> CurrentCorrelation::compute_current_current_co
   const std::vector<int64_t> transfer_momentum{options_.qx, options_.qy, options_.qz};
   const std::vector<int64_t> total_momentum_q{options_.kx + options_.qx, options_.ky + options_.qy,
                                               options_.kz + options_.qz};
-  const std::vector<int64_t> transfer_momentum_neg{-options_.qx, -options_.qy, -options_.qz};
 
   const HubbardRelative hamiltonian(lattice_size, total_momentum, options_.t, options_.U);
   const HubbardRelative hamiltonian_q(lattice_size, total_momentum_q, options_.t, options_.U);
 
   const CurrentRelative_Q j_plus(lattice_size, options_.t, total_momentum, transfer_momentum,
                                  options_.direction);
-  const CurrentRelative_Q j_minus(lattice_size, options_.t, total_momentum_q, transfer_momentum_neg,
-                                  options_.direction);
+  const CurrentRelative_Q_Adjoint j_minus(lattice_size, options_.t, total_momentum,
+                                          transfer_momentum, options_.direction);
 
   std::vector<std::complex<double>> global_correlator(options_.steps,
                                                       std::complex<double>(0.0, 0.0));
