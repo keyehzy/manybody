@@ -20,3 +20,4 @@ add_example(example_hubbard_relative_current_q
 add_example(example_hubbard_relative_optical_conductivity
     hubbard_relative_optical_conductivity.cpp
     hubbard_relative_current_q_shared.cpp)
+add_example(test_current_adjoint test_current_adjoint.cpp)

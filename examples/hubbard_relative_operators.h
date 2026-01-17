@@ -251,3 +251,113 @@ struct CurrentRelative_Q final : LinearOperator<arma::cx_vec> {
   std::vector<double> half_total_momentum_;
   std::vector<double> half_transfer_momentum_;
 };
+
+/// Adjoint of CurrentRelative_Q: computes J(q)† correctly.
+/// For the original J(q), matrix elements are:
+///   J_{r,r-1} = -2t·sin(θ_r - q/2 - K/2)
+///   J_{r,r+1} = 2t·sin(θ_r + q/2 + K/2)
+/// where θ_r = q·r·π/L
+///
+/// For the adjoint J†, we have (J†)_{r,s} = conj(J_{s,r}):
+///   (J†)_{r,r-1} = conj(J_{r-1,r}) = 2t·sin(θ_{r-1} + q/2 + K/2)
+///   (J†)_{r,r+1} = conj(J_{r+1,r}) = -2t·sin(θ_{r+1} - q/2 - K/2)
+struct CurrentRelative_Q_Adjoint final : LinearOperator<arma::cx_vec> {
+  using VectorType = arma::cx_vec;
+  using ScalarType = std::complex<double>;
+
+  CurrentRelative_Q_Adjoint(const std::vector<size_t>& size, double t,
+                            const std::vector<int64_t>& total_momentum,
+                            const std::vector<int64_t>& transfer_momentum, size_t direction)
+      : size_(size),
+        t_(t),
+        total_momentum_(utils::canonicalize_momentum(total_momentum, size)),
+        transfer_momentum_(utils::canonicalize_momentum(transfer_momentum, size)),
+        direction_(direction),
+        index_(size_) {
+    if (size_.empty()) {
+      throw std::invalid_argument("CurrentRelative_Q_Adjoint requires at least one dimension.");
+    }
+    const size_t dims = size_.size();
+    if (total_momentum.size() != dims || transfer_momentum.size() != dims) {
+      throw std::invalid_argument(
+          "CurrentRelative_Q_Adjoint: total and transfer momentum must match the number of "
+          "dimensions.");
+    }
+    if (direction_ >= dims) {
+      throw std::invalid_argument("CurrentRelative_Q_Adjoint: direction out of bounds.");
+    }
+
+    half_total_momentum_.resize(dims);
+    half_transfer_momentum_.resize(dims);
+    for (size_t d = 0; d < dims; ++d) {
+      const double total_phase = 2.0 * std::numbers::pi_v<double> *
+                                 static_cast<double>(total_momentum_[d]) /
+                                 static_cast<double>(size_[d]);
+      const double transfer_phase = 2.0 * std::numbers::pi_v<double> *
+                                    static_cast<double>(transfer_momentum_[d]) /
+                                    static_cast<double>(size_[d]);
+      half_total_momentum_[d] = total_phase / 2.0;
+      half_transfer_momentum_[d] = transfer_phase / 2.0;
+    }
+  }
+
+  size_t dimension() const override { return index_.size(); }
+
+  VectorType apply(const VectorType& v) const override {
+    assert(static_cast<size_t>(v.n_elem) == dimension());
+    VectorType w(v.n_elem, arma::fill::zeros);
+
+    const size_t dims = size_.size();
+    Index::offset_type offsets(dims, 0);
+
+    const double hKd = half_total_momentum_[direction_];
+    const double hqd = half_transfer_momentum_[direction_];
+
+    for (size_t orbital = 0; orbital < dimension(); ++orbital) {
+      const auto coords = index_(orbital);
+
+      // Get neighbor indices
+      offsets[direction_] = -1;
+      const auto j_minus = index_(coords, offsets);
+      offsets[direction_] = 1;
+      const auto j_plus = index_(coords, offsets);
+      offsets[direction_] = 0;
+
+      // Compute theta at neighbor positions (not at orbital position!)
+      const auto coords_minus = index_(j_minus);
+      const auto coords_plus = index_(j_plus);
+
+      double theta_minus = 0.0;
+      double theta_plus = 0.0;
+      for (size_t d = 0; d < dims; ++d) {
+        theta_minus += half_transfer_momentum_[d] * static_cast<double>(coords_minus[d]);
+        theta_plus += half_transfer_momentum_[d] * static_cast<double>(coords_plus[d]);
+      }
+
+      // For adjoint: (J†)_{r,r-1} = conj(J_{r-1,r}) = 2t·sin(θ_{r-1} + hqd + hKd)
+      // This is the "right" formula evaluated at the left neighbor
+      const ScalarType weight_left =
+          static_cast<ScalarType>(2.0 * t_ * std::sin(theta_minus + hqd + hKd));
+
+      // For adjoint: (J†)_{r,r+1} = conj(J_{r+1,r}) = -2t·sin(θ_{r+1} - hqd - hKd)
+      // This is the "left" formula evaluated at the right neighbor
+      const ScalarType weight_right =
+          static_cast<ScalarType>(-2.0 * t_ * std::sin(theta_plus - hqd - hKd));
+
+      w(orbital) += weight_left * v(j_minus);
+      w(orbital) += weight_right * v(j_plus);
+    }
+
+    return w;
+  }
+
+  std::vector<size_t> size_;
+  double t_{};
+  std::vector<size_t> total_momentum_;
+  std::vector<size_t> transfer_momentum_;
+  size_t direction_{0};
+
+  Index index_;
+  std::vector<double> half_total_momentum_;
+  std::vector<double> half_transfer_momentum_;
+};

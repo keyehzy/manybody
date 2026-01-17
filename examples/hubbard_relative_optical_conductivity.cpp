@@ -42,6 +42,10 @@ CurrentCorrelationOptions parse_cli_options(int argc, char** argv) {
       std::cout << cli.help() << "\n";
       std::exit(0);
     }
+    std::cerr << "--- Parsed arguments provided on command line ---" << std::endl;
+    for (const auto& kv : result.arguments()) {
+      std::cerr << "Option: " << kv.key() << ", Value: " << kv.value() << std::endl;
+    }
   } catch (const std::exception& e) {
     std::cerr << "Argument error: " << e.what() << "\n" << cli.help() << "\n";
     std::exit(1);
