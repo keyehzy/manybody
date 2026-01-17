@@ -7,8 +7,8 @@
 #include <iostream>
 #include <random>
 
-#include "hubbard_relative_operators.h"
 #include "numerics/evolve_state.h"
+#include "numerics/hubbard_relative_operators.h"
 #include "numerics/linear_operator.h"
 
 void CurrentCorrelationOptions::validate() const {

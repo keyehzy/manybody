@@ -3,6 +3,7 @@
 #include "algebra/test_commutator.cpp"
 #include "algebra/test_expression.cpp"
 #include "algebra/test_fourier_transform.cpp"
+#include "algebra/test_hubbard_relative_operators.cpp"
 #include "algebra/test_model.cpp"
 #include "algebra/test_normal_order.cpp"
 #include "algebra/test_operator.cpp"

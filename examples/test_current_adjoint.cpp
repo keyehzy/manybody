@@ -4,7 +4,7 @@
 #include <iostream>
 #include <vector>
 
-#include "hubbard_relative_operators.h"
+#include "numerics/hubbard_relative_operators.h"
 #include "numerics/linear_operator.h"
 
 arma::cx_mat build_operator_matrix(const LinearOperator<arma::cx_vec>& op, size_t dimension) {

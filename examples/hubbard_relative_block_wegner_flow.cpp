@@ -7,7 +7,7 @@
 
 #include "algorithms/wegner_flow.h"
 #include "cxxopts.hpp"
-#include "hubbard_relative_operators.h"
+#include "numerics/hubbard_relative_operators.h"
 
 struct CliOptions {
   size_t lattice_size = 6;

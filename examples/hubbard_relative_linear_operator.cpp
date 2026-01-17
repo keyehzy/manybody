@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "hubbard_relative_operators.h"
+#include "numerics/hubbard_relative_operators.h"
 
 int main() {
   const size_t lattice_size = 8;
