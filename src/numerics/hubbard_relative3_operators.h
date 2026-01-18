@@ -49,20 +49,12 @@ inline std::complex<double> exchange_phase(const std::vector<size_t>& coords,
   return std::exp(std::complex<double>(0.0, theta));
 }
 
-inline arma::cx_vec project_antisymmetric(const arma::cx_vec& v, const Index& index,
-                                          const std::vector<size_t>& size,
-                                          const std::vector<size_t>& K_canon) {
-  arma::cx_vec w(v.n_elem, arma::fill::zeros);
-
-  for (size_t i = 0; i < static_cast<size_t>(v.n_elem); ++i) {
-    const auto coords = index(i);
-    const auto partner_coords = exchange_coords(coords, size);
-    const size_t j = index(partner_coords);
-
-    const std::complex<double> phase = exchange_phase(coords, size, K_canon);
-    w(i) = 0.5 * (v(i) - phase * v(j));
-  }
-  return w;
+inline std::vector<size_t> make_relative_dims(const std::vector<size_t>& size) {
+  std::vector<size_t> rel;
+  rel.reserve(2 * size.size());
+  rel.insert(rel.end(), size.begin(), size.end());
+  rel.insert(rel.end(), size.begin(), size.end());
+  return rel;
 }
 
 /// 3-particle relative-coordinate interaction for 2↑ + 1↓ Hubbard.
@@ -78,7 +70,7 @@ struct HubbardRelative3Interaction final : LinearOperator<arma::cx_vec> {
   using ScalarType = std::complex<double>;
 
   explicit HubbardRelative3Interaction(const std::vector<size_t>& size)
-      : size_(size), dims_(size.size()), index_(make_relative_dims_(size)) {}
+      : size_(size), dims_(size.size()), index_(make_relative_dims(size)) {}
 
   size_t dimension() const override { return index_.size(); }
 
@@ -112,16 +104,6 @@ struct HubbardRelative3Interaction final : LinearOperator<arma::cx_vec> {
   std::vector<size_t> size_;
   size_t dims_{0};
   Index index_;
-
- private:
-  static std::vector<size_t> make_relative_dims_(const std::vector<size_t>& size) {
-    // [Lx,Ly,...,Lx,Ly,...]
-    std::vector<size_t> rel;
-    rel.reserve(2 * size.size());
-    rel.insert(rel.end(), size.begin(), size.end());
-    rel.insert(rel.end(), size.begin(), size.end());
-    return rel;
-  }
 };
 
 /// 3-particle relative-coordinate kinetic operator in a total-momentum sector,
@@ -140,7 +122,7 @@ struct HubbardRelative3Kinetic final : LinearOperator<arma::cx_vec> {
       : size_(size),
         dims_(size.size()),
         total_momentum_(utils::canonicalize_momentum(total_momentum, size)),
-        index_(make_relative_dims_(size)) {
+        index_(make_relative_dims(size)) {
     k_phase_.resize(dims_);
     for (size_t d = 0; d < dims_; ++d) {
       k_phase_[d] = 2.0 * std::numbers::pi_v<double> * static_cast<double>(total_momentum_[d]) /
@@ -210,25 +192,23 @@ struct HubbardRelative3Kinetic final : LinearOperator<arma::cx_vec> {
   std::vector<size_t> total_momentum_;
   Index index_;
   std::vector<double> k_phase_{};
-
- private:
-  static std::vector<size_t> make_relative_dims_(const std::vector<size_t>& size) {
-    std::vector<size_t> rel;
-    rel.reserve(2 * size.size());
-    rel.insert(rel.end(), size.begin(), size.end());
-    rel.insert(rel.end(), size.begin(), size.end());
-    return rel;
-  }
 };
 
 /// Full 3-particle relative Hubbard operator (project convention):
 ///   H = t * K + U * V
 struct HubbardRelative3 final : LinearOperator<arma::cx_vec> {
   using VectorType = arma::cx_vec;
+  using ScalarType = std::complex<double>;
 
   HubbardRelative3(const std::vector<size_t>& size, const std::vector<int64_t>& total_momentum,
                    double t, double U)
-      : kinetic_(size, total_momentum), interaction_(size), t_(t), U_(U) {}
+      : size_(size),
+        K_canon_(utils::canonicalize_momentum(total_momentum, size)),
+        index_(make_relative_dims(size)),
+        kinetic_(size, total_momentum),
+        interaction_(size),
+        t_(t),
+        U_(U) {}
 
   size_t dimension() const override { return kinetic_.dimension(); }
 
@@ -237,6 +217,23 @@ struct HubbardRelative3 final : LinearOperator<arma::cx_vec> {
     return t_ * kinetic_.apply(v) + U_ * interaction_.apply(v);
   }
 
+  VectorType project_antisymmetric(const VectorType& v) const {
+    VectorType w(v.n_elem, arma::fill::zeros);
+
+    for (size_t i = 0; i < static_cast<size_t>(v.n_elem); ++i) {
+      const auto coords = index_(i);
+      const auto partner_coords = exchange_coords(coords, size_);
+      const size_t j = index_(partner_coords);
+
+      const ScalarType phase = exchange_phase(coords, size_, K_canon_);
+      w(i) = 0.5 * (v(i) - phase * v(j));
+    }
+    return w;
+  }
+
+  std::vector<size_t> size_;
+  std::vector<size_t> K_canon_;
+  Index index_;
   HubbardRelative3Kinetic kinetic_;
   HubbardRelative3Interaction interaction_;
   double t_{};

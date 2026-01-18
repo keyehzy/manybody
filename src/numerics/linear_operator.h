@@ -26,10 +26,8 @@ using scalar_real_t = typename ScalarRealType<T>::type;
 template <typename Op>
 typename Op::VectorType make_seed_vector(const Op& op) {
   using VectorType = typename Op::VectorType;
-  using ScalarType = typename Op::ScalarType;
 
-  VectorType seed(op.dimension());
-  seed.fill(static_cast<ScalarType>(1));
+  VectorType seed(op.dimension(), arma::fill::randu);
   return seed;
 }
 

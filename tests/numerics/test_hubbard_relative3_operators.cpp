@@ -45,7 +45,9 @@ TEST_CASE("hubbard_relative3_exchange_phase_1d") {
 TEST_CASE("hubbard_relative3_project_antisymmetric_properties") {
   std::vector<size_t> size = {4};
   std::vector<size_t> K_canon = {1};
+  std::vector<int64_t> total_momentum = {1};
   Index index({size[0], size[0]});
+  HubbardRelative3 hamiltonian_rel(size, total_momentum, 1.0, 1.0);
 
   arma::cx_vec v(index.size(), arma::fill::zeros);
   const auto coords = std::vector<size_t>{1, 2};
@@ -56,13 +58,13 @@ TEST_CASE("hubbard_relative3_project_antisymmetric_properties") {
   v(i) = {1.0, 0.5};
   v(j) = {-0.25, 0.75};
 
-  const auto w = project_antisymmetric(v, index, size, K_canon);
+  const auto w = hamiltonian_rel.project_antisymmetric(v);
   const std::complex<double> phase = exchange_phase(coords, size, K_canon);
 
   CHECK(std::abs(w(i) - 0.5 * (v(i) - phase * v(j))) < 1e-12);
   CHECK(std::abs(w(i) + phase * w(j)) < 1e-12);
 
-  const auto w2 = project_antisymmetric(w, index, size, K_canon);
+  const auto w2 = hamiltonian_rel.project_antisymmetric(w);
   CHECK(arma::norm(w2 - w) < 1e-12);
 }
 
