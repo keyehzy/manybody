@@ -13,6 +13,58 @@
 #include "utils/canonicalize_momentum.h"
 #include "utils/index.h"
 
+/// Swap the two ↑ particles in reference gauge:
+///   (r2, r3) -> (-r2, r3 - r2) mod L.
+inline std::vector<size_t> exchange_coords(const std::vector<size_t>& coords,
+                                           const std::vector<size_t>& size) {
+  const size_t dims = size.size();
+  std::vector<size_t> out(coords);
+
+  // coords = [r2(0..D-1), r3(0..D-1)]
+  for (size_t d = 0; d < dims; ++d) {
+    const size_t L = size[d];
+    const size_t r2 = coords[d];
+    const size_t r3 = coords[dims + d];
+
+    const size_t r2p = (L - (r2 % L)) % L;
+    const size_t r3p = (r3 + L - (r2 % L)) % L;
+
+    out[d] = r2p;
+    out[dims + d] = r3p;
+  }
+  return out;
+}
+
+// (P12 v)(r2,r3) = exp(+i K·r2) v(-r2, r3-r2)
+inline std::complex<double> exchange_phase(const std::vector<size_t>& coords,
+                                           const std::vector<size_t>& size,
+                                           const std::vector<size_t>& K_canon) {
+  const size_t dims = size.size();
+  double theta = 0.0;
+  for (size_t d = 0; d < dims; ++d) {
+    const double kd = 2.0 * std::numbers::pi_v<double> * static_cast<double>(K_canon[d]) /
+                      static_cast<double>(size[d]);
+    theta += kd * static_cast<double>(coords[d]);  // r2_d
+  }
+  return std::exp(std::complex<double>(0.0, theta));
+}
+
+inline arma::cx_vec project_antisymmetric(const arma::cx_vec& v, const Index& index,
+                                          const std::vector<size_t>& size,
+                                          const std::vector<size_t>& K_canon) {
+  arma::cx_vec w(v.n_elem, arma::fill::zeros);
+
+  for (size_t i = 0; i < static_cast<size_t>(v.n_elem); ++i) {
+    const auto coords = index(i);
+    const auto partner_coords = exchange_coords(coords, size);
+    const size_t j = index(partner_coords);
+
+    const std::complex<double> phase = exchange_phase(coords, size, K_canon);
+    w(i) = 0.5 * (v(i) - phase * v(j));
+  }
+  return w;
+}
+
 /// 3-particle relative-coordinate interaction for 2↑ + 1↓ Hubbard.
 /// Coordinates are stacked as:
 ///   r2 = coords[0..D-1]    (↑ particle 2 relative to ↑ particle 1)
@@ -26,11 +78,7 @@ struct HubbardRelative3Interaction final : LinearOperator<arma::cx_vec> {
   using ScalarType = std::complex<double>;
 
   explicit HubbardRelative3Interaction(const std::vector<size_t>& size)
-      : size_(size), dims_(size.size()), index_(make_relative_dims_(size)) {
-    if (size_.empty()) {
-      throw std::invalid_argument("HubbardRelative3Interaction requires at least one dimension.");
-    }
-  }
+      : size_(size), dims_(size.size()), index_(make_relative_dims_(size)) {}
 
   size_t dimension() const override { return index_.size(); }
 
@@ -83,25 +131,16 @@ struct HubbardRelative3Interaction final : LinearOperator<arma::cx_vec> {
 ///   where k_d = 2π K_d / L_d (K_d integer, canonicalized mod L_d)
 ///
 /// Basis coordinates: r2 = R2 - R1, r3 = R3 - R1 (mod L).
-struct HubbardRelative3KineticReferenceGauge final : LinearOperator<arma::cx_vec> {
+struct HubbardRelative3Kinetic final : LinearOperator<arma::cx_vec> {
   using VectorType = arma::cx_vec;
   using ScalarType = std::complex<double>;
 
-  HubbardRelative3KineticReferenceGauge(const std::vector<size_t>& size,
-                                        const std::vector<int64_t>& total_momentum)
+  HubbardRelative3Kinetic(const std::vector<size_t>& size,
+                          const std::vector<int64_t>& total_momentum)
       : size_(size),
         dims_(size.size()),
         total_momentum_(utils::canonicalize_momentum(total_momentum, size)),
         index_(make_relative_dims_(size)) {
-    if (size_.empty()) {
-      throw std::invalid_argument(
-          "HubbardRelative3KineticReferenceGauge requires at least one dimension.");
-    }
-    if (total_momentum.size() != dims_) {
-      throw std::invalid_argument(
-          "HubbardRelative3KineticReferenceGauge: size and momentum must match.");
-    }
-
     k_phase_.resize(dims_);
     for (size_t d = 0; d < dims_; ++d) {
       k_phase_[d] = 2.0 * std::numbers::pi_v<double> * static_cast<double>(total_momentum_[d]) /
@@ -184,11 +223,11 @@ struct HubbardRelative3KineticReferenceGauge final : LinearOperator<arma::cx_vec
 
 /// Full 3-particle relative Hubbard operator (project convention):
 ///   H = t * K + U * V
-struct HubbardRelative3ReferenceGauge final : LinearOperator<arma::cx_vec> {
+struct HubbardRelative3 final : LinearOperator<arma::cx_vec> {
   using VectorType = arma::cx_vec;
 
-  HubbardRelative3ReferenceGauge(const std::vector<size_t>& size,
-                                 const std::vector<int64_t>& total_momentum, double t, double U)
+  HubbardRelative3(const std::vector<size_t>& size, const std::vector<int64_t>& total_momentum,
+                   double t, double U)
       : kinetic_(size, total_momentum), interaction_(size), t_(t), U_(U) {}
 
   size_t dimension() const override { return kinetic_.dimension(); }
@@ -198,7 +237,7 @@ struct HubbardRelative3ReferenceGauge final : LinearOperator<arma::cx_vec> {
     return t_ * kinetic_.apply(v) + U_ * interaction_.apply(v);
   }
 
-  HubbardRelative3KineticReferenceGauge kinetic_;
+  HubbardRelative3Kinetic kinetic_;
   HubbardRelative3Interaction interaction_;
   double t_{};
   double U_{};

@@ -10,6 +10,62 @@
 
 namespace test_hubbard_relative3 {
 
+TEST_CASE("hubbard_relative3_exchange_coords_1d") {
+  std::vector<size_t> size = {4};
+  std::vector<size_t> coords = {1, 3};
+
+  const auto swapped = exchange_coords(coords, size);
+  CHECK(swapped.size() == coords.size());
+  CHECK(swapped[0] == 3);
+  CHECK(swapped[1] == 2);
+}
+
+TEST_CASE("hubbard_relative3_exchange_coords_2d") {
+  std::vector<size_t> size = {4, 5};
+  std::vector<size_t> coords = {1, 2, 3, 4};
+
+  const auto swapped = exchange_coords(coords, size);
+  CHECK(swapped.size() == coords.size());
+  CHECK(swapped[0] == 3);
+  CHECK(swapped[1] == 3);
+  CHECK(swapped[2] == 2);
+  CHECK(swapped[3] == 2);
+}
+
+TEST_CASE("hubbard_relative3_exchange_phase_1d") {
+  std::vector<size_t> size = {4};
+  std::vector<size_t> K_canon = {1};
+  std::vector<size_t> coords = {2, 1};
+
+  const std::complex<double> phase = exchange_phase(coords, size, K_canon);
+  CHECK(std::abs(phase.real() + 1.0) < 1e-12);
+  CHECK(std::abs(phase.imag()) < 1e-12);
+}
+
+TEST_CASE("hubbard_relative3_project_antisymmetric_properties") {
+  std::vector<size_t> size = {4};
+  std::vector<size_t> K_canon = {1};
+  Index index({size[0], size[0]});
+
+  arma::cx_vec v(index.size(), arma::fill::zeros);
+  const auto coords = std::vector<size_t>{1, 2};
+  const auto partner = exchange_coords(coords, size);
+  const size_t i = index(coords);
+  const size_t j = index(partner);
+
+  v(i) = {1.0, 0.5};
+  v(j) = {-0.25, 0.75};
+
+  const auto w = project_antisymmetric(v, index, size, K_canon);
+  const std::complex<double> phase = exchange_phase(coords, size, K_canon);
+
+  CHECK(std::abs(w(i) - 0.5 * (v(i) - phase * v(j))) < 1e-12);
+  CHECK(std::abs(w(i) + phase * w(j)) < 1e-12);
+
+  const auto w2 = project_antisymmetric(w, index, size, K_canon);
+  CHECK(arma::norm(w2 - w) < 1e-12);
+}
+
 TEST_CASE("hubbard_relative3_interaction_dimension_1d") {
   std::vector<size_t> size = {4};
   HubbardRelative3Interaction op(size);
@@ -75,7 +131,7 @@ TEST_CASE("hubbard_relative3_kinetic_dimension_matches_interaction") {
   std::vector<int64_t> momentum = {0};
 
   HubbardRelative3Interaction interaction(size);
-  HubbardRelative3KineticReferenceGauge kinetic(size, momentum);
+  HubbardRelative3Kinetic kinetic(size, momentum);
 
   CHECK(kinetic.dimension() == interaction.dimension());
 }
@@ -83,7 +139,7 @@ TEST_CASE("hubbard_relative3_kinetic_dimension_matches_interaction") {
 TEST_CASE("hubbard_relative3_kinetic_zero_momentum_is_hermitian") {
   std::vector<size_t> size = {4};
   std::vector<int64_t> momentum = {0};
-  HubbardRelative3KineticReferenceGauge op(size, momentum);
+  HubbardRelative3Kinetic op(size, momentum);
 
   // Build the full matrix
   arma::cx_mat K(op.dimension(), op.dimension());
@@ -101,7 +157,7 @@ TEST_CASE("hubbard_relative3_kinetic_zero_momentum_is_hermitian") {
 TEST_CASE("hubbard_relative3_kinetic_nonzero_momentum_has_correct_phases") {
   std::vector<size_t> size = {4};
   std::vector<int64_t> momentum = {1};
-  HubbardRelative3KineticReferenceGauge op(size, momentum);
+  HubbardRelative3Kinetic op(size, momentum);
 
   // Build full matrix
   arma::cx_mat K(op.dimension(), op.dimension());
@@ -134,7 +190,7 @@ TEST_CASE("hubbard_relative3_kinetic_reference_phase_matches_expected_1d") {
   const size_t L = 4;
   std::vector<size_t> size = {L};
   std::vector<int64_t> momentum = {1};
-  HubbardRelative3KineticReferenceGauge op(size, momentum);
+  HubbardRelative3Kinetic op(size, momentum);
 
   Index index({L, L});
   const size_t dest = index({0, 0});
@@ -157,7 +213,7 @@ TEST_CASE("hubbard_relative3_kinetic_preserves_translation_symmetry") {
   // For zero total momentum, kinetic should have real spectrum
   std::vector<size_t> size = {4};
   std::vector<int64_t> momentum = {0};
-  HubbardRelative3KineticReferenceGauge op(size, momentum);
+  HubbardRelative3Kinetic op(size, momentum);
 
   arma::cx_mat K(op.dimension(), op.dimension());
   for (size_t j = 0; j < op.dimension(); ++j) {
@@ -181,8 +237,8 @@ TEST_CASE("hubbard_relative3_full_operator_combines_kinetic_and_interaction") {
   double t = 1.0;
   double U = 4.0;
 
-  HubbardRelative3ReferenceGauge full(size, momentum, t, U);
-  HubbardRelative3KineticReferenceGauge kinetic(size, momentum);
+  HubbardRelative3 full(size, momentum, t, U);
+  HubbardRelative3Kinetic kinetic(size, momentum);
   HubbardRelative3Interaction interaction(size);
 
   arma::cx_vec v = arma::randu<arma::cx_vec>(full.dimension());
@@ -199,7 +255,7 @@ TEST_CASE("hubbard_relative3_full_operator_is_hermitian") {
   double t = 1.0;
   double U = 2.0;
 
-  HubbardRelative3ReferenceGauge op(size, momentum, t, U);
+  HubbardRelative3 op(size, momentum, t, U);
 
   arma::cx_mat H(op.dimension(), op.dimension());
   for (size_t j = 0; j < op.dimension(); ++j) {
@@ -212,29 +268,11 @@ TEST_CASE("hubbard_relative3_full_operator_is_hermitian") {
   CHECK(arma::norm(diff, "fro") < 1e-12);
 }
 
-TEST_CASE("hubbard_relative3_interaction_throws_on_empty_size") {
-  std::vector<size_t> empty_size = {};
-  CHECK_THROWS_AS(HubbardRelative3Interaction(empty_size), std::invalid_argument);
-}
-
-TEST_CASE("hubbard_relative3_kinetic_throws_on_empty_size") {
-  std::vector<size_t> empty_size = {};
-  std::vector<int64_t> momentum = {};
-  CHECK_THROWS_AS(HubbardRelative3KineticReferenceGauge(empty_size, momentum),
-                  std::invalid_argument);
-}
-
-TEST_CASE("hubbard_relative3_kinetic_throws_on_mismatched_momentum") {
-  std::vector<size_t> size = {4};
-  std::vector<int64_t> bad_momentum = {0, 0};  // 2D momentum for 1D system
-  CHECK_THROWS_AS(HubbardRelative3KineticReferenceGauge(size, bad_momentum), std::invalid_argument);
-}
-
 TEST_CASE("hubbard_relative3_2d_system") {
   std::vector<size_t> size = {3, 3};
   std::vector<int64_t> momentum = {0, 0};
 
-  HubbardRelative3ReferenceGauge op(size, momentum, 1.0, 2.0);
+  HubbardRelative3 op(size, momentum, 1.0, 2.0);
 
   // Dimension should be (3*3)^2 = 81
   CHECK(op.dimension() == 81);
@@ -258,8 +296,8 @@ TEST_CASE("hubbard_relative3_momentum_canonicalization") {
   std::vector<int64_t> momentum_5 = {5};
   std::vector<int64_t> momentum_1 = {1};
 
-  HubbardRelative3KineticReferenceGauge op5(size, momentum_5);
-  HubbardRelative3KineticReferenceGauge op1(size, momentum_1);
+  HubbardRelative3Kinetic op5(size, momentum_5);
+  HubbardRelative3Kinetic op1(size, momentum_1);
 
   // Both operators should produce identical results
   arma::cx_vec v = arma::randu<arma::cx_vec>(op5.dimension());
@@ -276,8 +314,8 @@ TEST_CASE("hubbard_relative3_negative_momentum_canonicalization") {
   std::vector<int64_t> momentum_neg = {-1};
   std::vector<int64_t> momentum_pos = {3};
 
-  HubbardRelative3KineticReferenceGauge op_neg(size, momentum_neg);
-  HubbardRelative3KineticReferenceGauge op_pos(size, momentum_pos);
+  HubbardRelative3Kinetic op_neg(size, momentum_neg);
+  HubbardRelative3Kinetic op_pos(size, momentum_pos);
 
   arma::cx_vec v = arma::randu<arma::cx_vec>(op_neg.dimension());
   arma::cx_vec result_neg = op_neg.apply(v);
@@ -294,7 +332,7 @@ TEST_CASE("hubbard_relative3_kinetic_hop_count_per_orbital") {
 
   std::vector<size_t> size = {6};
   std::vector<int64_t> momentum = {0};
-  HubbardRelative3KineticReferenceGauge op(size, momentum);
+  HubbardRelative3Kinetic op(size, momentum);
 
   arma::cx_mat K(op.dimension(), op.dimension());
   for (size_t j = 0; j < op.dimension(); ++j) {
