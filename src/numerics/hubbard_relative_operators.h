@@ -176,7 +176,9 @@ struct CurrentRelative_Q final : LinearOperator<arma::cx_vec> {
         total_momentum_(utils::canonicalize_momentum(total_momentum, size)),
         transfer_momentum_(utils::canonicalize_momentum(transfer_momentum, size)),
         direction_(direction),
-        index_(size_) {
+        index_(size_),
+        half_total_momentum_{},
+        half_transfer_momentum_{} {
     if (size_.empty()) {
       throw std::invalid_argument("CurrentRelative_Q requires at least one dimension.");
     }
@@ -273,7 +275,9 @@ struct CurrentRelative_Q_Adjoint final : LinearOperator<arma::cx_vec> {
         total_momentum_(utils::canonicalize_momentum(total_momentum, size)),
         transfer_momentum_(utils::canonicalize_momentum(transfer_momentum, size)),
         direction_(direction),
-        index_(size_) {
+        index_(size_),
+        half_total_momentum_{},
+        half_transfer_momentum_{} {
     if (size_.empty()) {
       throw std::invalid_argument("CurrentRelative_Q_Adjoint requires at least one dimension.");
     }

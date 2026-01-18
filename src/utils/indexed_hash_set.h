@@ -108,23 +108,23 @@ class IndexedHashSet {
  public:
   IndexedHashSet() noexcept(std::is_nothrow_default_constructible_v<std::vector<Key>> &&
                             std::is_nothrow_default_constructible_v<
-                                robin_hood::unordered_map<Key, size_type, Hash, KeyEqual>>) =
-      default;
+                                robin_hood::unordered_map<Key, size_type, Hash, KeyEqual>>)
+      : elements_{}, indices_{} {}
 
-  explicit IndexedHashSet(std::initializer_list<Key> init_list) {
+  explicit IndexedHashSet(std::initializer_list<Key> init_list) : elements_{}, indices_{} {
     initialize_members_from_range(init_list.begin(), init_list.end());
   }
 
   template <typename InputIt>
-  IndexedHashSet(InputIt first, InputIt last) {
+  IndexedHashSet(InputIt first, InputIt last) : elements_{}, indices_{} {
     initialize_members_from_range(first, last);
   }
 
-  explicit IndexedHashSet(const std::vector<Key>& source_vector) {
+  explicit IndexedHashSet(const std::vector<Key>& source_vector) : elements_{}, indices_{} {
     initialize_members_from_range(source_vector.begin(), source_vector.end());
   }
 
-  explicit IndexedHashSet(std::vector<Key>&& source_vector) {
+  explicit IndexedHashSet(std::vector<Key>&& source_vector) : elements_{}, indices_{} {
     initialize_members_from_moved_vector(std::move(source_vector));
   }
 

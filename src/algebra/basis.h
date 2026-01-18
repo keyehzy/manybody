@@ -27,7 +27,7 @@ struct Basis {
                                                 size_t up_left, size_t down_left,
                                                 std::vector<key_type>& acc) const;
 
-  set_type set;
-  size_t orbitals;
-  size_t particles;
+  set_type set{};
+  size_t orbitals{0};
+  size_t particles{0};
 };

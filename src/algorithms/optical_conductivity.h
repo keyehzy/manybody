@@ -4,8 +4,8 @@
 #include <vector>
 
 struct OpticalConductivityResult {
-  std::vector<double> frequencies;
-  std::vector<std::complex<double>> sigma;
+  std::vector<double> frequencies{};
+  std::vector<std::complex<double>> sigma{};
   double sum_rule = 0.0;
 };
 

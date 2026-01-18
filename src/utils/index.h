@@ -12,9 +12,13 @@ class Index {
   using container_type = std::vector<size_type>;
   using offset_type = std::vector<int>;
 
-  explicit Index(container_type dimensions) { init_(std::move(dimensions)); }
+  explicit Index(container_type dimensions) : dimensions_{}, strides_{} {
+    init_(std::move(dimensions));
+  }
 
-  explicit Index(std::initializer_list<size_type> dimensions) { init_(container_type(dimensions)); }
+  explicit Index(std::initializer_list<size_type> dimensions) : dimensions_{}, strides_{} {
+    init_(container_type(dimensions));
+  }
 
   [[nodiscard]] size_type operator()(const container_type& coordinates) const {
     return to_orbital(coordinates);

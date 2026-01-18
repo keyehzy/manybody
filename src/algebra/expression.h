@@ -13,7 +13,7 @@ struct Expression {
   using container_type = Term::container_type;
   using map_type = robin_hood::unordered_map<container_type, complex_type>;
 
-  map_type hashmap;
+  map_type hashmap{};
 
   Expression() = default;
   ~Expression() = default;

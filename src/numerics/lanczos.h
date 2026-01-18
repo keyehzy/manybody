@@ -61,8 +61,8 @@ template <typename Scalar>
 struct LanczosDecomposition {
   using RealType = scalar_real_t<Scalar>;
 
-  std::vector<RealType> alphas;
-  std::vector<RealType> betas;
+  std::vector<RealType> alphas{};
+  std::vector<RealType> betas{};
   size_t steps_taken = 0;
   RealType b_norm = static_cast<RealType>(0);
 };
@@ -221,7 +221,6 @@ template <typename Op, typename Solver>
 typename Op::VectorType solve(const Op& op, const typename Op::VectorType& b, size_t k,
                               Solver&& solver) {
   using VectorType = typename Op::VectorType;
-  using ScalarType = typename Op::ScalarType;
 
   const auto decomp = lanczos_pass_one(op, b, k);
   if (decomp.steps_taken == 0) {
