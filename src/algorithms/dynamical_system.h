@@ -47,6 +47,8 @@ State integrate(const System& system, State state, double t0, double t1, double 
       case IntegratorMethod::kRungeKutta4:
         state = rk4_step(system, t, step, state);
         break;
+      default:
+        break;
     }
     t += step;
     callback(t, state);
