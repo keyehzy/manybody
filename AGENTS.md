@@ -2,7 +2,8 @@
 
 ## Build System
 
-We use CMake as the build system.
+- We use CMake as the build system.
+- Use make.sh script.
 
 ## Commit
 
