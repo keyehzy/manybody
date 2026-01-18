@@ -26,7 +26,7 @@ struct WegnerFlowSystem {
 };
 
 struct BlockWegnerFlowSystem {
-  explicit BlockWegnerFlowSystem(size_t p_dim) : p_dim(p_dim) {}
+  explicit BlockWegnerFlowSystem(size_t p_dim_val) : p_dim(p_dim_val) {}
 
   arma::cx_mat operator()(double /*l*/, const arma::cx_mat& H) const {
     const arma::cx_mat Hd = block_diagonal_part(H, p_dim);
