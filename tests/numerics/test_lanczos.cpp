@@ -190,7 +190,7 @@ struct NearestNeighbor1D final : LinearOperator<arma::vec> {
   using VectorType = arma::vec;
   using ScalarType = double;
 
-  NearestNeighbor1D(int n, double diag_val, double hopping_val)
+  NearestNeighbor1D(arma::uword n, double diag_val, double hopping_val)
       : n_(n), diag_(diag_val), hopping_(hopping_val) {}
 
   VectorType apply(const VectorType& v) const override {
@@ -201,7 +201,7 @@ struct NearestNeighbor1D final : LinearOperator<arma::vec> {
         w(0) += hopping_ * v(1);
       }
     }
-    for (int i = 1; i < n_ - 1; ++i) {
+    for (arma::uword i = 1; i + 1 < n_; ++i) {
       w(i) = hopping_ * v(i - 1) + diag_ * v(i) + hopping_ * v(i + 1);
     }
     if (n_ > 1) {
@@ -213,13 +213,13 @@ struct NearestNeighbor1D final : LinearOperator<arma::vec> {
   size_t dimension() const override { return static_cast<size_t>(n_); }
 
  private:
-  int n_;
+  arma::uword n_;
   double diag_;
   double hopping_;
 };
 
 TEST_CASE("lanczos_max_eigenpair_matches_nearest_neighbor_chain") {
-  const int n = 80;
+  const arma::uword n = 80;
   const double diag = 2.0;
   const double hopping = -1.0;
   const double pi = std::acos(-1.0);
@@ -229,7 +229,8 @@ TEST_CASE("lanczos_max_eigenpair_matches_nearest_neighbor_chain") {
 
   auto eigenpair = find_max_eigenpair(op, k);
 
-  const double exact_max = diag + 2.0 * hopping * std::cos(n * pi / (n + 1.0));
+  const double exact_max =
+      diag + 2.0 * hopping * std::cos(static_cast<double>(n) * pi / (static_cast<double>(n) + 1.0));
   const double error = std::abs(eigenpair.value - exact_max);
   CHECK(error < 2e-2);
 }
