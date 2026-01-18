@@ -8,9 +8,9 @@
 #include "catch.hpp"
 
 namespace {
-constexpr double kModelTolerance = 1e-6;
+constexpr float kModelTolerance = 1e-6f;
 
-bool complex_near_model(const Term::complex_type& lhs, const Term::complex_type& rhs, double tol) {
+bool complex_near_model(const Term::complex_type& lhs, const Term::complex_type& rhs, float tol) {
   const auto delta = lhs - rhs;
   return std::abs(delta) <= tol;
 }

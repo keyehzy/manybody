@@ -15,11 +15,11 @@
 // B^+_{K,r} = (1/sqrt(N)) sum_p exp(i p r) B^+_{K,p}
 // H(K) = t_eff(K) * sum_r (B^+_{K,r} B_{K,r+1} + B^+_{K,r+1} B_{K,r}) + U B^+_{K,0} B_{K,0}
 struct HubbardModelRelative : Model {
-  HubbardModelRelative(double t, double u, size_t size, int64_t total_momentum)
-      : t(t),
-        u(u),
-        size(size),
-        total_momentum(utils::canonicalize_momentum(total_momentum, size)) {}
+  HubbardModelRelative(double t_val, double u_val, size_t size_val, int64_t total_momentum_val)
+      : t(t_val),
+        u(u_val),
+        size(size_val),
+        total_momentum(utils::canonicalize_momentum(total_momentum_val, size_val)) {}
 
   double effective_hopping() const {
     const double k_phase = 2.0 * std::numbers::pi_v<double> * static_cast<double>(total_momentum) /
@@ -49,17 +49,19 @@ struct HubbardModelRelative : Model {
   Expression kinetic() const {
     Expression kinetic_term;
     const double t_eff = effective_hopping();
+    const auto t_coeff = Expression::complex_type(static_cast<float>(t_eff), 0.0f);
     for (size_t r = 0; r < size; ++r) {
       const size_t next = (r + 1) % size;
-      kinetic_term += t_eff * (pair_creation(r) * pair_annihilation(next));
-      kinetic_term += t_eff * (pair_creation(next) * pair_annihilation(r));
+      kinetic_term += t_coeff * (pair_creation(r) * pair_annihilation(next));
+      kinetic_term += t_coeff * (pair_creation(next) * pair_annihilation(r));
     }
     return kinetic_term;
   }
 
   Expression interaction() const {
     Expression interaction_term;
-    interaction_term += u * (pair_creation(0) * pair_annihilation(0));
+    const auto u_coeff = Expression::complex_type(static_cast<float>(u), 0.0f);
+    interaction_term += u_coeff * (pair_creation(0) * pair_annihilation(0));
     return interaction_term;
   }
 

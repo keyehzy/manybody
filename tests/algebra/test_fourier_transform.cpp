@@ -7,9 +7,9 @@
 #include "utils/index.h"
 
 namespace {
-constexpr double kTolerance = 1e-6;
+constexpr float kTolerance = 1e-6f;
 
-bool complex_near(const Term::complex_type& lhs, const Term::complex_type& rhs, double tol) {
+bool complex_near(const Term::complex_type& lhs, const Term::complex_type& rhs, float tol) {
   const auto delta = lhs - rhs;
   return std::abs(delta) <= tol;
 }

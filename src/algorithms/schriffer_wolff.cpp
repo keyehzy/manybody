@@ -55,7 +55,7 @@ Expression schriffer_wolff(const Expression& kinetic, const Expression& interact
     for (size_t i = 0; i < n; ++i) {
       for (size_t j = n; j < H_in.n_rows; ++j) {
         std::complex<double> denom = vals(i) - vals(j);
-        if (std::abs(denom) <= tolerance) {
+        if (std::abs(denom) <= static_cast<double>(tolerance)) {
           continue;
         }
         Atilde(i, j) = H_in(i, j) / denom;
