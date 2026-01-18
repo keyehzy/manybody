@@ -54,6 +54,25 @@ jobs:
             ${{ runner.os }}-ccache-${{ matrix.compiler }}-${{ matrix.build_type }}-
             ${{ runner.os }}-ccache-${{ matrix.compiler }}-
 
+      - name: Set debug flags
+        if: matrix.build_type == 'Debug'
+        run: |
+          COMMON_FLAGS="-Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion"
+          COMMON_FLAGS="$COMMON_FLAGS -Wdouble-promotion -Wshadow -Wswitch-enum -Wswitch-default"
+          COMMON_FLAGS="$COMMON_FLAGS -Wimplicit-fallthrough -Wnon-virtual-dtor -Woverloaded-virtual"
+          COMMON_FLAGS="$COMMON_FLAGS -Wdelete-non-virtual-dtor -Wformat -Wformat-security"
+          COMMON_FLAGS="$COMMON_FLAGS -Werror=format-security -Wstrict-aliasing=2 -Wnull-dereference"
+          COMMON_FLAGS="$COMMON_FLAGS -Wold-style-cast -Weffc++ -Wuseless-cast -Wredundant-move"
+
+          if [ "${{ matrix.compiler }}" = "gcc" ]; then
+            EXTRA_FLAGS="-Wduplicated-cond -Wduplicated-branches -Wlogical-op"
+            EXTRA_FLAGS="$EXTRA_FLAGS -Walloc-zero -Walloca -Wstringop-overflow=4 -Wstringop-truncation"
+          else
+            EXTRA_FLAGS="-Wextra-semi -Wcomma -Wmove -Wrange-loop-analysis"
+          fi
+
+          echo "DEBUG_CXX_FLAGS=$COMMON_FLAGS $EXTRA_FLAGS" >> $GITHUB_ENV
+
       - name: Configure
         run: |
           cmake -S . -B build -G Ninja \
@@ -61,7 +80,8 @@ jobs:
             -DCMAKE_C_COMPILER=${{ matrix.cc }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_FLAGS="${DEBUG_CXX_FLAGS:-}"
 
       - name: Build
         run: cmake --build build --parallel
