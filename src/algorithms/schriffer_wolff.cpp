@@ -6,8 +6,7 @@
 #include "utils/tolerances.h"
 
 namespace {
-constexpr auto tolerance =
-    tolerances::tolerance<Expression::complex_type::value_type>();
+constexpr auto tolerance = tolerances::tolerance<Expression::complex_type::value_type>();
 }  // namespace
 
 std::pair<size_t, double> cluster_by_largest_gap(const arma::vec& vals) {

@@ -6,8 +6,7 @@
 
 #include "utils/tolerances.h"
 
-constexpr auto tolerance =
-    tolerances::tolerance<Expression::complex_type::value_type>();
+constexpr auto tolerance = tolerances::tolerance<Expression::complex_type::value_type>();
 
 bool Expression::is_zero(const complex_type& value) {
   return std::norm(value) < tolerance * tolerance;

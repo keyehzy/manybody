@@ -1,6 +1,7 @@
 #include "algebra/commutator.h"
 
 #include <cmath>
+
 #include "algebra/normal_order.h"
 #include "utils/tolerances.h"
 
@@ -38,8 +39,7 @@ Expression BCH(const Expression& A, const Expression& B,
   Expression current = B;
   Expression::complex_type::value_type coeff{1.0};
   Expression result = current * coeff;
-  constexpr auto tolerance =
-      tolerances::tolerance<Expression::complex_type::value_type>();
+  constexpr auto tolerance = tolerances::tolerance<Expression::complex_type::value_type>();
 
   for (size_t n = 1; n <= order; ++n) {
     current = commutator(A, current);

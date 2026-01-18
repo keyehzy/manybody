@@ -83,16 +83,14 @@ TEST_CASE("expression_multiply_term_appends_ops") {
 }
 
 TEST_CASE("expression_ignores_near_zero_coefficients") {
-  constexpr auto tolerance =
-      tolerances::tolerance<Expression::complex_type::value_type>();
+  constexpr auto tolerance = tolerances::tolerance<Expression::complex_type::value_type>();
   auto small = Expression::complex_type(0.5f * tolerance, 0.0f);
   Expression expr(small);
   CHECK((expr.size()) == (0u));
 }
 
 TEST_CASE("expression_cancels_terms_within_tolerance") {
-  constexpr auto tolerance =
-      tolerances::tolerance<Expression::complex_type::value_type>();
+  constexpr auto tolerance = tolerances::tolerance<Expression::complex_type::value_type>();
   Operator op = Operator::creation(Operator::Spin::Up, 2);
   Expression expr(Term(Expression::complex_type(1.0f, 0.0f), {op}));
   expr += Term(Expression::complex_type(-1.0f + 0.5f * tolerance, 0.0f), {op});

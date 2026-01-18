@@ -8,8 +8,7 @@
 #include "utils/index.h"
 
 struct HubbardModel : Model {
-  HubbardModel(double t_val, double u_val, size_t size_val)
-      : t(t_val), u(u_val), size(size_val) {}
+  HubbardModel(double t_val, double u_val, size_t size_val) : t(t_val), u(u_val), size(size_val) {}
 
   Expression kinetic() const {
     Expression kinetic_term;
@@ -44,7 +43,11 @@ struct HubbardModel : Model {
 
 struct HubbardModel2D : Model {
   HubbardModel2D(double t_val, double u_val, size_t size_x_val, size_t size_y_val)
-      : t(t_val), u(u_val), size_x(size_x_val), size_y(size_y_val), index({size_x_val, size_y_val}) {}
+      : t(t_val),
+        u(u_val),
+        size_x(size_x_val),
+        size_y(size_y_val),
+        index({size_x_val, size_y_val}) {}
 
   Expression kinetic() const {
     Expression kinetic_term;
@@ -90,7 +93,8 @@ struct HubbardModel2D : Model {
 };
 
 struct HubbardModel3D : Model {
-  HubbardModel3D(double t_val, double u_val, size_t size_x_val, size_t size_y_val, size_t size_z_val)
+  HubbardModel3D(double t_val, double u_val, size_t size_x_val, size_t size_y_val,
+                 size_t size_z_val)
       : t(t_val),
         u(u_val),
         size_x(size_x_val),

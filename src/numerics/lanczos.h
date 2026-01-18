@@ -9,8 +9,8 @@
 #include <tuple>
 #include <vector>
 
-#include "utils/tolerances.h"
 #include "numerics/linear_operator.h"
+#include "utils/tolerances.h"
 
 template <typename Op>
 std::tuple<scalar_real_t<typename Op::ScalarType>,

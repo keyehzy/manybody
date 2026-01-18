@@ -3,8 +3,7 @@
 #include "algebra/expression.h"
 #include "utils/tolerances.h"
 
-constexpr auto tolerance =
-    tolerances::tolerance<Expression::complex_type::value_type>();
+constexpr auto tolerance = tolerances::tolerance<Expression::complex_type::value_type>();
 
 Expression NormalOrderer::normal_order(const complex_type& c, const container_type& ops) {
   if (std::norm(c) < tolerance * tolerance) {
