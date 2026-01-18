@@ -61,7 +61,7 @@ int main() {
       std::ostringstream oss;
       oss << "effective_hamiltonian_L=" << lattice_size << "_T=" << truncatation << ".txt";
       std::ofstream os(oss.str());
-      for (const auto& [_, coeff] : truncated_effective.hashmap) {
+      for ([[maybe_unused]] const auto& [ops, coeff] : truncated_effective.hashmap) {
         os << truncated_effective.to_string() << "\n";
       }
     }
