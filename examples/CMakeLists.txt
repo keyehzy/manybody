@@ -23,3 +23,4 @@ add_example(example_hubbard_relative_optical_conductivity
 add_example(example_hubbard_relative3_ground_state_compare
     hubbard_relative3_ground_state_compare.cpp)
 add_example(test_current_adjoint test_current_adjoint.cpp)
+add_example(example_hubbard_3d_momentum_sparse_lowest hubbard_3d_momentum_sparse_lowest.cpp)
