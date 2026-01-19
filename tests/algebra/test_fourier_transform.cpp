@@ -3,6 +3,9 @@
 #include <numbers>
 
 #include "algebra/fourier_transform.h"
+#include "algebra/model/hubbard_model.h"
+#include "algebra/model/hubbard_model_momentum.h"
+#include "algebra/normal_order.h"
 #include "catch.hpp"
 #include "utils/index.h"
 
@@ -59,4 +62,93 @@ TEST_CASE("fourier_transform_operator_multidimensional_coefficients") {
 
   CHECK(complex_near(annihilation_it->second, expected_annihilation, kTolerance));
   CHECK(complex_near(creation_it->second, expected_creation, kTolerance));
+}
+
+TEST_CASE("fourier_transform_hubbard_1d_gives_momentum_space") {
+  constexpr size_t L = 4;
+  constexpr double t = 1.25;
+  constexpr double U = 3.5;
+
+  // Real-space model and Fourier transform
+  // Note: Real-space hopping with +t gives dispersion +2t*cos(k)
+  // Momentum-space model uses dispersion -2t*cos(k)
+  // So we use -t in momentum-space to match +t in real-space
+  HubbardModel hubbard_real(t, U, L);
+  Index index({L});
+
+  Expression H_real = hubbard_real.hamiltonian();
+  Expression H_transformed = transform_expression(fourier_transform_operator, H_real, index);
+
+  HubbardModelMomentum hubbard_momentum(-t, U, {L});
+  Expression H_momentum = hubbard_momentum.hamiltonian();
+
+  // Normal order both expressions before comparing
+  NormalOrderer orderer;
+  H_transformed = orderer.normal_order(H_transformed);
+  H_momentum = orderer.normal_order(H_momentum);
+
+  // Compare expressions term by term
+  CHECK(H_transformed.hashmap.size() == H_momentum.hashmap.size());
+  for (const auto& [ops, coeff] : H_momentum.hashmap) {
+    auto it = H_transformed.hashmap.find(ops);
+    REQUIRE(it != H_transformed.hashmap.end());
+    CHECK(complex_near(it->second, coeff, kTolerance));
+  }
+}
+
+TEST_CASE("fourier_transform_hubbard_2d_gives_momentum_space") {
+  constexpr size_t Lx = 2;
+  constexpr size_t Ly = 3;
+  constexpr double t = 0.75;
+  constexpr double U = 2.0;
+
+  HubbardModel2D hubbard_real(t, U, Lx, Ly);
+  Index index({Lx, Ly});
+
+  Expression H_real = hubbard_real.hamiltonian();
+  Expression H_transformed = transform_expression(fourier_transform_operator, H_real, index);
+
+  HubbardModelMomentum hubbard_momentum(-t, U, {Lx, Ly});
+  Expression H_momentum = hubbard_momentum.hamiltonian();
+
+  // Normal order both expressions before comparing
+  NormalOrderer orderer;
+  H_transformed = orderer.normal_order(H_transformed);
+  H_momentum = orderer.normal_order(H_momentum);
+
+  CHECK(H_transformed.hashmap.size() == H_momentum.hashmap.size());
+  for (const auto& [ops, coeff] : H_momentum.hashmap) {
+    auto it = H_transformed.hashmap.find(ops);
+    REQUIRE(it != H_transformed.hashmap.end());
+    CHECK(complex_near(it->second, coeff, kTolerance));
+  }
+}
+
+TEST_CASE("fourier_transform_hubbard_3d_gives_momentum_space") {
+  constexpr size_t Lx = 2;
+  constexpr size_t Ly = 2;
+  constexpr size_t Lz = 2;
+  constexpr double t = 1.0;
+  constexpr double U = 4.0;
+
+  HubbardModel3D hubbard_real(t, U, Lx, Ly, Lz);
+  Index index({Lx, Ly, Lz});
+
+  Expression H_real = hubbard_real.hamiltonian();
+  Expression H_transformed = transform_expression(fourier_transform_operator, H_real, index);
+
+  HubbardModelMomentum hubbard_momentum(-t, U, {Lx, Ly, Lz});
+  Expression H_momentum = hubbard_momentum.hamiltonian();
+
+  // Normal order both expressions before comparing
+  NormalOrderer orderer;
+  H_transformed = orderer.normal_order(H_transformed);
+  H_momentum = orderer.normal_order(H_momentum);
+
+  CHECK(H_transformed.hashmap.size() == H_momentum.hashmap.size());
+  for (const auto& [ops, coeff] : H_momentum.hashmap) {
+    auto it = H_transformed.hashmap.find(ops);
+    REQUIRE(it != H_transformed.hashmap.end());
+    CHECK(complex_near(it->second, coeff, kTolerance));
+  }
 }
