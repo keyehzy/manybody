@@ -100,7 +100,12 @@ int main(int argc, char** argv) {
       sites, opts.particles, opts.spin_projection, index, total_momentum);
 
   const Expression hamiltonian = hubbard.hamiltonian();
+  const Expression kinetic = hubbard.kinetic();
+  const Expression interaction = hubbard.interaction();
+
   arma::sp_cx_mat H = compute_matrix_elements<arma::sp_cx_mat>(basis, hamiltonian);
+  arma::sp_cx_mat K = compute_matrix_elements<arma::sp_cx_mat>(basis, kinetic);
+  arma::sp_cx_mat U = compute_matrix_elements<arma::sp_cx_mat>(basis, interaction);
 
   arma::cx_vec eigenvalues;
   arma::cx_mat eigenvectors;
@@ -109,6 +114,10 @@ int main(int argc, char** argv) {
     return 1;
   }
 
+  const arma::cx_vec ground_state = eigenvectors.col(0);
+  const std::complex<double> kinetic_expectation = arma::cdot(ground_state, K * ground_state);
+  const std::complex<double> interaction_expectation = arma::cdot(ground_state, U * ground_state);
+
   std::cout << "3D Hubbard model in momentum space\n";
   std::cout << "L=(" << opts.size_x << "x" << opts.size_y << "x" << opts.size_z << ")"
             << ", N=" << opts.particles << ", Sz=" << opts.spin_projection << ", K=(" << opts.kx
@@ -116,6 +125,8 @@ int main(int argc, char** argv) {
   std::cout << "t=" << opts.t << ", U=" << opts.U << "\n";
   std::cout << "Basis size: " << basis.set.size() << "\n";
   std::cout << "Lowest eigenvalue (sparse): " << eigenvalues(0) << "\n";
+  std::cout << "Kinetic energy <K>: " << kinetic_expectation << "\n";
+  std::cout << "Interaction energy <U>: " << interaction_expectation << "\n";
 
   return 0;
 }
