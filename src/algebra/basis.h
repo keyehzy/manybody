@@ -26,6 +26,11 @@ struct Basis {
   void generate_restrict_combinations_with_spin(key_type current, size_t first_orbital,
                                                 size_t up_left, size_t down_left,
                                                 std::vector<key_type>& acc) const;
+  void generate_restrict_combinations_with_spin_momentum(
+      key_type& current, size_t first_orbital, size_t up_left, size_t down_left,
+      Index::container_type& current_momentum,
+      const std::vector<Index::container_type>& orbital_coords, const Index& index,
+      const Index::container_type& target_momentum, std::vector<key_type>& acc) const;
 
   set_type set{};
   size_t orbitals{0};
