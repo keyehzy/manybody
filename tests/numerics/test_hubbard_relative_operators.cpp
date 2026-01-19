@@ -35,7 +35,7 @@ TEST_CASE("hubbard_relative_kinetic_applies_periodic_neighbors") {
   v(0) = arma::cx_double(1.0, 0.0);
   arma::cx_vec w = kinetic.apply(v);
 
-  const arma::cx_double expected(2.0, 0.0);
+  const arma::cx_double expected(-2.0, 0.0);
   CHECK(std::abs(w(1) - expected) < kOperatorsTolerance);
   CHECK(std::abs(w(3) - expected) < kOperatorsTolerance);
   CHECK(std::abs(w(0)) < kOperatorsTolerance);
@@ -52,8 +52,8 @@ TEST_CASE("hubbard_relative_combines_kinetic_and_interaction") {
   arma::cx_vec w = hubbard.apply(v);
 
   CHECK(std::abs(w(0) - arma::cx_double(3.0, 0.0)) < kOperatorsTolerance);
-  CHECK(std::abs(w(1) - arma::cx_double(1.0, 0.0)) < kOperatorsTolerance);
-  CHECK(std::abs(w(3) - arma::cx_double(1.0, 0.0)) < kOperatorsTolerance);
+  CHECK(std::abs(w(1) - arma::cx_double(-1.0, 0.0)) < kOperatorsTolerance);
+  CHECK(std::abs(w(3) - arma::cx_double(-1.0, 0.0)) < kOperatorsTolerance);
   CHECK(std::abs(w(2)) < kOperatorsTolerance);
 }
 

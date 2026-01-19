@@ -94,7 +94,7 @@ TEST_CASE("model_hubbard_relative_hamiltonian_coefficients") {
       2.0 * std::numbers::pi_v<double> * static_cast<double>(p_same) / static_cast<double>(size);
   const double k_total_phase =
       2.0 * std::numbers::pi_v<double> * static_cast<double>(kMomentum) / static_cast<double>(size);
-  const double t_eff = 2.0 * 1.25 * std::cos(0.5 * k_total_phase);
+  const double t_eff = -2.0 * 1.25 * std::cos(0.5 * k_total_phase);
   const double expected_diag = (3.0 / static_cast<double>(size)) + 2.0 * t_eff * std::cos(k_phase);
   const double expected_off_diag = 3.0 / static_cast<double>(size);
 

@@ -57,7 +57,7 @@ struct HubbardRelativeKinetic final : LinearOperator<arma::cx_vec> {
       const double k_phase = 2.0 * std::numbers::pi_v<double> *
                              static_cast<double>(total_momentum_[d]) /
                              static_cast<double>(size_[d]);
-      t_eff_[d] = 2.0 * std::cos(0.5 * k_phase);
+      t_eff_[d] = -2.0 * std::cos(0.5 * k_phase);
     }
   }
 

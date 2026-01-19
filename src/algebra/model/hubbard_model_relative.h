@@ -24,7 +24,7 @@ struct HubbardModelRelative : Model {
   double effective_hopping() const {
     const double k_phase = 2.0 * std::numbers::pi_v<double> * static_cast<double>(total_momentum) /
                            static_cast<double>(size);
-    return 2.0 * t * std::cos(0.5 * k_phase);
+    return -2.0 * t * std::cos(0.5 * k_phase);
   }
 
   Expression pair_creation(size_t r) const {

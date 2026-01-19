@@ -195,7 +195,7 @@ struct HubbardRelative3Kinetic final : LinearOperator<arma::cx_vec> {
 };
 
 /// Full 3-particle relative Hubbard operator (project convention):
-///   H = t * K + U * V
+///   H = -t * K + U * V
 struct HubbardRelative3 final : LinearOperator<arma::cx_vec> {
   using VectorType = arma::cx_vec;
   using ScalarType = std::complex<double>;
@@ -214,7 +214,7 @@ struct HubbardRelative3 final : LinearOperator<arma::cx_vec> {
 
   VectorType apply(const VectorType& v) const override {
     assert(static_cast<size_t>(v.n_elem) == dimension());
-    return t_ * kinetic_.apply(v) + U_ * interaction_.apply(v);
+    return -t_ * kinetic_.apply(v) + U_ * interaction_.apply(v);
   }
 
   VectorType project_antisymmetric(const VectorType& v) const {

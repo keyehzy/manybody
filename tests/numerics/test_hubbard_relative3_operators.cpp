@@ -246,7 +246,7 @@ TEST_CASE("hubbard_relative3_full_operator_combines_kinetic_and_interaction") {
   arma::cx_vec v = arma::randu<arma::cx_vec>(full.dimension());
 
   arma::cx_vec full_result = full.apply(v);
-  arma::cx_vec manual_result = t * kinetic.apply(v) + U * interaction.apply(v);
+  arma::cx_vec manual_result = -t * kinetic.apply(v) + U * interaction.apply(v);
 
   CHECK(arma::norm(full_result - manual_result) < 1e-12);
 }

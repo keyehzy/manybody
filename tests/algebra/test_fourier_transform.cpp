@@ -70,16 +70,15 @@ TEST_CASE("fourier_transform_hubbard_1d_gives_momentum_space") {
   constexpr double U = 3.5;
 
   // Real-space model and Fourier transform
-  // Note: Real-space hopping with +t gives dispersion +2t*cos(k)
-  // Momentum-space model uses dispersion -2t*cos(k)
-  // So we use -t in momentum-space to match +t in real-space
+  // Note: Real-space hopping with -t gives dispersion -2t*cos(k),
+  // matching the momentum-space model.
   HubbardModel hubbard_real(t, U, L);
   Index index({L});
 
   Expression H_real = hubbard_real.hamiltonian();
   Expression H_transformed = transform_expression(fourier_transform_operator, H_real, index);
 
-  HubbardModelMomentum hubbard_momentum(-t, U, {L});
+  HubbardModelMomentum hubbard_momentum(t, U, {L});
   Expression H_momentum = hubbard_momentum.hamiltonian();
 
   // Normal order both expressions before comparing
@@ -108,7 +107,7 @@ TEST_CASE("fourier_transform_hubbard_2d_gives_momentum_space") {
   Expression H_real = hubbard_real.hamiltonian();
   Expression H_transformed = transform_expression(fourier_transform_operator, H_real, index);
 
-  HubbardModelMomentum hubbard_momentum(-t, U, {Lx, Ly});
+  HubbardModelMomentum hubbard_momentum(t, U, {Lx, Ly});
   Expression H_momentum = hubbard_momentum.hamiltonian();
 
   // Normal order both expressions before comparing
@@ -137,7 +136,7 @@ TEST_CASE("fourier_transform_hubbard_3d_gives_momentum_space") {
   Expression H_real = hubbard_real.hamiltonian();
   Expression H_transformed = transform_expression(fourier_transform_operator, H_real, index);
 
-  HubbardModelMomentum hubbard_momentum(-t, U, {Lx, Ly, Lz});
+  HubbardModelMomentum hubbard_momentum(t, U, {Lx, Ly, Lz});
   Expression H_momentum = hubbard_momentum.hamiltonian();
 
   // Normal order both expressions before comparing
