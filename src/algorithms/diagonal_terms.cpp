@@ -39,19 +39,22 @@ bool is_term_contained(const Term::container_type& small, const Term::container_
     return false;
   }
 
-  for (size_t i = 0; i + small.size() <= large.size(); ++i) {
-    bool match = true;
-    for (size_t k = 0; k < small.size(); ++k) {
-      if (!(small[k] == large[i + k])) {
-        match = false;
+  std::vector<bool> used(large.size(), false);
+
+  for (const auto& op : small) {
+    bool found = false;
+    for (size_t i = 0; i < large.size(); ++i) {
+      if (!used[i] && op == large[i]) {
+        used[i] = true;
+        found = true;
         break;
       }
     }
-    if (match) {
-      return true;
+    if (!found) {
+      return false;
     }
   }
-  return false;
+  return true;
 }
 
 }  // namespace
