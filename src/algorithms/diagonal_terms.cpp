@@ -31,13 +31,36 @@ bool has_matching_substring(const Term::container_type& diagonal_ops,
   return false;
 }
 
+bool is_term_contained(const Term::container_type& small, const Term::container_type& large) {
+  if (small.empty()) {
+    return false;
+  }
+  if (small.size() > large.size()) {
+    return false;
+  }
+
+  for (size_t i = 0; i + small.size() <= large.size(); ++i) {
+    bool match = true;
+    for (size_t k = 0; k < small.size(); ++k) {
+      if (!(small[k] == large[i + k])) {
+        match = false;
+        break;
+      }
+    }
+    if (match) {
+      return true;
+    }
+  }
+  return false;
+}
+
 }  // namespace
 
 std::vector<Term> find_matching_terms(const Term& term, const Expression& expr) {
   std::vector<Term> matches;
   for (const auto& [ops, coeff] : expr.hashmap) {
     Term candidate(coeff, ops);
-    if (has_matching_substring(term.operators, candidate.operators)) {
+    if (is_term_contained(term.operators, candidate.operators)) {
       matches.push_back(candidate);
     }
   }
