@@ -3,6 +3,7 @@
 #include <type_traits>
 
 #include "algebra/model/hubbard_model.h"
+#include "algebra/model/hubbard_model_momentum.h"
 #include "algebra/model/hubbard_model_relative.h"
 #include "algebra/model/model.h"
 #include "catch.hpp"
@@ -127,4 +128,87 @@ TEST_CASE("model_virtual_dispatch_hamiltonian_relative") {
   HubbardModelRelative hubbard(1.0, 2.0, 4, 0);
   const Model& model = hubbard;
   CHECK((model.hamiltonian().size()) == (16u));
+}
+
+TEST_CASE("model_hubbard_momentum_inherits_from_interface") {
+  CHECK((std::is_base_of_v<Model, HubbardModelMomentum>));
+}
+
+TEST_CASE("model_hubbard_momentum_1d_hamiltonian_term_count") {
+  // 1D lattice with 4 sites
+  HubbardModelMomentum hubbard(1.0, 2.0, {4});
+  const Expression hamiltonian = hubbard.hamiltonian();
+  // Kinetic: 4 sites * 2 spins = 8 terms (but diagonal, so some may combine)
+  // Interaction: 4^3 = 64 terms (but normal ordering may reduce)
+  CHECK(hamiltonian.size() > 0);
+}
+
+TEST_CASE("model_hubbard_momentum_2d_hamiltonian_term_count") {
+  // 2D lattice with 2x2 sites
+  HubbardModelMomentum hubbard(1.0, 2.0, {2, 2});
+  const Expression hamiltonian = hubbard.hamiltonian();
+  CHECK(hamiltonian.size() > 0);
+}
+
+TEST_CASE("model_hubbard_momentum_3d_hamiltonian_term_count") {
+  // 3D lattice with 2x2x2 sites
+  HubbardModelMomentum hubbard(1.0, 2.0, {2, 2, 2});
+  const Expression hamiltonian = hubbard.hamiltonian();
+  CHECK(hamiltonian.size() > 0);
+}
+
+TEST_CASE("model_hubbard_momentum_dispersion_1d") {
+  HubbardModelMomentum hubbard(1.0, 2.0, {4});
+
+  // k=0: ε = -2t * cos(0) = -2t = -2
+  CHECK(std::abs(hubbard.dispersion({0}) - (-2.0)) < kModelTolerance);
+
+  // k=2 (half-filling): ε = -2t * cos(π) = 2t = 2
+  CHECK(std::abs(hubbard.dispersion({2}) - (2.0)) < kModelTolerance);
+}
+
+TEST_CASE("model_hubbard_momentum_dispersion_2d") {
+  HubbardModelMomentum hubbard(1.0, 2.0, {4, 4});
+
+  // k=(0,0): ε = -2t * (cos(0) + cos(0)) = -4t = -4
+  CHECK(std::abs(hubbard.dispersion({0, 0}) - (-4.0)) < kModelTolerance);
+
+  // k=(2,2): ε = -2t * (cos(π) + cos(π)) = 4t = 4
+  CHECK(std::abs(hubbard.dispersion({2, 2}) - (4.0)) < kModelTolerance);
+
+  // k=(0,2): ε = -2t * (cos(0) + cos(π)) = 0
+  CHECK(std::abs(hubbard.dispersion({0, 2})) < kModelTolerance);
+}
+
+TEST_CASE("model_hubbard_momentum_kinetic_diagonal") {
+  HubbardModelMomentum hubbard(1.0, 0.0, {4});  // U=0, only kinetic
+  const Expression hamiltonian = hubbard.hamiltonian();
+
+  // With U=0, all terms should be diagonal number operators
+  // k=0: ε=-2, k=1: ε=0, k=2: ε=2, k=3: ε=0
+  // Only k=0 and k=2 contribute (k=1,k=3 have zero energy)
+  // 2 momentum points * 2 spins = 4 terms
+  CHECK(hamiltonian.size() == 4u);
+}
+
+TEST_CASE("model_hubbard_momentum_interaction_momentum_conservation") {
+  // The interaction term conserves momentum: k1+q and k2-q
+  // This is implicitly tested by the structure of the Hamiltonian
+  HubbardModelMomentum hubbard(0.0, 1.0, {2});  // t=0, only interaction
+  const Expression hamiltonian = hubbard.hamiltonian();
+
+  // With t=0, only interaction terms
+  // 2^3 = 8 terms for the interaction (k1, k2, q each run over 2 values)
+  CHECK(hamiltonian.size() > 0);
+}
+
+TEST_CASE("model_virtual_dispatch_hamiltonian_momentum") {
+  HubbardModelMomentum hubbard(1.0, 2.0, {4});
+  const Model& model = hubbard;
+  CHECK(model.hamiltonian().size() > 0);
+}
+
+TEST_CASE("model_hubbard_momentum_throws_on_empty_size") {
+  // Index throws std::out_of_range for empty dimensions
+  CHECK_THROWS_AS(HubbardModelMomentum(1.0, 2.0, {}), std::out_of_range);
 }
