@@ -51,3 +51,14 @@ Refactor ideas discovered during codebase skim:
 - `HubbardModelMomentum` performance: `src/algebra/model/hubbard_model_momentum.h` repeatedly calls
   `index(k)` in the O(N^3) interaction loop. Precompute `std::vector<Index::container_type> coords`
   once (`coords[k] = index(k)`) and reuse for `k1`, `k2`, `q` to reduce allocations and indexing work.
+- Relative position basis (direct construction): Create a new `Basis` factory method that directly
+  generates relative position states as `Expression` objects. Each basis vector would store the
+  Fourier superposition of momentum-space terms with phase coefficients, rather than using a
+  transformation matrix approach. This would allow working directly in the relative coordinate
+  representation without needing to transform Hamiltonians.
+- Investigate HubbardRelative/HubbardModelRelative eigenvalue discrepancy: The `HubbardRelative`
+  (LinearOperator) and `HubbardModelRelative` (symbolic) models give different eigenvalues than
+  `HubbardModelMomentum` for the same 2-particle system with fixed total momentum. The effective
+  model uses `t_eff = -2t*cos(K/2)` with uniform nearest-neighbor hopping, while the standard
+  Hubbard model transformed to relative coordinates has a different kinetic structure. Determine
+  which formulation correctly represents the 2-particle Hubbard physics.
