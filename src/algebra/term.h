@@ -4,6 +4,7 @@
 #include <complex>
 #include <cstddef>
 #include <cstdint>
+#include <sstream>
 
 #include "algebra/operator.h"
 #include "utils/static_vector.h"
@@ -62,6 +63,7 @@ struct Term {
     return true;
   }
 
+  void to_string(std::ostringstream& oss) const;
   std::string to_string() const;
 
   constexpr bool operator==(const Term& other) const noexcept {

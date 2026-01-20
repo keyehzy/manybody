@@ -144,9 +144,10 @@ Expression& Expression::filter_by_size(size_t size) {
   return *this;
 }
 
-std::string Expression::to_string() const {
+void Expression::to_string(std::ostringstream& oss) const {
   if (hashmap.empty()) {
-    return "0";
+    oss << "0";
+    return;
   }
   std::vector<const map_type::value_type*> ordered;
   ordered.reserve(hashmap.size());
@@ -165,16 +166,20 @@ std::string Expression::to_string() const {
               return left_norm > right_norm;
             });
 
-  std::ostringstream oss;
   bool first = true;
   for (const auto* entry : ordered) {
     Term term(entry->second, entry->first);
     if (!first) {
       oss << "\n";
     }
-    oss << term.to_string();
+    term.to_string(oss);
     first = false;
   }
+}
+
+std::string Expression::to_string() const {
+  std::ostringstream oss;
+  to_string(oss);
   return oss.str();
 }
 

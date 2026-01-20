@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <sstream>
 #include <string>
 
 struct Operator {
@@ -33,18 +34,19 @@ struct Operator {
 
   constexpr size_t value() const noexcept { return data & kValueMask; }
 
-  std::string to_string() const {
+  void to_string(std::ostringstream& oss) const {
     const char* spin_arrow = spin() == Spin::Up ? "↑" : "↓";
-    std::string result = "c";
+    oss << "c";
     if (type() == Type::Creation) {
-      result += "+";
+      oss << "+";
     }
-    result += "(";
-    result += spin_arrow;
-    result += ", ";
-    result += std::to_string(value());
-    result += ")";
-    return result;
+    oss << "(" << spin_arrow << ", " << value() << ")";
+  }
+
+  std::string to_string() const {
+    std::ostringstream oss;
+    to_string(oss);
+    return oss.str();
   }
 
   constexpr bool operator<(Operator other) const noexcept {

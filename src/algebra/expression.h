@@ -45,6 +45,7 @@ struct Expression {
 
   Expression& filter_by_size(size_t size);
 
+  void to_string(std::ostringstream& oss) const;
   std::string to_string() const;
 
   Expression& operator+=(const complex_type& value);
