@@ -19,6 +19,7 @@
 // - The transformation matrix U is unitary (preserves eigenvalues)
 // - The on-site interaction localizes to r=0 in the relative basis
 // - The kinetic energy becomes diagonal in momentum space but spreads in position space
+// NOTE: Right now this only works for particles = 2, spin_projection = 0 and will crash.
 struct CliOptions {
   size_t size_x = 2;
   size_t size_y = 2;
