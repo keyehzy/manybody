@@ -26,6 +26,8 @@ struct CliOptions {
   size_t kx = 0;
   size_t ky = 0;
   size_t kz = 0;
+  size_t particles = 2;
+  int spin_projection = 0;
   double t = 1.0;
   double U = 4.0;
 };
@@ -43,6 +45,8 @@ CliOptions parse_cli_options(int argc, char** argv) {
       ("kx", "Total momentum Kx component",             cxxopts::value(o.kx)->default_value("0"))
       ("ky", "Total momentum Ky component",             cxxopts::value(o.ky)->default_value("0"))
       ("kz", "Total momentum Kz component",             cxxopts::value(o.kz)->default_value("0"))
+      ("N,particles", "Number of particles",            cxxopts::value(o.particles)->default_value("2"))
+      ("S,spin", "Spin projection (n_up - n_down)",     cxxopts::value(o.spin_projection)->default_value("0"))
       ("t,hopping", "Hopping amplitude",                cxxopts::value(o.t)->default_value("1.0"))
       ("U,interaction", "On-site interaction strength", cxxopts::value(o.U)->default_value("4.0"))
       ("h,help", "Print usage");
@@ -71,6 +75,25 @@ void validate_options(const CliOptions& opts) {
     std::cerr << "Momentum components must be less than corresponding lattice dimensions.\n";
     std::exit(1);
   }
+  if (opts.particles == 0) {
+    std::cerr << "Number of particles must be positive.\n";
+    std::exit(1);
+  }
+  const size_t sites = opts.size_x * opts.size_y * opts.size_z;
+  if (opts.particles > 2 * sites) {
+    std::cerr << "Too many particles for the lattice size.\n";
+    std::exit(1);
+  }
+  const int64_t particles_signed = static_cast<int64_t>(opts.particles);
+  const int64_t spin = static_cast<int64_t>(opts.spin_projection);
+  if (std::abs(spin) > particles_signed) {
+    std::cerr << "Spin projection magnitude cannot exceed particle count.\n";
+    std::exit(1);
+  }
+  if ((particles_signed + spin) % 2 != 0) {
+    std::cerr << "Invalid spin projection: (particles + spin) must be even.\n";
+    std::exit(1);
+  }
 }
 
 void print_coords(std::ostream& os, const std::vector<size_t>& coords) {
@@ -91,19 +114,17 @@ int main(int argc, char** argv) {
   const std::vector<size_t> size{opts.size_x, opts.size_y, opts.size_z};
   const std::vector<size_t> total_momentum{opts.kx, opts.ky, opts.kz};
   const size_t sites = opts.size_x * opts.size_y * opts.size_z;
-  const size_t particles = 2;
-  const int spin_projection = 0;
 
   std::cout << "=== Relative Basis Transform Example (3D) ===\n\n";
   std::cout << "Parameters: L=(" << opts.size_x << "x" << opts.size_y << "x" << opts.size_z
             << "), K=(" << opts.kx << "," << opts.ky << "," << opts.kz << "), t=" << opts.t
             << ", U=" << opts.U << "\n";
-  std::cout << "Particles: N=" << particles << ", Sz=" << spin_projection << "\n\n";
+  std::cout << "Particles: N=" << opts.particles << ", Sz=" << opts.spin_projection << "\n\n";
 
-  // Build momentum basis for 2 particles (1 up, 1 down) with fixed total momentum
+  // Build momentum basis for 2 opts.particles (1 up, 1 down) with fixed total momentum
   Index index(size);
   Basis momentum_basis = Basis::with_fixed_particle_number_spin_momentum(
-      sites, particles, spin_projection, index, total_momentum);
+      sites, opts.particles, opts.spin_projection, index, total_momentum);
 
   std::cout << "Momentum basis states (|p_up, p_down>):\n";
   for (size_t i = 0; i < momentum_basis.set.size(); ++i) {
@@ -132,7 +153,8 @@ int main(int argc, char** argv) {
   std::cout << "Transformation matrix (imag part):\n" << arma::imag(transform) << "\n";
 
   // Transform Hamiltonian to relative position basis
-  const arma::cx_mat H_rel = transform.t() * H_mom * transform;
+  arma::cx_mat H_rel = transform.t() * H_mom * transform;
+  H_rel.clean(1000.0 * arma::datum::eps);
 
   std::cout << "Hamiltonian in relative position basis:\n" << arma::real(H_rel) << "\n";
 
@@ -140,6 +162,7 @@ int main(int argc, char** argv) {
   arma::cx_mat H_int_mom =
       compute_matrix_elements<arma::cx_mat>(momentum_basis, hubbard.interaction());
   arma::cx_mat H_int_rel = transform.t() * H_int_mom * transform;
+  H_int_rel.clean(1000.0 * arma::datum::eps);
 
   std::cout << "Interaction in momentum basis (real part):\n" << arma::real(H_int_mom) << "\n";
   std::cout << "Interaction in relative basis (real part):\n" << arma::real(H_int_rel) << "\n";
