@@ -79,13 +79,78 @@ TEST_CASE("operator_commutes_for_different_value_or_spin") {
   CHECK(create_up.commutes(annihilate_down));
 }
 
-TEST_CASE("operator_ordering_uses_packed_bits") {
-  Operator create_up_1 = Operator::creation(Operator::Spin::Up, 1);
-  Operator create_up_2 = Operator::creation(Operator::Spin::Up, 2);
-  Operator annihilate_up_1 = Operator::annihilation(Operator::Spin::Up, 1);
+TEST_CASE("operator_ordering_type_creation_before_annihilation") {
+  Operator create = Operator::creation(Operator::Spin::Up, 1);
+  Operator annihilate = Operator::annihilation(Operator::Spin::Up, 1);
 
-  CHECK(create_up_1 < create_up_2);
-  CHECK(create_up_1 < annihilate_up_1);
+  CHECK(create < annihilate);
+  CHECK(!(annihilate < create));
+}
+
+TEST_CASE("operator_ordering_creation_spin_up_before_down") {
+  Operator create_up = Operator::creation(Operator::Spin::Up, 1);
+  Operator create_down = Operator::creation(Operator::Spin::Down, 1);
+
+  CHECK(create_up < create_down);
+  CHECK(!(create_down < create_up));
+}
+
+TEST_CASE("operator_ordering_creation_value_ascending") {
+  Operator create_1 = Operator::creation(Operator::Spin::Up, 1);
+  Operator create_2 = Operator::creation(Operator::Spin::Up, 2);
+
+  CHECK(create_1 < create_2);
+  CHECK(!(create_2 < create_1));
+}
+
+TEST_CASE("operator_ordering_annihilation_spin_down_before_up") {
+  Operator annihilate_up = Operator::annihilation(Operator::Spin::Up, 1);
+  Operator annihilate_down = Operator::annihilation(Operator::Spin::Down, 1);
+
+  CHECK(annihilate_down < annihilate_up);
+  CHECK(!(annihilate_up < annihilate_down));
+}
+
+TEST_CASE("operator_ordering_annihilation_value_descending") {
+  Operator annihilate_1 = Operator::annihilation(Operator::Spin::Up, 1);
+  Operator annihilate_2 = Operator::annihilation(Operator::Spin::Up, 2);
+
+  CHECK(annihilate_2 < annihilate_1);
+  CHECK(!(annihilate_1 < annihilate_2));
+}
+
+TEST_CASE("operator_ordering_equal_operators") {
+  Operator op1 = Operator::creation(Operator::Spin::Up, 1);
+  Operator op2 = Operator::creation(Operator::Spin::Up, 1);
+
+  CHECK(!(op1 < op2));
+  CHECK(!(op2 < op1));
+}
+
+TEST_CASE("operator_ordering_normal_order") {
+  // Normal ordering: c+(↑,0) c+(↑,1) c+(↓,0) c+(↓,1) c(↓,1) c(↓,0) c(↑,1) c(↑,0)
+  Operator c_up_0 = Operator::creation(Operator::Spin::Up, 0);
+  Operator c_up_1 = Operator::creation(Operator::Spin::Up, 1);
+  Operator c_down_0 = Operator::creation(Operator::Spin::Down, 0);
+  Operator c_down_1 = Operator::creation(Operator::Spin::Down, 1);
+  Operator a_up_0 = Operator::annihilation(Operator::Spin::Up, 0);
+  Operator a_up_1 = Operator::annihilation(Operator::Spin::Up, 1);
+  Operator a_down_0 = Operator::annihilation(Operator::Spin::Down, 0);
+  Operator a_down_1 = Operator::annihilation(Operator::Spin::Down, 1);
+
+  // Creation operators come first
+  CHECK(c_up_0 < a_up_0);
+  CHECK(c_down_1 < a_down_1);
+
+  // Creation ordering: spin up before down, then by value ascending
+  CHECK(c_up_0 < c_up_1);
+  CHECK(c_up_1 < c_down_0);
+  CHECK(c_down_0 < c_down_1);
+
+  // Annihilation ordering: spin down before up, then by value descending
+  CHECK(a_down_1 < a_down_0);
+  CHECK(a_down_0 < a_up_1);
+  CHECK(a_up_1 < a_up_0);
 }
 
 TEST_CASE("operator_hash_matches_data") {

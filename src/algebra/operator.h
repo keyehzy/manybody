@@ -47,7 +47,16 @@ struct Operator {
     return result;
   }
 
-  constexpr bool operator<(Operator other) const noexcept { return data < other.data; }
+  constexpr bool operator<(Operator other) const noexcept {
+    bool is_creation = other.type() == Type::Creation;
+    if (type() != other.type()) {
+      return type() < other.type();
+    } else if (spin() != other.spin()) {
+      return is_creation ? spin() < other.spin() : spin() > other.spin();
+    } else {
+      return is_creation ? value() < other.value() : value() > other.value();
+    }
+  }
   constexpr bool operator==(Operator other) const noexcept { return data == other.data; }
 
   constexpr Operator adjoint() const noexcept { return Operator(data ^ kTypeBit); }
