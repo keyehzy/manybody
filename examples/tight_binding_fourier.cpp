@@ -28,7 +28,8 @@ int main() {
 
   std::cout << "Real-space hopping Hamiltonian:\n" << real_space.to_string() << "\n";
 
-  Expression momentum_space = transform_expression(fourier_transform_operator, real_space, index);
+  Expression momentum_space =
+      transform_expression(fourier_transform_operator, real_space, index, FourierMode::Direct);
 
   std::cout << "Momentum-space hopping Hamiltonian:\n" << momentum_space.to_string() << "\n";
   return 0;

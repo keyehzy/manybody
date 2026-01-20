@@ -10,6 +10,8 @@
 #include "algebra/expression.h"
 #include "utils/index.h"
 
+enum class FourierMode { Direct, Inverse };
+
 template <typename F, typename... Args>
 using is_operator_callable = std::is_invocable<F, Operator, Args...>;
 
@@ -51,20 +53,24 @@ inline double momentum_phase(const Index::container_type& orbital,
   return 2.0 * std::numbers::pi_v<double> * phase;
 }
 
-inline Expression fourier_transform_operator(Operator op, const Index& index) {
+inline Expression fourier_transform_operator(Operator op, const Index& index,
+                                             FourierMode mode = FourierMode::Direct) {
   Expression result;
   const double type_sign = (op.type() == Operator::Type::Annihilation) ? -1.0 : 1.0;
-  const auto orbital = index(op.value());
+  const auto from = index(op.value());
   const auto& dimensions = index.dimensions();
   const double normalization = 1.0 / std::sqrt(static_cast<double>(index.size()));
+  const double phase_sign = (mode == FourierMode::Direct) ? -1.0 : 1.0;
 
-  for (size_t k = 0; k < index.size(); ++k) {
-    const auto momentum = index(k);
+  for (size_t i = 0; i < index.size(); ++i) {
+    const auto to = index(i);
+    const auto& orbital = (mode == FourierMode::Direct) ? from : to;
+    const auto& momentum = (mode == FourierMode::Direct) ? to : from;
     const double phase = momentum_phase(orbital, momentum, dimensions);
-    std::complex<double> coefficient(0.0, -type_sign * phase);
+    std::complex<double> coefficient(0.0, phase_sign * type_sign * phase);
     coefficient = std::exp(coefficient) * normalization;
 
-    Operator transformed_op(op.type(), op.spin(), k);
+    Operator transformed_op(op.type(), op.spin(), i);
     result += Term(Term::complex_type(static_cast<float>(coefficient.real()),
                                       static_cast<float>(coefficient.imag())),
                    {transformed_op});
