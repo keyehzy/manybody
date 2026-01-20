@@ -1,5 +1,6 @@
 #include <armadillo>
 #include <cstddef>
+#include <exception>
 #include <iomanip>
 #include <iostream>
 #include <vector>
@@ -8,60 +9,137 @@
 #include "algebra/matrix_elements.h"
 #include "algebra/model/hubbard_model_momentum.h"
 #include "algebra/relative_basis_transform.h"
+#include "cxxopts.hpp"
 #include "utils/index.h"
 
-// Demonstrates the relative position basis transformation for the 2-particle Hubbard model.
+// Demonstrates the relative position basis transformation for the 2-particle 3D Hubbard model.
 //
 // The transformation converts from momentum basis |p_up, K-p_up> to relative position basis |r>.
 // Key properties:
 // - The transformation matrix U is unitary (preserves eigenvalues)
 // - The on-site interaction localizes to r=0 in the relative basis
 // - The kinetic energy becomes diagonal in momentum space but spreads in position space
-int main() {
-  const size_t lattice_size = 6;
-  const std::vector<size_t> size{lattice_size};
-  const size_t K = 2;  // Total momentum
-  const double t = 1.0;
-  const double U = 4.0;
+struct CliOptions {
+  size_t size_x = 2;
+  size_t size_y = 2;
+  size_t size_z = 2;
+  size_t kx = 0;
+  size_t ky = 0;
+  size_t kz = 0;
+  double t = 1.0;
+  double U = 4.0;
+};
 
-  std::cout << "=== Relative Basis Transform Example ===\n\n";
-  std::cout << "Parameters: L=" << lattice_size << ", K=" << K << ", t=" << t << ", U=" << U
-            << "\n\n";
+CliOptions parse_cli_options(int argc, char** argv) {
+  CliOptions o;
+
+  cxxopts::Options cli("relative_basis_transform_example",
+                       "Relative basis transform for the 3D Hubbard model");
+  // clang-format off
+  cli.add_options()
+      ("x,size-x", "Lattice size in x dimension",       cxxopts::value(o.size_x)->default_value("2"))
+      ("y,size-y", "Lattice size in y dimension",       cxxopts::value(o.size_y)->default_value("2"))
+      ("z,size-z", "Lattice size in z dimension",       cxxopts::value(o.size_z)->default_value("2"))
+      ("kx", "Total momentum Kx component",             cxxopts::value(o.kx)->default_value("0"))
+      ("ky", "Total momentum Ky component",             cxxopts::value(o.ky)->default_value("0"))
+      ("kz", "Total momentum Kz component",             cxxopts::value(o.kz)->default_value("0"))
+      ("t,hopping", "Hopping amplitude",                cxxopts::value(o.t)->default_value("1.0"))
+      ("U,interaction", "On-site interaction strength", cxxopts::value(o.U)->default_value("4.0"))
+      ("h,help", "Print usage");
+  // clang-format on
+
+  try {
+    auto result = cli.parse(argc, argv);
+    if (result.count("help")) {
+      std::cout << cli.help() << "\n";
+      std::exit(0);
+    }
+  } catch (const std::exception& e) {
+    std::cerr << "Argument error: " << e.what() << "\n" << cli.help() << "\n";
+    std::exit(1);
+  }
+
+  return o;
+}
+
+void validate_options(const CliOptions& opts) {
+  if (opts.size_x == 0 || opts.size_y == 0 || opts.size_z == 0) {
+    std::cerr << "Lattice dimensions must be positive.\n";
+    std::exit(1);
+  }
+  if (opts.kx >= opts.size_x || opts.ky >= opts.size_y || opts.kz >= opts.size_z) {
+    std::cerr << "Momentum components must be less than corresponding lattice dimensions.\n";
+    std::exit(1);
+  }
+}
+
+void print_coords(std::ostream& os, const std::vector<size_t>& coords) {
+  os << "(";
+  for (size_t i = 0; i < coords.size(); ++i) {
+    if (i > 0) {
+      os << ",";
+    }
+    os << coords[i];
+  }
+  os << ")";
+}
+
+int main(int argc, char** argv) {
+  const CliOptions opts = parse_cli_options(argc, argv);
+  validate_options(opts);
+
+  const std::vector<size_t> size{opts.size_x, opts.size_y, opts.size_z};
+  const std::vector<size_t> total_momentum{opts.kx, opts.ky, opts.kz};
+  const size_t sites = opts.size_x * opts.size_y * opts.size_z;
+  const size_t particles = 2;
+  const int spin_projection = 0;
+
+  std::cout << "=== Relative Basis Transform Example (3D) ===\n\n";
+  std::cout << "Parameters: L=(" << opts.size_x << "x" << opts.size_y << "x" << opts.size_z
+            << "), K=(" << opts.kx << "," << opts.ky << "," << opts.kz << "), t=" << opts.t
+            << ", U=" << opts.U << "\n";
+  std::cout << "Particles: N=" << particles << ", Sz=" << spin_projection << "\n\n";
 
   // Build momentum basis for 2 particles (1 up, 1 down) with fixed total momentum
   Index index(size);
-  Basis momentum_basis =
-      Basis::with_fixed_particle_number_spin_momentum(lattice_size, 2, 0, index, {K});
+  Basis momentum_basis = Basis::with_fixed_particle_number_spin_momentum(
+      sites, particles, spin_projection, index, total_momentum);
 
   std::cout << "Momentum basis states (|p_up, p_down>):\n";
   for (size_t i = 0; i < momentum_basis.set.size(); ++i) {
     const auto& state = momentum_basis.set[i];
-    std::cout << "  " << i << ": |" << state[0].value() << ", " << state[1].value() << ">\n";
+    const auto up_coords = index(state[0].value());
+    const auto down_coords = index(state[1].value());
+    std::cout << "  " << i << ": |";
+    print_coords(std::cout, up_coords);
+    std::cout << ", ";
+    print_coords(std::cout, down_coords);
+    std::cout << ">\n";
   }
   std::cout << "\n";
 
   // Build Hubbard Hamiltonian in momentum basis
-  HubbardModelMomentum hubbard(t, U, size);
+  HubbardModelMomentum hubbard(opts.t, opts.U, size);
   arma::cx_mat H_mom = compute_matrix_elements<arma::cx_mat>(momentum_basis, hubbard.hamiltonian());
 
   std::cout << "Hamiltonian in momentum basis:\n" << arma::real(H_mom) << "\n";
 
   // Build transformation matrix
   auto result = relative_position_transform_with_index(momentum_basis, index);
-  const arma::cx_mat& U_transform = result.transform;
+  const arma::cx_mat& transform = result.transform;
 
-  std::cout << "Transformation matrix (real part):\n" << arma::real(U_transform) << "\n";
-  std::cout << "Transformation matrix (imag part):\n" << arma::imag(U_transform) << "\n";
+  std::cout << "Transformation matrix (real part):\n" << arma::real(transform) << "\n";
+  std::cout << "Transformation matrix (imag part):\n" << arma::imag(transform) << "\n";
 
   // Transform Hamiltonian to relative position basis
-  const arma::cx_mat H_rel = U_transform.t() * H_mom * U_transform;
+  const arma::cx_mat H_rel = transform.t() * H_mom * transform;
 
   std::cout << "Hamiltonian in relative position basis:\n" << arma::real(H_rel) << "\n";
 
   // Show that interaction localizes to r=0
   arma::cx_mat H_int_mom =
       compute_matrix_elements<arma::cx_mat>(momentum_basis, hubbard.interaction());
-  arma::cx_mat H_int_rel = U_transform.t() * H_int_mom * U_transform;
+  arma::cx_mat H_int_rel = transform.t() * H_int_mom * transform;
 
   std::cout << "Interaction in momentum basis (real part):\n" << arma::real(H_int_mom) << "\n";
   std::cout << "Interaction in relative basis (real part):\n" << arma::real(H_int_rel) << "\n";
