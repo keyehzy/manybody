@@ -128,9 +128,9 @@ inline arma::cx_mat relative_position_transform(const Basis& momentum_basis, con
 
 // Overload that builds the relative Index internally and returns it along with the transform
 struct RelativeTransformResult {
-  arma::cx_mat transform;     // Unitary transformation matrix
-  Index relative_index;       // Index for relative position coordinates
-  size_t num_relative_coords; // Number of relative coordinates (N-1 for N particles)
+  arma::cx_mat transform;      // Unitary transformation matrix
+  Index relative_index;        // Index for relative position coordinates
+  size_t num_relative_coords;  // Number of relative coordinates (N-1 for N particles)
 };
 
 inline RelativeTransformResult relative_position_transform_with_index(const Basis& momentum_basis,

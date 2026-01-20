@@ -6,6 +6,7 @@
 #include "algebra/test_model.cpp"
 #include "algebra/test_normal_order.cpp"
 #include "algebra/test_operator.cpp"
+#include "algebra/test_relative_basis_transform.cpp"
 #include "algebra/test_term.cpp"
 #include "algorithms/test_diagonal_terms.cpp"
 #include "algorithms/test_schriffer_wolff.cpp"
