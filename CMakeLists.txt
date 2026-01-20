@@ -12,6 +12,11 @@ pkg_check_modules(FFTW3 REQUIRED IMPORTED_TARGET fftw3)
 pkg_check_modules(ARPACK REQUIRED IMPORTED_TARGET arpack)
 pkg_check_modules(SuperLU REQUIRED IMPORTED_TARGET superlu)
 
+find_program(CCACHE_PROGRAM ccache)
+if (CCACHE_PROGRAM)
+    set(CMAKE_C_COMPILER_LAUNCHER   ${CCACHE_PROGRAM})
+    set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
+endif()
 
 add_subdirectory(src)
 add_subdirectory(examples)
