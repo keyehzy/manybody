@@ -20,14 +20,13 @@ void Expression::add_to_map(map_type& target, const container_type& ops,
   if (ops.size() > 12) {
     return;
   }
-  auto it = target.find(ops);
-  if (it == target.end()) {
-    target.emplace(ops, coeff);
-    return;
-  }
-  it->second += coeff;
-  if (is_zero(it->second)) {
-    target.erase(it);
+  // Use try_emplace to hash only once (find + insert in single operation)
+  auto [it, inserted] = target.try_emplace(ops, coeff);
+  if (!inserted) {
+    it->second += coeff;
+    if (is_zero(it->second)) {
+      target.erase(it);
+    }
   }
 }
 
@@ -38,14 +37,13 @@ void Expression::add_to_map(map_type& target, container_type&& ops, const comple
   if (ops.size() > 12) {
     return;
   }
-  auto it = target.find(ops);
-  if (it == target.end()) {
-    target.emplace(std::move(ops), coeff);
-    return;
-  }
-  it->second += coeff;
-  if (is_zero(it->second)) {
-    target.erase(it);
+  // Use try_emplace to hash only once (find + insert in single operation)
+  auto [it, inserted] = target.try_emplace(std::move(ops), coeff);
+  if (!inserted) {
+    it->second += coeff;
+    if (is_zero(it->second)) {
+      target.erase(it);
+    }
   }
 }
 
