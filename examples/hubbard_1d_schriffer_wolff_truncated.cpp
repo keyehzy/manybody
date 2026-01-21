@@ -41,7 +41,7 @@ int main() {
   const double hopping = 1.0;
   const double interaction = -10.0;
   const size_t iterations = 1000;
-  const float cutoff = static_cast<float>(0.1 * std::abs(hopping * hopping / interaction));
+  const double cutoff = 0.1 * std::abs(hopping * hopping / interaction);
 
   HubbardModel hubbard(hopping, interaction, lattice_size);
   Basis sw_basis = Basis::with_fixed_particle_number(lattice_size, sw_particles);

@@ -71,9 +71,7 @@ inline Expression fourier_transform_operator(Operator op, const Index& index,
     coefficient = std::exp(coefficient) * normalization;
 
     Operator transformed_op(op.type(), op.spin(), i);
-    result += Term(Term::complex_type(static_cast<float>(coefficient.real()),
-                                      static_cast<float>(coefficient.imag())),
-                   {transformed_op});
+    result += Term(Term::complex_type(coefficient.real(), coefficient.imag()), {transformed_op});
   }
 
   return result;

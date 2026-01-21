@@ -17,7 +17,7 @@ int main() {
   Index index({sites});
 
   Expression real_space;
-  const Term::complex_type coeff(static_cast<float>(-hopping), 0.0f);
+  const Term::complex_type coeff(-hopping, 0.0);
   for (size_t i = 0; i < sites; ++i) {
     const size_t j = (i + 1) % sites;
     real_space += Term(coeff, {Operator::creation(Operator::Spin::Up, i),

@@ -141,8 +141,7 @@ struct HubbardMomentumOperator final : LinearOperator<arma::cx_vec> {
   }
 
   static Expression::complex_type to_expression_complex(const ScalarType& value) {
-    return Expression::complex_type(static_cast<float>(value.real()),
-                                    static_cast<float>(value.imag()));
+    return Expression::complex_type(value.real(), value.imag());
   }
 
   static ScalarType to_arma_complex(const Expression::complex_type& value) {

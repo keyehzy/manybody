@@ -113,8 +113,8 @@ Expression& Expression::truncate_by_size(size_t max_size) {
   return *this;
 }
 
-Expression& Expression::truncate_by_norm(float min_norm) {
-  if (min_norm <= 0.0f) {
+Expression& Expression::truncate_by_norm(double min_norm) {
+  if (min_norm <= 0.0) {
     return *this;
   }
   const auto cutoff = static_cast<complex_type::value_type>(min_norm);

@@ -35,7 +35,7 @@ Expression NormalOrderer::normal_order_recursive(container_type ops) {
     return {};
   }
 
-  complex_type phase{1.0f, 0.0f};
+  complex_type phase{1.0, 0.0};
 
   for (size_t i = 1; i < ops.size(); ++i) {
     size_t j = i;

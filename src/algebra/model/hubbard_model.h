@@ -12,7 +12,7 @@ struct HubbardModel : Model {
 
   Expression kinetic() const {
     Expression kinetic_term;
-    const auto t_coeff = Expression::complex_type(static_cast<float>(-t), 0.0f);
+    const auto t_coeff = Expression::complex_type(-t, 0.0);
     for (size_t i = 0; i < size; ++i) {
       const size_t next = (i + 1) % size;
       kinetic_term += t_coeff * hopping(i, next, Operator::Spin::Up);
@@ -23,7 +23,7 @@ struct HubbardModel : Model {
 
   Expression interaction() const {
     Expression interaction_term;
-    const auto u_coeff = Expression::complex_type(static_cast<float>(u), 0.0f);
+    const auto u_coeff = Expression::complex_type(u, 0.0);
     for (size_t i = 0; i < size; ++i) {
       interaction_term += u_coeff * density_density(Operator::Spin::Up, i, Operator::Spin::Down, i);
     }
@@ -51,7 +51,7 @@ struct HubbardModel2D : Model {
 
   Expression kinetic() const {
     Expression kinetic_term;
-    const auto t_coeff = Expression::complex_type(static_cast<float>(-t), 0.0f);
+    const auto t_coeff = Expression::complex_type(-t, 0.0);
     for (size_t x = 0; x < size_x; ++x) {
       for (size_t y = 0; y < size_y; ++y) {
         const size_t site = index({x, y});
@@ -68,7 +68,7 @@ struct HubbardModel2D : Model {
 
   Expression interaction() const {
     Expression interaction_term;
-    const auto u_coeff = Expression::complex_type(static_cast<float>(u), 0.0f);
+    const auto u_coeff = Expression::complex_type(u, 0.0);
     for (size_t x = 0; x < size_x; ++x) {
       for (size_t y = 0; y < size_y; ++y) {
         const size_t site = index({x, y});
@@ -104,7 +104,7 @@ struct HubbardModel3D : Model {
 
   Expression kinetic() const {
     Expression kinetic_term;
-    const auto t_coeff = Expression::complex_type(static_cast<float>(-t), 0.0f);
+    const auto t_coeff = Expression::complex_type(-t, 0.0);
     for (size_t x = 0; x < size_x; ++x) {
       for (size_t y = 0; y < size_y; ++y) {
         for (size_t z = 0; z < size_z; ++z) {
@@ -126,7 +126,7 @@ struct HubbardModel3D : Model {
 
   Expression interaction() const {
     Expression interaction_term;
-    const auto u_coeff = Expression::complex_type(static_cast<float>(u), 0.0f);
+    const auto u_coeff = Expression::complex_type(u, 0.0);
     for (size_t x = 0; x < size_x; ++x) {
       for (size_t y = 0; y < size_y; ++y) {
         for (size_t z = 0; z < size_z; ++z) {

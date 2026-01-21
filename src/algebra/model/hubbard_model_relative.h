@@ -36,8 +36,7 @@ struct HubbardModelRelative : Model {
           2.0 * std::numbers::pi_v<double> * static_cast<double>(p * r) / static_cast<double>(size);
       const std::complex<double> coefficient =
           std::exp(std::complex<double>(0.0, phase)) * normalization;
-      result += Term(Term::complex_type(static_cast<float>(coefficient.real()),
-                                        static_cast<float>(coefficient.imag())),
+      result += Term(Term::complex_type(coefficient.real(), coefficient.imag()),
                      {Operator::creation(Operator::Spin::Up, p),
                       Operator::creation(Operator::Spin::Down, k_minus_p)});
     }
@@ -49,7 +48,7 @@ struct HubbardModelRelative : Model {
   Expression kinetic() const {
     Expression kinetic_term;
     const double t_eff = effective_hopping();
-    const auto t_coeff = Expression::complex_type(static_cast<float>(t_eff), 0.0f);
+    const auto t_coeff = Expression::complex_type(t_eff, 0.0);
     for (size_t r = 0; r < size; ++r) {
       const size_t next = (r + 1) % size;
       kinetic_term += t_coeff * (pair_creation(r) * pair_annihilation(next));
@@ -60,7 +59,7 @@ struct HubbardModelRelative : Model {
 
   Expression interaction() const {
     Expression interaction_term;
-    const auto u_coeff = Expression::complex_type(static_cast<float>(u), 0.0f);
+    const auto u_coeff = Expression::complex_type(u, 0.0);
     interaction_term += u_coeff * (pair_creation(0) * pair_annihilation(0));
     return interaction_term;
   }

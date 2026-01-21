@@ -41,7 +41,7 @@ struct HubbardModelMomentum : Model {
     for (size_t k = 0; k < index.size(); ++k) {
       const auto momentum = index(k);
       const double energy = dispersion(momentum);
-      const auto coeff = Expression::complex_type(static_cast<float>(energy), 0.0f);
+      const auto coeff = Expression::complex_type(energy, 0.0);
 
       // n_{k,up} = c†_{k,up} c_{k,up}
       kinetic_term += Expression(Term(coeff, {Operator::creation(Operator::Spin::Up, k),
@@ -56,8 +56,7 @@ struct HubbardModelMomentum : Model {
   Expression interaction() const {
     Expression interaction_term;
     const size_t N = index.size();
-    const auto u_coeff =
-        Expression::complex_type(static_cast<float>(u / static_cast<double>(N)), 0.0f);
+    const auto u_coeff = Expression::complex_type(u / static_cast<double>(N), 0.0);
 
     // (U/N) sum_{k1,k2,q} c†_{k1+q,↑} c†_{k2-q,↓} c_{k2,↓} c_{k1,↑}
     for (size_t k1 = 0; k1 < N; ++k1) {

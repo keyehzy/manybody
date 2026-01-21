@@ -9,10 +9,10 @@
 #include "algebra/operator.h"
 #include "utils/static_vector.h"
 
-constexpr size_t term_size = 24;
+constexpr size_t term_size = 32;
 
 struct Term {
-  using complex_type = std::complex<float>;
+  using complex_type = std::complex<double>;
 
   static constexpr size_t static_vector_size =
       (term_size - sizeof(complex_type)) / sizeof(Operator) - 1;
