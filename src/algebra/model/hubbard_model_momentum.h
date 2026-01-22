@@ -86,6 +86,32 @@ struct HubbardModelMomentum : Model {
     return current_term;
   }
 
+  /// Total momentum operator in direction d:
+  /// P_d = sum_{k,σ} k_d n_{k,σ}
+  Expression total_momentum(size_t direction) const {
+    if (direction >= size.size()) {
+      throw std::invalid_argument("Direction index out of bounds.");
+    }
+
+    Expression P;
+    for (size_t k = 0; k < index.size(); ++k) {
+      const auto k_coords = index(k);
+      const auto coeff = Expression::complex_type(static_cast<double>(k_coords[direction]), 0.0);
+
+      if (k_coords[direction] == 0) {
+        continue;
+      }
+
+      // n_{k,↑} = c†_{k,↑} c_{k,↑}
+      P += Expression(Term(coeff, {Operator::creation(Operator::Spin::Up, k),
+                                   Operator::annihilation(Operator::Spin::Up, k)}));
+      // n_{k,↓} = c†_{k,↓} c_{k,↓}
+      P += Expression(Term(coeff, {Operator::creation(Operator::Spin::Down, k),
+                                   Operator::annihilation(Operator::Spin::Down, k)}));
+    }
+    return P;
+  }
+
   Expression kinetic() const {
     Expression kinetic_term;
     for (size_t k = 0; k < index.size(); ++k) {
