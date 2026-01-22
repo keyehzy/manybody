@@ -40,7 +40,8 @@ struct HubbardModelMomentum : Model {
     if (direction >= size.size()) {
       throw std::invalid_argument("Direction index out of bounds.");
     }
-    const double phase = 2.0 * std::numbers::pi_v<double> * static_cast<double>(momentum[direction]) /
+    const double phase = 2.0 * std::numbers::pi_v<double> *
+                         static_cast<double>(momentum[direction]) /
                          static_cast<double>(size[direction]);
     return 2.0 * t * (2.0 * std::numbers::pi_v<double> / static_cast<double>(size[direction])) *
            std::sin(phase);
@@ -50,7 +51,8 @@ struct HubbardModelMomentum : Model {
   /// J_d(Q) = sum_{k,σ} v_d(k) c†_{k+Q,σ} c_{k,σ}
   Expression current(const std::vector<size_t>& Q, size_t direction) const {
     if (Q.size() != size.size()) {
-      throw std::invalid_argument("Momentum transfer Q must have the same dimension as the system.");
+      throw std::invalid_argument(
+          "Momentum transfer Q must have the same dimension as the system.");
     }
     if (direction >= size.size()) {
       throw std::invalid_argument("Direction index out of bounds.");
@@ -80,8 +82,9 @@ struct HubbardModelMomentum : Model {
       current_term += Expression(Term(coeff, {Operator::creation(Operator::Spin::Up, k_plus_Q_idx),
                                               Operator::annihilation(Operator::Spin::Up, k)}));
       // c†_{k+Q,↓} c_{k,↓}
-      current_term += Expression(Term(coeff, {Operator::creation(Operator::Spin::Down, k_plus_Q_idx),
-                                              Operator::annihilation(Operator::Spin::Down, k)}));
+      current_term +=
+          Expression(Term(coeff, {Operator::creation(Operator::Spin::Down, k_plus_Q_idx),
+                                  Operator::annihilation(Operator::Spin::Down, k)}));
     }
     return current_term;
   }
