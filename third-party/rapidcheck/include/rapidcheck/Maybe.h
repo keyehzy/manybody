@@ -1,7 +1,8 @@
 #pragma once
 
-#include <type_traits>
+#include <cstdint>
 #include <iostream>
+#include <type_traits>
 
 #include "rapidcheck/Nothing.h"
 
