@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cmath>
-#include <complex>
 #include <cstddef>
 #include <numbers>
 #include <stdexcept>
@@ -34,6 +33,57 @@ struct HubbardModelMomentum : Model {
       energy += -2.0 * t * std::cos(phase);
     }
     return energy;
+  }
+
+  /// Compute the group velocity v_d(k) = ∂ε(k)/∂k_d = 2t * (2π/L_d) * sin(2π k_d / L_d)
+  double velocity(const std::vector<size_t>& momentum, size_t direction) const {
+    if (direction >= size.size()) {
+      throw std::invalid_argument("Direction index out of bounds.");
+    }
+    const double phase = 2.0 * std::numbers::pi_v<double> * static_cast<double>(momentum[direction]) /
+                         static_cast<double>(size[direction]);
+    return 2.0 * t * (2.0 * std::numbers::pi_v<double> / static_cast<double>(size[direction])) *
+           std::sin(phase);
+  }
+
+  /// Current operator in direction d with momentum transfer Q:
+  /// J_d(Q) = sum_{k,σ} v_d(k) c†_{k+Q,σ} c_{k,σ}
+  Expression current(const std::vector<size_t>& Q, size_t direction) const {
+    if (Q.size() != size.size()) {
+      throw std::invalid_argument("Momentum transfer Q must have the same dimension as the system.");
+    }
+    if (direction >= size.size()) {
+      throw std::invalid_argument("Direction index out of bounds.");
+    }
+
+    Expression current_term;
+    const size_t N = index.size();
+
+    for (size_t k = 0; k < N; ++k) {
+      const auto k_coords = index(k);
+      const double v = velocity(k_coords, direction);
+
+      if (v == 0.0) {
+        continue;
+      }
+
+      const auto coeff = Expression::complex_type(v, 0.0);
+
+      // Compute k + Q with periodic boundary conditions
+      std::vector<size_t> k_plus_Q(size.size());
+      for (size_t d = 0; d < size.size(); ++d) {
+        k_plus_Q[d] = (k_coords[d] + Q[d]) % size[d];
+      }
+      const size_t k_plus_Q_idx = index(k_plus_Q);
+
+      // c†_{k+Q,↑} c_{k,↑}
+      current_term += Expression(Term(coeff, {Operator::creation(Operator::Spin::Up, k_plus_Q_idx),
+                                              Operator::annihilation(Operator::Spin::Up, k)}));
+      // c†_{k+Q,↓} c_{k,↓}
+      current_term += Expression(Term(coeff, {Operator::creation(Operator::Spin::Down, k_plus_Q_idx),
+                                              Operator::annihilation(Operator::Spin::Down, k)}));
+    }
+    return current_term;
   }
 
   Expression kinetic() const {
