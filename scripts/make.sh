@@ -15,3 +15,4 @@ cmake -B "$BUILD_DIR" -S . -G Ninja \
 cmake --build "$BUILD_DIR" --verbose
 
 "$BUILD_DIR/tests/tests"
+"./scripts/format.sh"
