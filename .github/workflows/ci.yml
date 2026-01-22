@@ -81,7 +81,8 @@ jobs:
             -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_CXX_FLAGS="${DEBUG_CXX_FLAGS:-}"
+            -DCMAKE_CXX_FLAGS="${DEBUG_CXX_FLAGS:-}" \
+            -DMANYBODY_BUILD_TESTS=ON
 
       - name: Build
         run: cmake --build build --parallel

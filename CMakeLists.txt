@@ -18,9 +18,13 @@ if (CCACHE_PROGRAM)
     set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
 endif()
 
+option(MANYBODY_BUILD_TESTS "Build the test suite" OFF)
+
 add_subdirectory(src)
 add_subdirectory(examples)
-add_subdirectory(third-party)
 
-enable_testing()
-add_subdirectory(tests)
+if (MANYBODY_BUILD_TESTS)
+    add_subdirectory(third-party)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
