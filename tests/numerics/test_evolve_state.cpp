@@ -1,9 +1,9 @@
 #include <armadillo>
+#include <catch2/catch.hpp>
 #include <complex>
 #include <stdexcept>
 #include <vector>
 
-#include <catch2/catch.hpp>
 #include "numerics/evolve_state.h"
 #include "numerics/linear_operator.h"
 

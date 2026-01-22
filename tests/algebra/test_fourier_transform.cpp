@@ -1,3 +1,4 @@
+#include <catch2/catch.hpp>
 #include <cmath>
 #include <complex>
 #include <numbers>
@@ -6,7 +7,6 @@
 #include "algebra/model/hubbard_model.h"
 #include "algebra/model/hubbard_model_momentum.h"
 #include "algebra/normal_order.h"
-#include <catch2/catch.hpp>
 #include "utils/index.h"
 
 namespace {

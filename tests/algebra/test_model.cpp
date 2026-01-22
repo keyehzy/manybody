@@ -1,3 +1,4 @@
+#include <catch2/catch.hpp>
 #include <cmath>
 #include <numbers>
 #include <type_traits>
@@ -6,7 +7,6 @@
 #include "algebra/model/hubbard_model_momentum.h"
 #include "algebra/model/hubbard_model_relative.h"
 #include "algebra/model/model.h"
-#include <catch2/catch.hpp>
 
 namespace {
 constexpr float kModelTolerance = 1e-6f;

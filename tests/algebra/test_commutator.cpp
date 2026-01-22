@@ -1,5 +1,6 @@
-#include "algebra/commutator.h"
 #include <catch2/catch.hpp>
+
+#include "algebra/commutator.h"
 
 TEST_CASE("commutator_commuting_creations_doubles_ordered_term") {
   Operator a = Operator::creation(Operator::Spin::Up, 1);

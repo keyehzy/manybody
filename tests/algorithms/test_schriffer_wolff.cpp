@@ -1,11 +1,11 @@
 #include <armadillo>
+#include <catch2/catch.hpp>
 #include <cmath>
 
 #include "algebra/basis.h"
 #include "algebra/matrix_elements.h"
 #include "algebra/model/hubbard_model.h"
 #include "algorithms/schriffer_wolff.h"
-#include <catch2/catch.hpp>
 
 TEST_CASE("schriffer_wolff_cluster_by_largest_gap") {
   arma::vec vals = {0.0, 0.5, 0.8, 2.0};

@@ -1,10 +1,10 @@
 #include <armadillo>
+#include <catch2/catch.hpp>
 
 #include "algebra/basis.h"
 #include "algebra/matrix_elements.h"
 #include "algebra/operator.h"
 #include "algebra/term.h"
-#include <catch2/catch.hpp>
 
 TEST_CASE("matrix_elements_vector_serial_creation") {
   Basis basis(1, 1, Basis::Strategy::Restrict);

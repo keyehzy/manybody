@@ -1,9 +1,9 @@
 #include <armadillo>
+#include <catch2/catch.hpp>
 #include <cmath>
 #include <numbers>
 #include <vector>
 
-#include <catch2/catch.hpp>
 #include "numerics/hubbard_relative_operators.h"
 
 namespace {

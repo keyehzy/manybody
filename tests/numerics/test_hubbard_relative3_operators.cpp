@@ -1,9 +1,9 @@
 #include <armadillo>
+#include <catch2/catch.hpp>
 #include <cmath>
 #include <complex>
 #include <numbers>
 
-#include <catch2/catch.hpp>
 #include "numerics/hubbard_relative3_operators.h"
 #include "numerics/linear_operator_utils.h"
 #include "utils/index.h"

@@ -1,8 +1,8 @@
 #include <algorithm>
+#include <catch2/catch.hpp>
 
 #include "algebra/term.h"
 #include "algorithms/diagonal_terms.h"
-#include <catch2/catch.hpp>
 
 namespace {
 

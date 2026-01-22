@@ -1,4 +1,5 @@
 #include <armadillo>
+#include <catch2/catch.hpp>
 #include <cstddef>
 #include <vector>
 
@@ -6,7 +7,6 @@
 #include "algebra/matrix_elements.h"
 #include "algebra/model/hubbard_model_momentum.h"
 #include "algebra/relative_basis_transform.h"
-#include <catch2/catch.hpp>
 #include "utils/index.h"
 
 namespace {

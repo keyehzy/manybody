@@ -1,10 +1,10 @@
 #include <armadillo>
+#include <catch2/catch.hpp>
 #include <cmath>
 #include <cstddef>
 
 #include "algorithms/dynamical_system.h"
 #include "algorithms/wegner_flow.h"
-#include <catch2/catch.hpp>
 
 namespace {
 

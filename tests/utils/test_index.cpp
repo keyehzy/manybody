@@ -1,6 +1,6 @@
+#include <catch2/catch.hpp>
 #include <stdexcept>
 
-#include <catch2/catch.hpp>
 #include "utils/index.h"
 
 TEST_CASE("dynamic_index_round_trip") {

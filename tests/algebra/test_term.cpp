@@ -1,5 +1,6 @@
-#include "algebra/term.h"
 #include <catch2/catch.hpp>
+
+#include "algebra/term.h"
 
 TEST_CASE("term_default_is_identity") {
   Term term;
