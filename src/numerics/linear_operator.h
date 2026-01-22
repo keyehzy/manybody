@@ -66,6 +66,18 @@ struct DiagonalOperator final : LinearOperator<arma::vec> {
   arma::vec diag;
 };
 
+struct SparseComplexMatrixOperator final : LinearOperator<arma::cx_vec> {
+  using VectorType = arma::cx_vec;
+  using ScalarType = std::complex<double>;
+
+  explicit SparseComplexMatrixOperator(arma::sp_cx_mat matrix_in) : matrix(std::move(matrix_in)) {}
+
+  VectorType apply(const VectorType& v) const override { return matrix * v; }
+  size_t dimension() const override { return static_cast<size_t>(matrix.n_rows); }
+
+  arma::sp_cx_mat matrix;
+};
+
 template <typename Op>
 struct Negated final : LinearOperator<typename Op::VectorType> {
   using VectorType = typename Op::VectorType;
