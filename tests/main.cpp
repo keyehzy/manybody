@@ -11,7 +11,7 @@
 #include "algorithms/test_diagonal_terms.cpp"
 #include "algorithms/test_schriffer_wolff.cpp"
 #include "algorithms/test_wegner_flow.cpp"
-#include "catch.hpp"
+#include <catch2/catch.hpp>
 #include "numerics/test_evolve_state.cpp"
 #include "numerics/test_hubbard_relative3_operators.cpp"
 #include "numerics/test_hubbard_relative_operators.cpp"

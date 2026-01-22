@@ -1,5 +1,5 @@
 #include "algebra/basis.h"
-#include "catch.hpp"
+#include <catch2/catch.hpp>
 
 TEST_CASE("basis_restrict_single_particle") {
   Basis basis = Basis::with_fixed_particle_number(1, 1);

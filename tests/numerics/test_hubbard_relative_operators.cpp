@@ -3,7 +3,7 @@
 #include <numbers>
 #include <vector>
 
-#include "catch.hpp"
+#include <catch2/catch.hpp>
 #include "numerics/hubbard_relative_operators.h"
 
 namespace {

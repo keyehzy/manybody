@@ -1,6 +1,6 @@
 #include <cmath>
 
-#include "catch.hpp"
+#include <catch2/catch.hpp>
 #include "utils/special_functions.h"
 
 TEST_CASE("bessel_i_handles_zero") {

@@ -1,5 +1,5 @@
 #include "algebra/expression.h"
-#include "catch.hpp"
+#include <catch2/catch.hpp>
 #include "utils/tolerances.h"
 
 TEST_CASE("expression_construct_from_complex_identity") {

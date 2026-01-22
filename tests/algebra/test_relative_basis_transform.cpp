@@ -6,7 +6,7 @@
 #include "algebra/matrix_elements.h"
 #include "algebra/model/hubbard_model_momentum.h"
 #include "algebra/relative_basis_transform.h"
-#include "catch.hpp"
+#include <catch2/catch.hpp>
 #include "utils/index.h"
 
 namespace {

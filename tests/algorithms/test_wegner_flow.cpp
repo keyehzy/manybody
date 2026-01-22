@@ -4,7 +4,7 @@
 
 #include "algorithms/dynamical_system.h"
 #include "algorithms/wegner_flow.h"
-#include "catch.hpp"
+#include <catch2/catch.hpp>
 
 namespace {
 

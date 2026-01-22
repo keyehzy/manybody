@@ -1,5 +1,5 @@
 #include "algebra/normal_order.h"
-#include "catch.hpp"
+#include <catch2/catch.hpp>
 
 TEST_CASE("normal_order_zero_coefficient_returns_empty") {
   NormalOrderer orderer;

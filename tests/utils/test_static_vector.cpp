@@ -2,7 +2,7 @@
 #include <unordered_set>
 
 #include "algebra/operator.h"
-#include "catch.hpp"
+#include <catch2/catch.hpp>
 #include "utils/static_vector.h"
 
 TEST_CASE("static_vector_default_is_empty") {

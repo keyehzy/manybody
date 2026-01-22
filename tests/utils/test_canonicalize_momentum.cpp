@@ -1,4 +1,4 @@
-#include "catch.hpp"
+#include <catch2/catch.hpp>
 #include "utils/canonicalize_momentum.h"
 
 TEST_CASE("canonicalize_momentum_positive_values") {

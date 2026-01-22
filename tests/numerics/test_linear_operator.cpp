@@ -1,7 +1,7 @@
 #include <armadillo>
 #include <cmath>
 
-#include "catch.hpp"
+#include <catch2/catch.hpp>
 #include "numerics/exp_operator.h"
 #include "numerics/linear_operator.h"
 #include "numerics/linear_operator_utils.h"

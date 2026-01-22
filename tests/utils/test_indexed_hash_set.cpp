@@ -1,6 +1,6 @@
 #include <stdexcept>
 
-#include "catch.hpp"
+#include <catch2/catch.hpp>
 #include "utils/indexed_hash_set.h"
 
 TEST_CASE("indexed_hash_set_initializer_list_preserves_order") {

@@ -2,7 +2,7 @@
 
 #include "algebra/term.h"
 #include "algorithms/diagonal_terms.h"
-#include "catch.hpp"
+#include <catch2/catch.hpp>
 
 namespace {
 

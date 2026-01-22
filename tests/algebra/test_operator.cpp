@@ -1,7 +1,7 @@
 #include <unordered_set>
 
 #include "algebra/operator.h"
-#include "catch.hpp"
+#include <catch2/catch.hpp>
 
 TEST_CASE("operator_bits_roundtrip") {
   Operator op = Operator::creation(Operator::Spin::Down, 12);

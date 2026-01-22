@@ -1,7 +1,7 @@
 #include <armadillo>
 #include <cmath>
 
-#include "catch.hpp"
+#include <catch2/catch.hpp>
 #include "numerics/lanczos.h"
 
 namespace test_lanczos {
