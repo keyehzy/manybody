@@ -3,19 +3,30 @@
 
 #include "algebra/operator.h"
 
+namespace {
+constexpr std::size_t kMaxOperatorValue = Operator::max_index();
+}
+
+TEST_CASE("operator_storage_matches_operator_storage") {
+  CHECK(sizeof(Operator) == sizeof(OperatorStorage));
+}
+
 TEST_CASE("operator_bits_roundtrip") {
-  Operator op = Operator::creation(Operator::Spin::Down, 12);
+  const auto value = kMaxOperatorValue / 2;
+  Operator op = Operator::creation(Operator::Spin::Down, value);
   CHECK((op.type()) == (Operator::Type::Creation));
   CHECK((op.spin()) == (Operator::Spin::Down));
-  CHECK((op.value()) == (12u));
+  CHECK((op.value()) == (value));
 }
 
 TEST_CASE("operator_bits_layout") {
-  Operator op = Operator::annihilation(Operator::Spin::Down, 45);
-  const Operator::ubyte expected = static_cast<Operator::ubyte>(
-      Operator::kTypeBit | Operator::kSpinBit | (45u & Operator::kValueMask));
+  const auto value = kMaxOperatorValue;
+  Operator op = Operator::annihilation(Operator::Spin::Down, value);
+  const auto expected = static_cast<Operator::storage_type>(
+      Operator::kTypeBit | Operator::kSpinBit |
+      (static_cast<Operator::storage_type>(value) & Operator::kValueMask));
   CHECK((op.data) == (expected));
-  CHECK((op.value()) == (45u));
+  CHECK((op.value()) == (value));
 }
 
 TEST_CASE("operator_creation_sets_type") {

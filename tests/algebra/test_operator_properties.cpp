@@ -3,6 +3,10 @@
 
 #include "algebra/operator.h"
 
+namespace {
+constexpr std::size_t kOperatorValueLimit = Operator::max_index() + 1;
+}
+
 namespace rc {
 
 template <>
@@ -22,8 +26,8 @@ struct Arbitrary<Operator::Spin> {
 template <>
 struct Arbitrary<Operator> {
   static Gen<Operator> arbitrary() {
-    return gen::map(gen::inRange<int>(0, 256),
-                    [](int x) { return Operator(static_cast<Operator::ubyte>(x)); });
+    using RawType = Operator::storage_type;
+    return gen::map(gen::arbitrary<RawType>(), [](RawType x) { return Operator(x); });
   }
 };
 
@@ -35,7 +39,7 @@ TEST_CASE("Operator property tests") {
 
   // Property 1: Round-trip construction
   rc::prop("round-trip construction preserves type, spin, and value", [](Type type, Spin spin) {
-    const auto value = *rc::gen::inRange<size_t>(0, 64);
+    const auto value = *rc::gen::inRange<std::size_t>(0, kOperatorValueLimit);
     Operator op(type, spin, value);
     RC_ASSERT(op.type() == type);
     RC_ASSERT(op.spin() == spin);
@@ -122,7 +126,7 @@ TEST_CASE("Operator property tests") {
 
   // Property 18: Factory method equivalence
   rc::prop("factory methods produce same result as constructor", [](Spin spin) {
-    const auto value = *rc::gen::inRange<size_t>(0, 64);
+    const auto value = *rc::gen::inRange<std::size_t>(0, kOperatorValueLimit);
     RC_ASSERT(Operator::creation(spin, value) == Operator(Type::Creation, spin, value));
     RC_ASSERT(Operator::annihilation(spin, value) == Operator(Type::Annihilation, spin, value));
   });
