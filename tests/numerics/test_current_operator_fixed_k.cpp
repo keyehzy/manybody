@@ -13,25 +13,12 @@
 namespace {
 constexpr double kCurrentTolerance = 1e-10;
 
-// Compute rectangular matrix elements for current operator (K -> K+Q)
+// Helper function that wraps the unified compute_rectangular_matrix_elements
+// with the parameter order used in this test (source, target, expr).
 arma::cx_mat compute_current_matrix(const Basis& source_basis, const Basis& target_basis,
                                     const Expression& current_expr) {
-  const auto& row_set = target_basis.set;
-  const auto& col_set = source_basis.set;
-  arma::cx_mat result(row_set.size(), col_set.size(), arma::fill::zeros);
-
-  NormalOrderer orderer;
-  for (size_t j = 0; j < col_set.size(); ++j) {
-    Expression right(col_set[j]);
-    Expression product = orderer.normal_order(current_expr * right);
-    for (const auto& term : product.hashmap) {
-      if (row_set.contains(term.first)) {
-        size_t i = row_set.index_of(term.first);
-        result(i, j) = term.second;
-      }
-    }
-  }
-  return result;
+  return compute_rectangular_matrix_elements<arma::cx_mat>(target_basis, source_basis,
+                                                           current_expr);
 }
 }  // namespace
 
