@@ -14,6 +14,7 @@
 #include "algorithms/test_diagonal_terms.cpp"
 #include "algorithms/test_schriffer_wolff.cpp"
 #include "algorithms/test_wegner_flow.cpp"
+#include "numerics/test_current_operator_fixed_k.cpp"
 #include "numerics/test_evolve_state.cpp"
 #include "numerics/test_hubbard_momentum_factorized.cpp"
 #include "numerics/test_hubbard_momentum_factorized_fixed_k.cpp"
