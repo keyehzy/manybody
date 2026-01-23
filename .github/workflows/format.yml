@@ -1,0 +1,35 @@
+name: format
+
+on:
+  push:
+    branches: [master, staging]
+  pull_request:
+    branches: [master, staging]
+
+jobs:
+  check-format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install clang-format
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format
+
+      - name: Check formatting
+        run: |
+          find . \
+            -type d -name third-party -prune -o \
+            -type f \( \
+              -name '*.c' -o \
+              -name '*.cc' -o \
+              -name '*.cpp' -o \
+              -name '*.cxx' -o \
+              -name '*.h' -o \
+              -name '*.hh' -o \
+              -name '*.hpp' -o \
+              -name '*.hxx' \
+            \) -print0 \
+            | xargs -0 clang-format --dry-run --Werror
