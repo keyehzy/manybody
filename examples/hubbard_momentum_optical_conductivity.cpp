@@ -1,14 +1,18 @@
 #include <omp.h>
 
 #include <armadillo>
+#include <cereal/archives/binary.hpp>
 #include <complex>
 #include <cstddef>
 #include <cstdlib>
 #include <ctime>
 #include <exception>
+#include <filesystem>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <random>
+#include <sstream>
 #include <vector>
 
 #include "algebra/basis.h"
@@ -18,6 +22,7 @@
 #include "cxxopts.hpp"
 #include "numerics/evolve_state.h"
 #include "numerics/linear_operator.h"
+#include "utils/arma_cereal.h"
 
 struct CliOptions {
   size_t size_x = 2;
@@ -39,6 +44,7 @@ struct CliOptions {
   size_t krylov_steps = 20;
   size_t steps = 1000;
   size_t num_samples = 5;
+  std::string cache_dir = "cache";
 };
 
 CliOptions parse_cli_options(int argc, char** argv) {
@@ -68,6 +74,7 @@ CliOptions parse_cli_options(int argc, char** argv) {
       ("k,krylov-steps", "Krylov subspace dimension",   cxxopts::value(o.krylov_steps)->default_value("20"))
       ("s,steps", "Real-time evolution steps",          cxxopts::value(o.steps)->default_value("1000"))
       ("n,num-samples", "Number of stochastic samples", cxxopts::value(o.num_samples)->default_value("5"))
+      ("c,cache-dir", "Directory for caching matrices", cxxopts::value(o.cache_dir)->default_value("cache"))
       ("h,help", "Print usage");
   // clang-format on
 
@@ -187,6 +194,93 @@ MatrixType compute_rectangular_matrix_elements(const Basis& row_basis, const Bas
   }
   return result;
 }
+
+// Generate cache file path for Hamiltonian components (kinetic or interaction)
+std::string hamiltonian_cache_path(const CliOptions& opts, const std::string& component,
+                                   const std::vector<size_t>& K) {
+  std::ostringstream ss;
+  ss << opts.cache_dir << "/hubbard_" << component << "_L=" << opts.size_x << "x" << opts.size_y
+     << "x" << opts.size_z << "_N=" << opts.particles << "_S=" << opts.spin_projection
+     << "_K=" << K[0] << "," << K[1] << "," << K[2] << ".bin";
+  return ss.str();
+}
+
+// Generate cache file path for current operator
+std::string current_cache_path(const CliOptions& opts, const std::vector<size_t>& K,
+                               const std::vector<size_t>& Q) {
+  std::ostringstream ss;
+  ss << opts.cache_dir << "/hubbard_current_L=" << opts.size_x << "x" << opts.size_y << "x"
+     << opts.size_z << "_N=" << opts.particles << "_S=" << opts.spin_projection << "_K=" << K[0]
+     << "," << K[1] << "," << K[2] << "_Q=" << Q[0] << "," << Q[1] << "," << Q[2]
+     << "_D=" << opts.direction << ".bin";
+  return ss.str();
+}
+
+// Save a sparse matrix to file
+void save_sparse_matrix(const std::string& path, const arma::sp_cx_mat& mat) {
+  std::ofstream ofs(path, std::ios::binary);
+  if (!ofs) {
+    throw std::runtime_error("Failed to open file for writing: " + path);
+  }
+  cereal::BinaryOutputArchive archive(ofs);
+  archive(mat);
+}
+
+// Load a sparse matrix from file
+arma::sp_cx_mat load_sparse_matrix(const std::string& path) {
+  std::ifstream ifs(path, std::ios::binary);
+  if (!ifs) {
+    throw std::runtime_error("Failed to open file for reading: " + path);
+  }
+  arma::sp_cx_mat mat;
+  cereal::BinaryInputArchive archive(ifs);
+  archive(mat);
+  return mat;
+}
+
+// Load or compute a Hamiltonian component matrix
+arma::sp_cx_mat load_or_compute_hamiltonian_component(const CliOptions& opts,
+                                                      const std::string& component,
+                                                      const std::vector<size_t>& K,
+                                                      const Basis& basis, const Expression& expr) {
+  const std::string path = hamiltonian_cache_path(opts, component, K);
+
+  if (std::filesystem::exists(path)) {
+    std::cerr << "Loading cached " << component << " matrix from " << path << "..." << std::endl;
+    return load_sparse_matrix(path);
+  }
+
+  std::cerr << "Computing " << component << " matrix..." << std::endl;
+  arma::sp_cx_mat mat = compute_matrix_elements<arma::sp_cx_mat>(basis, expr);
+
+  std::filesystem::create_directories(opts.cache_dir);
+  std::cerr << "Saving " << component << " matrix to " << path << "..." << std::endl;
+  save_sparse_matrix(path, mat);
+
+  return mat;
+}
+
+// Load or compute current operator matrix
+arma::sp_cx_mat load_or_compute_current(const CliOptions& opts, const std::vector<size_t>& K,
+                                        const std::vector<size_t>& Q, const Basis& row_basis,
+                                        const Basis& col_basis, const Expression& expr) {
+  const std::string path = current_cache_path(opts, K, Q);
+
+  if (std::filesystem::exists(path)) {
+    std::cerr << "Loading cached current operator from " << path << "..." << std::endl;
+    return load_sparse_matrix(path);
+  }
+
+  std::cerr << "Computing current operator..." << std::endl;
+  arma::sp_cx_mat mat =
+      compute_rectangular_matrix_elements<arma::sp_cx_mat>(row_basis, col_basis, expr);
+
+  std::filesystem::create_directories(opts.cache_dir);
+  std::cerr << "Saving current operator to " << path << "..." << std::endl;
+  save_sparse_matrix(path, mat);
+
+  return mat;
+}
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -208,7 +302,10 @@ int main(int argc, char** argv) {
                                   (opts.kz + opts.qz) % opts.size_z};
 
   std::cerr << "Setting up Hubbard model..." << std::endl;
-  HubbardModelMomentum hubbard(opts.t, opts.U, size);
+  // Create a "base" model with t=1, u=1 for computing cacheable matrices
+  // The full Hamiltonian will be assembled as: H = t*kinetic + U*interaction
+  // The current operator scales with t: J = t*current_base
+  HubbardModelMomentum hubbard_base(1.0, 1.0, size);
   Index index(size);
 
   // Build bases for momentum sectors K and K+Q
@@ -234,23 +331,43 @@ int main(int argc, char** argv) {
   std::cerr << "Basis sizes: |K|=" << basis_K.set.size() << ", |K+Q|=" << basis_KQ.set.size()
             << std::endl;
 
-  // Build Hamiltonians for both sectors
-  std::cerr << "Building Hamiltonian matrices..." << std::endl;
-  const Expression hamiltonian_expr = hubbard.hamiltonian();
+  // Get base expressions for kinetic and interaction terms (with t=1, u=1)
+  const Expression kinetic_expr = hubbard_base.kinetic();
+  const Expression interaction_expr = hubbard_base.interaction();
 
-  arma::sp_cx_mat H_K = compute_matrix_elements<arma::sp_cx_mat>(basis_K, hamiltonian_expr);
-  arma::sp_cx_mat H_KQ = compute_matrix_elements<arma::sp_cx_mat>(basis_KQ, hamiltonian_expr);
+  // Load or compute kinetic and interaction matrices for sector K
+  std::cerr << "Building Hamiltonian matrices for sector K..." << std::endl;
+  arma::sp_cx_mat kinetic_K =
+      load_or_compute_hamiltonian_component(opts, "kinetic", K, basis_K, kinetic_expr);
+  arma::sp_cx_mat interaction_K =
+      load_or_compute_hamiltonian_component(opts, "interaction", K, basis_K, interaction_expr);
+
+  // Load or compute kinetic and interaction matrices for sector K+Q
+  std::cerr << "Building Hamiltonian matrices for sector K+Q..." << std::endl;
+  arma::sp_cx_mat kinetic_KQ =
+      load_or_compute_hamiltonian_component(opts, "kinetic", KQ, basis_KQ, kinetic_expr);
+  arma::sp_cx_mat interaction_KQ =
+      load_or_compute_hamiltonian_component(opts, "interaction", KQ, basis_KQ, interaction_expr);
+
+  // Assemble full Hamiltonians: H = t*kinetic + U*interaction
+  std::cerr << "Assembling Hamiltonians with t=" << opts.t << ", U=" << opts.U << "..."
+            << std::endl;
+  arma::sp_cx_mat H_K = opts.t * kinetic_K + opts.U * interaction_K;
+  arma::sp_cx_mat H_KQ = opts.t * kinetic_KQ + opts.U * interaction_KQ;
 
   SparseComplexMatrixOperator op_K(H_K);
   SparseComplexMatrixOperator op_KQ(H_KQ);
 
-  // Build current operator J(Q) which maps from sector K to sector K+Q
+  // Load or compute current operator J(Q) which maps from sector K to sector K+Q
+  // The base current operator is computed with t=1, then scaled by t
   std::cerr << "Building current operator J(Q)..." << std::endl;
-  const Expression current_expr = hubbard.current(Q, opts.direction);
+  const Expression current_expr = hubbard_base.current(Q, opts.direction);
 
-  // J_Q maps from basis_K (columns) to basis_KQ (rows)
-  arma::sp_cx_mat J_Q =
-      compute_rectangular_matrix_elements<arma::sp_cx_mat>(basis_KQ, basis_K, current_expr);
+  // J_Q_base maps from basis_K (columns) to basis_KQ (rows), computed with t=1
+  arma::sp_cx_mat J_Q_base = load_or_compute_current(opts, K, Q, basis_KQ, basis_K, current_expr);
+
+  // Scale current operator by t: J_Q = t * J_Q_base
+  arma::sp_cx_mat J_Q = opts.t * J_Q_base;
 
   // J†(Q) maps from basis_KQ (columns) to basis_K (rows)
   arma::sp_cx_mat J_Q_adj = J_Q.t();
