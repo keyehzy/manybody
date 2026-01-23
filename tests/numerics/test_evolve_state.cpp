@@ -8,18 +8,6 @@
 #include "numerics/linear_operator.h"
 
 namespace {
-struct ComplexMatrixOperator final : LinearOperator<arma::cx_vec> {
-  using VectorType = arma::cx_vec;
-  using ScalarType = arma::cx_double;
-
-  explicit ComplexMatrixOperator(arma::cx_mat matrix_in) : matrix(std::move(matrix_in)) {}
-
-  VectorType apply(const VectorType& v) const override { return matrix * v; }
-  size_t dimension() const override { return static_cast<size_t>(matrix.n_rows); }
-
-  arma::cx_mat matrix;
-};
-
 arma::cx_vec exact_time_evolution(const arma::cx_mat& H, const arma::cx_vec& psi0, double t) {
   arma::vec eigenvalues;
   arma::cx_mat eigenvectors;
