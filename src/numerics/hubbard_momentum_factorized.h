@@ -201,53 +201,18 @@ struct HubbardMomentumFactorized final : LinearOperator<arma::cx_vec> {
         // c†_k c_k = n_k, contributes 1 (diagonal term)
         rho_q(j, j) += ScalarType(1.0, 0.0);
       } else {
-        // Create the new state: remove k at op_idx, add k+q at sorted position
-        // We need to build the new state in sorted order
-
+        // Create the new state: copy, erase old operator, insert new one
         Operator new_op = Operator::creation(spin, kq);
 
-        // Find where new_op would be inserted in the sorted state (excluding op_idx)
+        Basis::key_type new_state = state_j;
+        new_state.erase(op_idx);
+
+        // Find where new_op should be inserted to maintain sorted order
         size_t insert_pos = 0;
-        for (size_t i = 0; i < state_j.size(); ++i) {
-          if (i == op_idx) continue;
-          if (state_j[i] < new_op) {
-            insert_pos++;
-          }
+        while (insert_pos < new_state.size() && new_state[insert_pos] < new_op) {
+          insert_pos++;
         }
-
-        // Build the new state in sorted order
-        Basis::key_type new_state;
-        size_t src_idx = 0;
-        size_t dst_idx = 0;
-        bool inserted = false;
-
-        while (dst_idx < state_j.size()) {
-          // Skip the removed operator
-          if (src_idx == op_idx) {
-            src_idx++;
-            continue;
-          }
-
-          // Insert new_op at the correct position
-          if (!inserted && dst_idx == insert_pos) {
-            new_state.push_back(new_op);
-            inserted = true;
-            dst_idx++;
-            continue;
-          }
-
-          // Copy from source
-          if (src_idx < state_j.size()) {
-            new_state.push_back(state_j[src_idx]);
-            src_idx++;
-            dst_idx++;
-          }
-        }
-
-        // If new_op goes at the end
-        if (!inserted) {
-          new_state.push_back(new_op);
-        }
+        new_state.insert(insert_pos, new_op);
 
         // Compute the fermionic sign
         // c†_{kq} c_k |state⟩ where state = c†_{i_1} ... c†_{i_n} |0⟩
