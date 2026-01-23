@@ -16,6 +16,7 @@
 #include "algorithms/test_wegner_flow.cpp"
 #include "numerics/test_evolve_state.cpp"
 #include "numerics/test_hubbard_momentum_factorized.cpp"
+#include "numerics/test_hubbard_momentum_factorized_fixed_k.cpp"
 #include "numerics/test_hubbard_relative3_operators.cpp"
 #include "numerics/test_hubbard_relative_operators.cpp"
 #include "numerics/test_lanczos.cpp"
