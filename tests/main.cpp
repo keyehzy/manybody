@@ -19,6 +19,7 @@
 #include "numerics/test_hubbard_relative_operators.cpp"
 #include "numerics/test_lanczos.cpp"
 #include "numerics/test_linear_operator.cpp"
+#include "utils/test_arma_cereal.cpp"
 #include "utils/test_bessel_i.cpp"
 #include "utils/test_canonicalize_momentum.cpp"
 #include "utils/test_index.cpp"
