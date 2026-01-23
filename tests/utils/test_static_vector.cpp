@@ -93,3 +93,100 @@ TEST_CASE("static_vector_hash_works_in_unordered_set") {
   CHECK(values.find(b) != values.end());
   CHECK(values.find(c) != values.end());
 }
+
+TEST_CASE("static_vector_insert_at_beginning") {
+  static_vector<int, 5> vec({2, 3, 4});
+  vec.insert(0, 1);
+  CHECK((vec.size()) == (4u));
+  CHECK((vec[0]) == (1));
+  CHECK((vec[1]) == (2));
+  CHECK((vec[2]) == (3));
+  CHECK((vec[3]) == (4));
+}
+
+TEST_CASE("static_vector_insert_in_middle") {
+  static_vector<int, 5> vec({1, 2, 4});
+  vec.insert(2, 3);
+  CHECK((vec.size()) == (4u));
+  CHECK((vec[0]) == (1));
+  CHECK((vec[1]) == (2));
+  CHECK((vec[2]) == (3));
+  CHECK((vec[3]) == (4));
+}
+
+TEST_CASE("static_vector_insert_at_end") {
+  static_vector<int, 5> vec({1, 2, 3});
+  vec.insert(3, 4);
+  CHECK((vec.size()) == (4u));
+  CHECK((vec[0]) == (1));
+  CHECK((vec[1]) == (2));
+  CHECK((vec[2]) == (3));
+  CHECK((vec[3]) == (4));
+}
+
+TEST_CASE("static_vector_insert_into_empty") {
+  static_vector<int, 5> vec;
+  vec.insert(0, 42);
+  CHECK((vec.size()) == (1u));
+  CHECK((vec[0]) == (42));
+}
+
+TEST_CASE("static_vector_erase_at_beginning") {
+  static_vector<int, 5> vec({1, 2, 3, 4});
+  vec.erase(0);
+  CHECK((vec.size()) == (3u));
+  CHECK((vec[0]) == (2));
+  CHECK((vec[1]) == (3));
+  CHECK((vec[2]) == (4));
+}
+
+TEST_CASE("static_vector_erase_in_middle") {
+  static_vector<int, 5> vec({1, 2, 3, 4});
+  vec.erase(2);
+  CHECK((vec.size()) == (3u));
+  CHECK((vec[0]) == (1));
+  CHECK((vec[1]) == (2));
+  CHECK((vec[2]) == (4));
+}
+
+TEST_CASE("static_vector_erase_at_end") {
+  static_vector<int, 5> vec({1, 2, 3, 4});
+  vec.erase(3);
+  CHECK((vec.size()) == (3u));
+  CHECK((vec[0]) == (1));
+  CHECK((vec[1]) == (2));
+  CHECK((vec[2]) == (3));
+}
+
+TEST_CASE("static_vector_erase_single_element") {
+  static_vector<int, 5> vec({42});
+  vec.erase(0);
+  CHECK((vec.size()) == (0u));
+  CHECK(vec.empty());
+}
+
+TEST_CASE("static_vector_insert_and_erase_combined") {
+  static_vector<int, 6> vec({1, 3, 5});
+
+  // Insert 2 between 1 and 3
+  vec.insert(1, 2);
+  CHECK((vec.size()) == (4u));
+  CHECK((vec[0]) == (1));
+  CHECK((vec[1]) == (2));
+  CHECK((vec[2]) == (3));
+  CHECK((vec[3]) == (5));
+
+  // Insert 4 between 3 and 5
+  vec.insert(3, 4);
+  CHECK((vec.size()) == (5u));
+  CHECK((vec[3]) == (4));
+  CHECK((vec[4]) == (5));
+
+  // Erase 3 (at index 2)
+  vec.erase(2);
+  CHECK((vec.size()) == (4u));
+  CHECK((vec[0]) == (1));
+  CHECK((vec[1]) == (2));
+  CHECK((vec[2]) == (4));
+  CHECK((vec[3]) == (5));
+}

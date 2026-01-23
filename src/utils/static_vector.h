@@ -78,6 +78,24 @@ struct static_vector {
     --size_;
   }
 
+  constexpr void insert(size_t pos, const T& value) noexcept {
+    assert(pos <= size());
+    assert(size_ < N);
+    for (size_t i = size(); i > pos; --i) {
+      data[i] = data[i - 1];
+    }
+    data[pos] = value;
+    ++size_;
+  }
+
+  constexpr void erase(size_t pos) noexcept {
+    assert(pos < size());
+    for (size_t i = pos; i + 1 < size(); ++i) {
+      data[i] = data[i + 1];
+    }
+    --size_;
+  }
+
   template <typename It>
   constexpr void append_range(It first, It last) noexcept {
     for (; first != last; ++first) {
