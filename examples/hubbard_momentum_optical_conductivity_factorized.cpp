@@ -12,12 +12,12 @@
 #include <vector>
 
 #include "algebra/basis.h"
-#include "algebra/matrix_elements.h"
-#include "algebra/model/hubbard_model_momentum.h"
 #include "algorithms/optical_conductivity.h"
 #include "cxxopts.hpp"
+#include "numerics/current_operator_fixed_k.h"
 #include "numerics/evolve_state.h"
-#include "numerics/hubbard_momentum_factorized.h"
+#include "numerics/hubbard_momentum_factorized_fixed_k.h"
+#include "utils/index.h"
 
 struct CliOptions {
   size_t size_x = 2;
@@ -25,6 +25,9 @@ struct CliOptions {
   size_t size_z = 2;
   size_t particles = 4;
   int spin_projection = 0;
+  size_t kx = 0;
+  size_t ky = 0;
+  size_t kz = 0;
   size_t qx = 1;
   size_t qy = 0;
   size_t qz = 0;
@@ -42,7 +45,7 @@ CliOptions parse_cli_options(int argc, char** argv) {
   CliOptions o;
 
   cxxopts::Options cli(
-      "hubbard_momentum_optical_conductivity",
+      "hubbard_momentum_optical_conductivity_factorized",
       "Compute optical conductivity using the factorized momentum-space Hubbard model");
   // clang-format off
   cli.add_options()
@@ -51,6 +54,9 @@ CliOptions parse_cli_options(int argc, char** argv) {
       ("z,size-z", "Lattice size in z dimension",       cxxopts::value(o.size_z)->default_value("2"))
       ("N,particles", "Number of particles",            cxxopts::value(o.particles)->default_value("4"))
       ("S,spin", "Spin projection (n_up - n_down)",     cxxopts::value(o.spin_projection)->default_value("0"))
+      ("kx", "Total momentum Kx component",             cxxopts::value(o.kx)->default_value("0"))
+      ("ky", "Total momentum Ky component",             cxxopts::value(o.ky)->default_value("0"))
+      ("kz", "Total momentum Kz component",             cxxopts::value(o.kz)->default_value("0"))
       ("qx", "Transfer momentum qx component",          cxxopts::value(o.qx)->default_value("1"))
       ("qy", "Transfer momentum qy component",          cxxopts::value(o.qy)->default_value("0"))
       ("qz", "Transfer momentum qz component",          cxxopts::value(o.qz)->default_value("0"))
@@ -107,8 +113,12 @@ void validate_options(const CliOptions& opts) {
     std::cerr << "Invalid spin projection: (particles + spin) must be even.\n";
     std::exit(1);
   }
+  if (opts.kx >= opts.size_x || opts.ky >= opts.size_y || opts.kz >= opts.size_z) {
+    std::cerr << "Momentum K components must be less than lattice dimensions.\n";
+    std::exit(1);
+  }
   if (opts.qx >= opts.size_x || opts.qy >= opts.size_y || opts.qz >= opts.size_z) {
-    std::cerr << "Transfer momentum components must be less than lattice dimensions.\n";
+    std::cerr << "Transfer momentum Q components must be less than lattice dimensions.\n";
     std::exit(1);
   }
   if (opts.direction >= 3) {
@@ -154,31 +164,58 @@ int main(int argc, char** argv) {
 
   const std::vector<size_t> size = {opts.size_x, opts.size_y, opts.size_z};
   const size_t sites = opts.size_x * opts.size_y * opts.size_z;
+  Index index(size);
+
+  // Total momentum K
+  const std::vector<size_t> K = {opts.kx, opts.ky, opts.kz};
 
   // Momentum transfer Q
   const std::vector<size_t> Q = {opts.qx, opts.qy, opts.qz};
 
-  std::cerr << "Setting up Hubbard model..." << std::endl;
-  // Factorized Hamiltonian uses the full momentum basis without fixed total K.
-  Basis basis =
-      Basis::with_fixed_particle_number_and_spin(sites, opts.particles, opts.spin_projection);
-  if (basis.set.empty()) {
-    std::cerr << "No basis states for the chosen particle number and spin.\n";
+  // Total momentum K + Q (with periodic boundary conditions)
+  const std::vector<size_t> KQ = {(opts.kx + opts.qx) % opts.size_x,
+                                  (opts.ky + opts.qy) % opts.size_y,
+                                  (opts.kz + opts.qz) % opts.size_z};
+
+  // Q as flat index
+  const size_t Q_flat = index(Q);
+
+  std::cerr << "Setting up Hubbard model with fixed momentum sectors..." << std::endl;
+  std::cerr << "  K = (" << K[0] << ", " << K[1] << ", " << K[2] << ")" << std::endl;
+  std::cerr << "  Q = (" << Q[0] << ", " << Q[1] << ", " << Q[2] << ")" << std::endl;
+  std::cerr << "  K+Q = (" << KQ[0] << ", " << KQ[1] << ", " << KQ[2] << ")" << std::endl;
+
+  // Build bases for momentum sectors K and K+Q
+  std::cerr << "Building basis for sector K..." << std::endl;
+  Basis basis_K = Basis::with_fixed_particle_number_spin_momentum(sites, opts.particles,
+                                                                  opts.spin_projection, index, K);
+  if (basis_K.set.empty()) {
+    std::cerr << "No basis states for momentum sector K.\n";
     return 1;
   }
+  std::cerr << "  |K| = " << basis_K.set.size() << " states" << std::endl;
 
-  std::cerr << "Basis size: " << basis.set.size() << std::endl;
+  std::cerr << "Building basis for sector K+Q..." << std::endl;
+  Basis basis_KQ = Basis::with_fixed_particle_number_spin_momentum(sites, opts.particles,
+                                                                   opts.spin_projection, index, KQ);
+  if (basis_KQ.set.empty()) {
+    std::cerr << "No basis states for momentum sector K+Q.\n";
+    return 1;
+  }
+  std::cerr << "  |K+Q| = " << basis_KQ.set.size() << " states" << std::endl;
 
-  HubbardMomentumFactorized hubbard(basis, size, opts.t, opts.U);
-  HubbardModelMomentum hubbard_model(opts.t, opts.U, size);
+  // Build factorized Hamiltonians for sectors K and K+Q
+  std::cerr << "Building factorized Hamiltonian for sector K..." << std::endl;
+  HubbardMomentumFactorizedFixedK H_K(basis_K, size, opts.t, opts.U, K);
 
+  std::cerr << "Building factorized Hamiltonian for sector K+Q..." << std::endl;
+  HubbardMomentumFactorizedFixedK H_KQ(basis_KQ, size, opts.t, opts.U, KQ);
+
+  // Build matrix-free current operator J(Q): K -> K+Q
   std::cerr << "Building current operator J(Q)..." << std::endl;
-  const Expression current_expr = hubbard_model.current(Q, opts.direction);
-  arma::sp_cx_mat J_Q = compute_matrix_elements<arma::sp_cx_mat>(basis, current_expr);
-  arma::sp_cx_mat J_Q_adj = J_Q.t();
-
-  std::cerr << "Current operator J(Q): " << J_Q.n_rows << "x" << J_Q.n_cols << " with "
-            << J_Q.n_nonzero << " non-zeros" << std::endl;
+  CurrentOperatorFixedK J_Q(basis_K, basis_KQ, size, opts.t, Q_flat, opts.direction);
+  std::cerr << "  J(Q): " << J_Q.source_dimension() << " -> " << J_Q.target_dimension()
+            << std::endl;
 
   // Compute current-current correlator using stochastic trace estimation
   std::vector<std::complex<double>> correlator(opts.steps, std::complex<double>(0.0, 0.0));
@@ -199,36 +236,35 @@ int main(int argc, char** argv) {
 
 #pragma omp for schedule(static)
     for (int s = 0; s < static_cast<int>(opts.num_samples); ++s) {
-      // Random initial vector in the full momentum basis
-      arma::cx_vec v = random_complex_vector(basis.set.size(), rng);
-      const double v_norm = arma::norm(v);
+      // Random initial vector in sector K
+      arma::cx_vec v_K = random_complex_vector(basis_K.set.size(), rng);
+      const double v_norm = arma::norm(v_K);
       if (v_norm > 0.0) {
-        v /= v_norm;
+        v_K /= v_norm;
       }
 
       // Apply imaginary-time evolution to get thermalized state: exp(-βH/2)|v>
-      arma::cx_vec v_beta =
-          imaginary_time_evolve_state(hubbard, v, 0.5 * opts.beta, evolve_options);
+      arma::cx_vec v_beta = imaginary_time_evolve_state(H_K, v_K, 0.5 * opts.beta, evolve_options);
 
       // Partition function normalization
       const double Z = std::real(arma::cdot(v_beta, v_beta));
 
-      // |φ₁> = |v_β>
+      // |φ₁> = |v_β> in sector K
       arma::cx_vec phi_1 = v_beta;
 
-      // |φ₂> = J(Q)|v_β>
-      arma::cx_vec phi_2 = J_Q * v_beta;
+      // |φ₂> = J(Q)|v_β> in sector K+Q
+      arma::cx_vec phi_2 = J_Q.apply(v_beta);
 
       // Time evolution and correlation function computation
-      // C(t) = <φ₁(t)|J†(Q)|φ₂(t)>/Z = <v_β|e^{iHt} J†(Q) e^{-iHt} J(Q)|v_β>/Z
+      // C(t) = <φ₁(t)|J†(Q)|φ₂(t)>/Z = <v_β|e^{iH_K t} J†(Q) e^{-iH_{K+Q} t} J(Q)|v_β>/Z
       for (size_t i = 0; i < opts.steps; ++i) {
         // Compute <φ₁|J†(Q)|φ₂>
-        arma::cx_vec J_adj_phi_2 = J_Q_adj * phi_2;
+        arma::cx_vec J_adj_phi_2 = J_Q.adjoint_apply(phi_2);
         thread_sum[i] += arma::cdot(phi_1, J_adj_phi_2) / Z;
 
         // Evolve both states forward in time
-        phi_1 = time_evolve_state(hubbard, phi_1, opts.dt, evolve_options);
-        phi_2 = time_evolve_state(hubbard, phi_2, opts.dt, evolve_options);
+        phi_1 = time_evolve_state(H_K, phi_1, opts.dt, evolve_options);
+        phi_2 = time_evolve_state(H_KQ, phi_2, opts.dt, evolve_options);
       }
 
 #pragma omp critical
