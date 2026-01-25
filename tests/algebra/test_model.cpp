@@ -212,3 +212,142 @@ TEST_CASE("model_hubbard_momentum_throws_on_empty_size") {
   // Index throws std::out_of_range for empty dimensions
   CHECK_THROWS_AS(HubbardModelMomentum(1.0, 2.0, {}), std::out_of_range);
 }
+
+// Tests for opposite-spin density-density correlation operator
+
+TEST_CASE("model_hubbard_opposite_spin_correlation_1d_term_count") {
+  HubbardModel hubbard(1.0, 2.0, 4);
+
+  // G_{↑↓}(r=0): on-site correlation, 4 terms (one per site)
+  const Expression g0 = hubbard.opposite_spin_correlation(0);
+  CHECK(g0.size() == 4u);
+
+  // G_{↑↓}(r=1): nearest-neighbor correlation, 4 terms
+  const Expression g1 = hubbard.opposite_spin_correlation(1);
+  CHECK(g1.size() == 4u);
+
+  // G_{↑↓}(r=2): next-nearest-neighbor correlation, 4 terms
+  const Expression g2 = hubbard.opposite_spin_correlation(2);
+  CHECK(g2.size() == 4u);
+}
+
+TEST_CASE("model_hubbard_opposite_spin_correlation_1d_coefficients") {
+  HubbardModel hubbard(1.0, 2.0, 4);
+  const Expression g0 = hubbard.opposite_spin_correlation(0);
+
+  // Each term should have coefficient 1/N = 1/4 = 0.25
+  for (const auto& [ops, coeff] : g0.hashmap) {
+    CHECK(complex_near_model(coeff, Term::complex_type(0.25, 0.0), kModelTolerance));
+  }
+}
+
+TEST_CASE("model_hubbard_opposite_spin_correlation_1d_periodicity") {
+  HubbardModel hubbard(1.0, 2.0, 4);
+
+  // G(r) and G(N-r) should be related by periodicity
+  // For r=1 and r=3 (=4-1), the terms should be structurally similar
+  const Expression g1 = hubbard.opposite_spin_correlation(1);
+  const Expression g3 = hubbard.opposite_spin_correlation(3);
+  CHECK(g1.size() == g3.size());
+}
+
+TEST_CASE("model_hubbard_2d_opposite_spin_correlation_term_count") {
+  HubbardModel2D hubbard(1.0, 2.0, 3, 3);
+  const size_t N = 9;
+
+  // G_{↑↓}(0,0): on-site correlation, N terms
+  const Expression g00 = hubbard.opposite_spin_correlation(0, 0);
+  CHECK(g00.size() == N);
+
+  // G_{↑↓}(1,0): nearest-neighbor in x, N terms
+  const Expression g10 = hubbard.opposite_spin_correlation(1, 0);
+  CHECK(g10.size() == N);
+
+  // G_{↑↓}(1,1): diagonal neighbor, N terms
+  const Expression g11 = hubbard.opposite_spin_correlation(1, 1);
+  CHECK(g11.size() == N);
+}
+
+TEST_CASE("model_hubbard_2d_opposite_spin_correlation_coefficients") {
+  HubbardModel2D hubbard(1.0, 2.0, 2, 2);
+  const Expression g00 = hubbard.opposite_spin_correlation(0, 0);
+
+  // Each term should have coefficient 1/N = 1/4 = 0.25
+  for (const auto& [ops, coeff] : g00.hashmap) {
+    CHECK(complex_near_model(coeff, Term::complex_type(0.25, 0.0), kModelTolerance));
+  }
+}
+
+TEST_CASE("model_hubbard_3d_opposite_spin_correlation_term_count") {
+  HubbardModel3D hubbard(1.0, 2.0, 2, 2, 2);
+  const size_t N = 8;
+
+  // G_{↑↓}(0,0,0): on-site correlation, N terms
+  const Expression g000 = hubbard.opposite_spin_correlation(0, 0, 0);
+  CHECK(g000.size() == N);
+
+  // G_{↑↓}(1,0,0): nearest-neighbor in x, N terms
+  const Expression g100 = hubbard.opposite_spin_correlation(1, 0, 0);
+  CHECK(g100.size() == N);
+
+  // G_{↑↓}(1,1,1): body diagonal, N terms
+  const Expression g111 = hubbard.opposite_spin_correlation(1, 1, 1);
+  CHECK(g111.size() == N);
+}
+
+TEST_CASE("model_hubbard_3d_opposite_spin_correlation_coefficients") {
+  HubbardModel3D hubbard(1.0, 2.0, 2, 2, 2);
+  const Expression g000 = hubbard.opposite_spin_correlation(0, 0, 0);
+
+  // Each term should have coefficient 1/N = 1/8 = 0.125
+  for (const auto& [ops, coeff] : g000.hashmap) {
+    CHECK(complex_near_model(coeff, Term::complex_type(0.125, 0.0), kModelTolerance));
+  }
+}
+
+TEST_CASE("model_hubbard_momentum_opposite_spin_correlation_1d") {
+  HubbardModelMomentum hubbard(1.0, 2.0, {4});
+
+  // G_{↑↓}(r=0): on-site in real space
+  const Expression g0 = hubbard.opposite_spin_correlation({0});
+  CHECK(g0.size() > 0);
+
+  // G_{↑↓}(r=1): nearest-neighbor
+  const Expression g1 = hubbard.opposite_spin_correlation({1});
+  CHECK(g1.size() > 0);
+}
+
+TEST_CASE("model_hubbard_momentum_opposite_spin_correlation_2d") {
+  HubbardModelMomentum hubbard(1.0, 2.0, {2, 2});
+
+  // G_{↑↓}(0,0): on-site
+  const Expression g00 = hubbard.opposite_spin_correlation({0, 0});
+  CHECK(g00.size() > 0);
+
+  // G_{↑↓}(1,0): nearest-neighbor in x
+  const Expression g10 = hubbard.opposite_spin_correlation({1, 0});
+  CHECK(g10.size() > 0);
+
+  // G_{↑↓}(1,1): diagonal
+  const Expression g11 = hubbard.opposite_spin_correlation({1, 1});
+  CHECK(g11.size() > 0);
+}
+
+TEST_CASE("model_hubbard_momentum_opposite_spin_correlation_throws_on_dimension_mismatch") {
+  HubbardModelMomentum hubbard(1.0, 2.0, {4});
+
+  // Should throw when r has wrong dimension
+  CHECK_THROWS_AS(hubbard.opposite_spin_correlation({1, 2}), std::invalid_argument);
+  CHECK_THROWS_AS(hubbard.opposite_spin_correlation({}), std::invalid_argument);
+}
+
+TEST_CASE("model_hubbard_momentum_opposite_spin_correlation_onsite_is_real") {
+  // For r=0, the phase factor e^{-iq·r} = 1 for all q
+  // So all coefficients should be real
+  HubbardModelMomentum hubbard(1.0, 2.0, {3});
+  const Expression g0 = hubbard.opposite_spin_correlation({0});
+
+  for (const auto& [ops, coeff] : g0.hashmap) {
+    CHECK(std::abs(coeff.imag()) < kModelTolerance);
+  }
+}

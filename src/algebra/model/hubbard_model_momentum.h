@@ -173,6 +173,61 @@ struct HubbardModelMomentum : Model {
     return result;
   }
 
+  /// Opposite-spin density-density correlation operator G_{↑↓}(r) in momentum space:
+  /// G_{↑↓}(r) = (1/N) Σ_i n_{i,↑} n_{i+r,↓}
+  ///
+  /// In momentum space (via Fourier transform):
+  /// G_{↑↓}(r) = (1/N²) Σ_{k1,q,k2} e^{-iq·r} c†_{k1,↑} c_{k1+q,↑} c†_{k2,↓} c_{k2-q,↓}
+  ///
+  /// Measures spatial extent of opposite-spin correlations.
+  Expression opposite_spin_correlation(const std::vector<size_t>& r) const {
+    if (r.size() != size.size()) {
+      throw std::invalid_argument("Separation r must have the same dimension as the system.");
+    }
+
+    Expression result;
+    const size_t N = index.size();
+
+    for (size_t k1 = 0; k1 < N; ++k1) {
+      for (size_t q = 0; q < N; ++q) {
+        for (size_t k2 = 0; k2 < N; ++k2) {
+          // Compute k1+q and k2-q with periodic boundary conditions
+          const auto k1_coords = index(k1);
+          const auto q_coords = index(q);
+          const auto k2_coords = index(k2);
+
+          std::vector<size_t> k1_plus_q(size.size());
+          std::vector<size_t> k2_minus_q(size.size());
+          for (size_t d = 0; d < size.size(); ++d) {
+            k1_plus_q[d] = (k1_coords[d] + q_coords[d]) % size[d];
+            k2_minus_q[d] = (k2_coords[d] + size[d] - q_coords[d]) % size[d];
+          }
+
+          const size_t k1_plus_q_idx = index(k1_plus_q);
+          const size_t k2_minus_q_idx = index(k2_minus_q);
+
+          // Compute phase e^{-iq·r} where q·r = Σ_d (2π q_d / L_d) * r_d
+          double phase = 0.0;
+          for (size_t d = 0; d < size.size(); ++d) {
+            phase += 2.0 * std::numbers::pi_v<double> * static_cast<double>(q_coords[d]) *
+                     static_cast<double>(r[d]) / static_cast<double>(size[d]);
+          }
+
+          const auto coeff =
+              Expression::complex_type(std::cos(phase) / static_cast<double>(N * N),
+                                       -std::sin(phase) / static_cast<double>(N * N));
+
+          result += Expression(
+              Term(coeff, {Operator::creation(Operator::Spin::Up, k1),
+                           Operator::annihilation(Operator::Spin::Up, k1_plus_q_idx),
+                           Operator::creation(Operator::Spin::Down, k2),
+                           Operator::annihilation(Operator::Spin::Down, k2_minus_q_idx)}));
+        }
+      }
+    }
+    return result;
+  }
+
   double t;
   double u;
   std::vector<size_t> size;

@@ -36,6 +36,21 @@ struct HubbardModel : Model {
     return result;
   }
 
+  /// Opposite-spin density-density correlation operator G_{↑↓}(r):
+  /// G_{↑↓}(r) = (1/N) Σ_i n_{i,↑} n_{i+r,↓}
+  ///
+  /// Measures spatial extent of opposite-spin correlations.
+  /// If r=0, this measures on-site pairs; for r≠0 it measures extended pairs.
+  Expression opposite_spin_correlation(size_t r) const {
+    Expression result;
+    const auto coeff = Expression::complex_type(1.0 / static_cast<double>(size), 0.0);
+    for (size_t i = 0; i < size; ++i) {
+      const size_t i_plus_r = (i + r) % size;
+      result += coeff * density_density(Operator::Spin::Up, i, Operator::Spin::Down, i_plus_r);
+    }
+    return result;
+  }
+
   double t;
   double u;
   size_t size;
@@ -82,6 +97,25 @@ struct HubbardModel2D : Model {
   Expression hamiltonian() const override {
     Expression result = kinetic();
     result += interaction();
+    return result;
+  }
+
+  /// Opposite-spin density-density correlation operator G_{↑↓}(r):
+  /// G_{↑↓}(r) = (1/N) Σ_i n_{i,↑} n_{i+r,↓}
+  ///
+  /// Measures spatial extent of opposite-spin correlations.
+  Expression opposite_spin_correlation(size_t rx, size_t ry) const {
+    Expression result;
+    const size_t N = size_x * size_y;
+    const auto coeff = Expression::complex_type(1.0 / static_cast<double>(N), 0.0);
+    for (size_t x = 0; x < size_x; ++x) {
+      for (size_t y = 0; y < size_y; ++y) {
+        const size_t site_i = index({x, y});
+        const size_t site_i_plus_r = index({(x + rx) % size_x, (y + ry) % size_y});
+        result += coeff *
+                  density_density(Operator::Spin::Up, site_i, Operator::Spin::Down, site_i_plus_r);
+      }
+    }
     return result;
   }
 
@@ -142,6 +176,28 @@ struct HubbardModel3D : Model {
   Expression hamiltonian() const override {
     Expression result = kinetic();
     result += interaction();
+    return result;
+  }
+
+  /// Opposite-spin density-density correlation operator G_{↑↓}(r):
+  /// G_{↑↓}(r) = (1/N) Σ_i n_{i,↑} n_{i+r,↓}
+  ///
+  /// Measures spatial extent of opposite-spin correlations.
+  Expression opposite_spin_correlation(size_t rx, size_t ry, size_t rz) const {
+    Expression result;
+    const size_t N = size_x * size_y * size_z;
+    const auto coeff = Expression::complex_type(1.0 / static_cast<double>(N), 0.0);
+    for (size_t x = 0; x < size_x; ++x) {
+      for (size_t y = 0; y < size_y; ++y) {
+        for (size_t z = 0; z < size_z; ++z) {
+          const size_t site_i = index({x, y, z});
+          const size_t site_i_plus_r =
+              index({(x + rx) % size_x, (y + ry) % size_y, (z + rz) % size_z});
+          result += coeff * density_density(Operator::Spin::Up, site_i, Operator::Spin::Down,
+                                            site_i_plus_r);
+        }
+      }
+    }
     return result;
   }
 
