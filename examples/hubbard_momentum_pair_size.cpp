@@ -1,7 +1,8 @@
+#include <omp.h>
+
 #include <armadillo>
 #include <cereal/archives/binary.hpp>
 #include <cmath>
-#include <complex>
 #include <cstddef>
 #include <exception>
 #include <filesystem>
@@ -121,16 +122,6 @@ std::string hamiltonian_cache_path(const CliOptions& opts, const std::string& co
   return ss.str();
 }
 
-// Generate cache file path for correlation operator
-std::string correlation_cache_path(const CliOptions& opts, const std::vector<size_t>& K,
-                                   const std::vector<size_t>& r) {
-  std::ostringstream ss;
-  ss << opts.cache_dir << "/hubbard_correlation_L=" << opts.size_x << "x" << opts.size_y << "x"
-     << opts.size_z << "_N=" << opts.particles << "_S=" << opts.spin_projection << "_K=" << K[0]
-     << "," << K[1] << "," << K[2] << "_r=" << r[0] << "," << r[1] << "," << r[2] << ".bin";
-  return ss.str();
-}
-
 // Save a sparse matrix to file
 void save_sparse_matrix(const std::string& path, const arma::sp_cx_mat& mat) {
   std::ofstream ofs(path, std::ios::binary);
@@ -170,29 +161,6 @@ arma::sp_cx_mat load_or_compute_hamiltonian_component(const CliOptions& opts,
 
   std::filesystem::create_directories(opts.cache_dir);
   std::cerr << "Saving " << component << " matrix to " << path << "..." << std::endl;
-  save_sparse_matrix(path, mat);
-
-  return mat;
-}
-
-// Load or compute correlation operator matrix
-arma::sp_cx_mat load_or_compute_correlation(const CliOptions& opts, const std::vector<size_t>& K,
-                                            const std::vector<size_t>& r, const Basis& basis,
-                                            const Expression& expr) {
-  const std::string path = correlation_cache_path(opts, K, r);
-
-  if (std::filesystem::exists(path)) {
-    std::cerr << "Loading cached correlation operator for r=(" << r[0] << "," << r[1] << "," << r[2]
-              << ") from " << path << "..." << std::endl;
-    return load_sparse_matrix(path);
-  }
-
-  std::cerr << "Computing correlation operator for r=(" << r[0] << "," << r[1] << "," << r[2]
-            << ")..." << std::endl;
-  arma::sp_cx_mat mat = compute_matrix_elements<arma::sp_cx_mat>(basis, expr);
-
-  std::filesystem::create_directories(opts.cache_dir);
-  std::cerr << "Saving correlation operator to " << path << "..." << std::endl;
   save_sparse_matrix(path, mat);
 
   return mat;
@@ -283,46 +251,64 @@ int main(int argc, char** argv) {
   std::cerr << "Background <n_up><n_down> = " << background << std::endl;
 
   // Compute G_{↑↓}(r) for all separations r
-  std::cerr << "\nComputing opposite-spin correlator for all separations..." << std::endl;
+  std::cerr << "\nComputing opposite-spin correlator for all separations on "
+            << omp_get_max_threads() << " threads..." << std::endl;
+
+  // Structure to hold results for each separation
+  struct CorrelationResult {
+    size_t rx, ry, rz;
+    double r_squared;
+    double G_r;
+    double G_conn_r;
+  };
+
+  const size_t total_sites = opts.size_x * opts.size_y * opts.size_z;
+  std::vector<CorrelationResult> results(total_sites);
 
   double sum_G = 0.0;          // Σ_r G(r)
   double sum_r2_G = 0.0;       // Σ_r r² G(r)
   double sum_G_conn = 0.0;     // Σ_r G_conn(r)
   double sum_r2_G_conn = 0.0;  // Σ_r r² G_conn(r)
 
+#pragma omp parallel for schedule(dynamic) reduction(+ : sum_G, sum_r2_G, sum_G_conn, sum_r2_G_conn)
+  for (size_t idx = 0; idx < total_sites; ++idx) {
+    // Convert flat index to (rx, ry, rz)
+    const size_t rx = idx / (opts.size_y * opts.size_z);
+    const size_t ry = (idx / opts.size_z) % opts.size_y;
+    const size_t rz = idx % opts.size_z;
+    const std::vector<size_t> r = {rx, ry, rz};
+
+    // Compute correlation operator (sparse, no caching needed)
+    const Expression corr_expr = hubbard_base.opposite_spin_correlation(r);
+    arma::sp_cx_mat G_op = compute_matrix_elements<arma::sp_cx_mat>(basis, corr_expr);
+
+    // Compute expectation value <ψ|G(r)|ψ>
+    const arma::cx_vec G_psi = G_op * psi;
+    const std::complex<double> G_r_complex = arma::cdot(psi, G_psi);
+    const double G_r = G_r_complex.real();
+
+    // Connected correlator
+    const double G_conn_r = G_r - background;
+
+    // Minimum image distance squared
+    const double r_squared = min_image_distance_squared(r, size);
+
+    // Accumulate sums (handled by OpenMP reduction)
+    sum_G += G_r;
+    sum_r2_G += r_squared * G_r;
+    sum_G_conn += G_conn_r;
+    sum_r2_G_conn += r_squared * G_conn_r;
+
+    // Store result for ordered output
+    results[idx] = {rx, ry, rz, r_squared, G_r, G_conn_r};
+  }
+
+  // Output results in order
   std::cout << std::setprecision(10);
   std::cout << "# rx ry rz r^2 G(r) G_conn(r)\n";
-
-  for (size_t rx = 0; rx < opts.size_x; ++rx) {
-    for (size_t ry = 0; ry < opts.size_y; ++ry) {
-      for (size_t rz = 0; rz < opts.size_z; ++rz) {
-        const std::vector<size_t> r = {rx, ry, rz};
-
-        // Load or compute correlation operator
-        const Expression corr_expr = hubbard_base.opposite_spin_correlation(r);
-        arma::sp_cx_mat G_op = load_or_compute_correlation(opts, K, r, basis, corr_expr);
-
-        // Compute expectation value <ψ|G(r)|ψ>
-        const arma::cx_vec G_psi = G_op * psi;
-        const std::complex<double> G_r_complex = arma::cdot(psi, G_psi);
-        const double G_r = G_r_complex.real();
-
-        // Connected correlator
-        const double G_conn_r = G_r - background;
-
-        // Minimum image distance squared
-        const double r_squared = min_image_distance_squared(r, size);
-
-        // Accumulate sums
-        sum_G += G_r;
-        sum_r2_G += r_squared * G_r;
-        sum_G_conn += G_conn_r;
-        sum_r2_G_conn += r_squared * G_conn_r;
-
-        std::cout << rx << " " << ry << " " << rz << " " << r_squared << " " << G_r << " "
-                  << G_conn_r << "\n";
-      }
-    }
+  for (const auto& res : results) {
+    std::cout << res.rx << " " << res.ry << " " << res.rz << " " << res.r_squared << " " << res.G_r
+              << " " << res.G_conn_r << "\n";
   }
 
   // Compute RMS separations
