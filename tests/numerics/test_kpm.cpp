@@ -4,6 +4,7 @@
 #include <numbers>
 
 #include "numerics/kpm.h"
+#include "numerics/rescaling.h"
 
 namespace test_kpm {
 
@@ -60,8 +61,8 @@ TEST_CASE("kpm_rescaling_preserves_spectrum") {
   arma::mat H(4, 4, arma::fill::zeros);
   H.diag() = arma::vec{-2.0, -1.0, 1.0, 3.0};
 
-  auto rescaling = kpm::estimate_rescaling(H);
-  arma::mat H_scaled = kpm::rescale_hamiltonian(H, rescaling);
+  auto r = rescaling::estimate_rescaling(H);
+  arma::mat H_scaled = rescaling::rescale_hamiltonian(H, r);
 
   arma::vec eigvals = arma::eig_sym(H_scaled);
 
@@ -142,6 +143,62 @@ TEST_CASE("kpm_projector_trace_counts_states") {
 
   double trace = arma::trace(P);
   CHECK(std::abs(trace - 3.0) < 0.1);
+}
+
+TEST_CASE("kpm_projector_implements_linear_operator") {
+  arma::mat H(4, 4, arma::fill::zeros);
+  H.diag() = arma::vec{-1.5, -0.5, 0.5, 1.5};
+
+  kpm::KPMProjector proj(H, 50, 0.0);
+
+  // Check dimension
+  CHECK(proj.dimension() == 4);
+
+  // Check that it can be used through base class pointer
+  LinearOperator<arma::vec>* op = &proj;
+  CHECK(op->dimension() == 4);
+
+  arma::vec v = arma::randn<arma::vec>(4);
+  arma::vec result_direct = proj.apply(v);
+  arma::vec result_via_base = op->apply(v);
+
+  CHECK(arma::norm(result_direct - result_via_base) < 1e-14);
+}
+
+TEST_CASE("sparse_kpm_projector_implements_linear_operator") {
+  arma::sp_mat H(4, 4);
+  H.diag() = arma::vec{-1.5, -0.5, 0.5, 1.5};
+
+  kpm::SparseKPMProjector proj(H, 50, -2.0, 2.0, 0.0);
+
+  // Check dimension
+  CHECK(proj.dimension() == 4);
+
+  // Check that it can be used through base class pointer
+  LinearOperator<arma::vec>* op = &proj;
+  CHECK(op->dimension() == 4);
+
+  arma::vec v = arma::randn<arma::vec>(4);
+  arma::vec result_direct = proj.apply(v);
+  arma::vec result_via_base = op->apply(v);
+
+  CHECK(arma::norm(result_direct - result_via_base) < 1e-14);
+}
+
+TEST_CASE("sparse_kpm_projector_apply_matches_dense") {
+  arma::mat H_dense(4, 4, arma::fill::zeros);
+  H_dense.diag() = arma::vec{-1.5, -0.5, 0.5, 1.5};
+  arma::sp_mat H_sparse(H_dense);
+
+  kpm::KPMProjector dense_proj(H_dense, 100, 0.0);
+  kpm::SparseKPMProjector sparse_proj(H_sparse, 100, -2.0, 2.0, 0.0);
+
+  arma::vec v = arma::randn<arma::vec>(4);
+  arma::vec result_dense = dense_proj.apply(v);
+  arma::vec result_sparse = sparse_proj.apply(v);
+
+  // Results should be similar (not exact due to different rescaling)
+  CHECK(arma::norm(result_dense - result_sparse) < 0.1);
 }
 
 }  // namespace test_kpm

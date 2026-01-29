@@ -6,7 +6,13 @@
 #include <stdexcept>
 #include <vector>
 
+#include "numerics/linear_operator.h"
+#include "numerics/rescaling.h"
+
 namespace kpm {
+
+// Re-export rescaling types for backward compatibility
+using Rescaling = rescaling::Rescaling;
 
 /// Jackson kernel damping factors to reduce Gibbs oscillations
 /// g_n = ((N - n + 1) cos(πn/(N+1)) + sin(πn/(N+1)) cot(π/(N+1))) / (N + 1)
@@ -68,47 +74,22 @@ inline std::vector<double> complementary_projector_moments(size_t M, double epsi
   return mu;
 }
 
-/// Rescale Hamiltonian to have spectrum in [-1, 1]
-/// H_scaled = (H - b) / a, where a = (E_max - E_min) / 2, b = (E_max + E_min) / 2
-struct Rescaling {
-  double a;  // Scale factor
-  double b;  // Shift
-
-  /// Rescale an energy value
-  double rescale(double E) const { return (E - b) / a; }
-
-  /// Inverse rescale
-  double inverse(double E_scaled) const { return E_scaled * a + b; }
-};
-
-/// Estimate spectral bounds using power iteration
-inline Rescaling estimate_rescaling(const arma::mat& H, double padding = 0.01) {
-  arma::vec eigvals = arma::eig_sym(H);
-  const double E_min = eigvals.min();
-  const double E_max = eigvals.max();
-
-  const double a = (E_max - E_min) / 2.0 * (1.0 + padding);
-  const double b = (E_max + E_min) / 2.0;
-
-  return Rescaling{a, b};
-}
-
-/// Rescale matrix
-inline arma::mat rescale_hamiltonian(const arma::mat& H, const Rescaling& rescaling) {
-  return (H - rescaling.b * arma::eye(H.n_rows, H.n_cols)) / rescaling.a;
-}
-
 /// KPM expansion of projector onto states below E_fermi
 /// P_KPM = Σ_m g_m μ_m T_m(H_scaled)
 ///
 /// Uses Chebyshev recurrence: T_0 = I, T_1 = H, T_{m+1} = 2H T_m - T_{m-1}
-class KPMProjector {
+class KPMProjector final : public LinearOperator<arma::vec> {
  public:
+  using VectorType = arma::vec;
+  using ScalarType = double;
+
   KPMProjector(const arma::mat& H, size_t expansion_order, double E_fermi = 0.0,
                double padding = 0.01)
-      : M_(expansion_order), rescaling_(estimate_rescaling(H, padding)) {
+      : M_(expansion_order),
+        dim_(static_cast<size_t>(H.n_rows)),
+        rescaling_(rescaling::estimate_rescaling(H, padding)) {
     // Rescale Hamiltonian
-    H_scaled_ = rescale_hamiltonian(H, rescaling_);
+    H_scaled_ = rescaling::rescale_hamiltonian(H, rescaling_);
 
     // Rescale Fermi energy
     const double epsilon = rescaling_.rescale(E_fermi);
@@ -128,7 +109,7 @@ class KPMProjector {
   }
 
   /// Apply projector to a vector using Chebyshev recurrence
-  arma::vec apply(const arma::vec& v) const {
+  VectorType apply(const VectorType& v) const override {
     // T_0(H)|v⟩ = |v⟩
     arma::vec T_prev = v;
     arma::vec result = damped_moments_[0] * T_prev;
@@ -180,9 +161,11 @@ class KPMProjector {
 
   size_t expansion_order() const { return M_; }
   const Rescaling& rescaling() const { return rescaling_; }
+  size_t dimension() const override { return dim_; }
 
  private:
   size_t M_;
+  size_t dim_;
   Rescaling rescaling_;
   arma::mat H_scaled_;
   std::vector<double> moments_;
@@ -191,11 +174,14 @@ class KPMProjector {
 };
 
 /// KPM expansion with sparse matrix support (for large systems)
-class SparseKPMProjector {
+class SparseKPMProjector final : public LinearOperator<arma::vec> {
  public:
+  using VectorType = arma::vec;
+  using ScalarType = double;
+
   SparseKPMProjector(const arma::sp_mat& H, size_t expansion_order, double E_min, double E_max,
                      double E_fermi = 0.0, double padding = 0.01)
-      : M_(expansion_order) {
+      : M_(expansion_order), dim_(static_cast<size_t>(H.n_rows)) {
     // Compute rescaling
     const double a = (E_max - E_min) / 2.0 * (1.0 + padding);
     const double b = (E_max + E_min) / 2.0;
@@ -216,17 +202,17 @@ class SparseKPMProjector {
     }
   }
 
-  arma::vec apply(const arma::vec& v) const {
-    arma::vec T_prev = v;
-    arma::vec result = damped_moments_[0] * T_prev;
+  VectorType apply(const VectorType& v) const override {
+    VectorType T_prev = v;
+    VectorType result = damped_moments_[0] * T_prev;
 
     if (M_ == 0) return result;
 
-    arma::vec T_curr = H_scaled_ * v;
+    VectorType T_curr = H_scaled_ * v;
     result += damped_moments_[1] * T_curr;
 
     for (size_t m = 2; m <= M_; ++m) {
-      arma::vec T_next = 2.0 * (H_scaled_ * T_curr) - T_prev;
+      VectorType T_next = 2.0 * (H_scaled_ * T_curr) - T_prev;
       result += damped_moments_[m] * T_next;
       T_prev = T_curr;
       T_curr = T_next;
@@ -235,8 +221,11 @@ class SparseKPMProjector {
     return result;
   }
 
+  size_t dimension() const override { return dim_; }
+
  private:
   size_t M_;
+  size_t dim_;
   Rescaling rescaling_;
   arma::sp_mat H_scaled_;
   std::vector<double> moments_;
