@@ -4,6 +4,7 @@
 #include <numbers>
 
 #include "algebra/model/ssh_model.h"
+#include "utils/index.h"
 
 namespace test_ssh_model {
 
@@ -192,6 +193,36 @@ TEST_CASE("ssh_correlation_length_diverges_at_critical_point") {
 
   CHECK(near_critical.correlation_length() > far_from_critical.correlation_length());
   CHECK(std::isinf(critical.correlation_length()));
+}
+
+TEST_CASE("ssh_model_index_based_site_accessors") {
+  SSHModel model(0.5, 1.5, 10);
+
+  // Verify that site_A(n) returns 2*n and site_B(n) returns 2*n+1
+  for (size_t n = 0; n < model.num_cells; ++n) {
+    CHECK(model.site_A(n) == 2 * n);
+    CHECK(model.site_B(n) == 2 * n + 1);
+    CHECK(model.site(SSHModel::SUBLATTICE_A, n) == 2 * n);
+    CHECK(model.site(SSHModel::SUBLATTICE_B, n) == 2 * n + 1);
+  }
+}
+
+TEST_CASE("ssh_namespace_index_helpers") {
+  const size_t num_cells = 8;
+  Index idx = ssh::make_index(num_cells);
+
+  // Verify namespace helpers produce correct site indices
+  for (size_t n = 0; n < num_cells; ++n) {
+    CHECK(ssh::site_A(idx, n) == 2 * n);
+    CHECK(ssh::site_B(idx, n) == 2 * n + 1);
+    CHECK(ssh::site(idx, ssh::SUBLATTICE_A, n) == 2 * n);
+    CHECK(ssh::site(idx, ssh::SUBLATTICE_B, n) == 2 * n + 1);
+  }
+}
+
+TEST_CASE("ssh_model_index_size_matches_num_sites") {
+  SSHModel model(0.7, 1.3, 12);
+  CHECK(model.index.size() == model.num_sites);
 }
 
 }  // namespace test_ssh_model

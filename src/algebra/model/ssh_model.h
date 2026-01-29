@@ -7,6 +7,7 @@
 
 #include "algebra/expression.h"
 #include "algebra/model/model.h"
+#include "utils/index.h"
 
 /// SSH (Su-Schrieffer-Heeger) model for 1D topological insulator.
 ///
@@ -19,19 +20,34 @@
 ///   - t1 > t2: Trivial phase (winding number = 0)
 ///   - t1 = t2: Critical point (gap closes)
 ///
-/// Site indexing: 2*n = A sublattice, 2*n+1 = B sublattice
+/// Site indexing uses Index({2, num_cells}) with coordinates {sublattice, cell}
+/// where sublattice 0 = A, sublattice 1 = B
 struct SSHModel : Model {
+  static constexpr size_t SUBLATTICE_A = 0;
+  static constexpr size_t SUBLATTICE_B = 1;
+
   SSHModel(double t1_val, double t2_val, size_t num_cells_val)
-      : t1(t1_val), t2(t2_val), num_cells(num_cells_val), num_sites(2 * num_cells_val) {}
+      : t1(t1_val),
+        t2(t2_val),
+        num_cells(num_cells_val),
+        num_sites(2 * num_cells_val),
+        index({2, num_cells_val}) {}
+
+  /// Get site index for sublattice s in unit cell n
+  size_t site(size_t sublattice, size_t cell) const { return index({sublattice, cell}); }
+
+  /// Get A sublattice site index in unit cell n
+  size_t site_A(size_t cell) const { return index({SUBLATTICE_A, cell}); }
+
+  /// Get B sublattice site index in unit cell n
+  size_t site_B(size_t cell) const { return index({SUBLATTICE_B, cell}); }
 
   /// Intra-cell hopping: A_n -> B_n with amplitude t1
   Expression intracell_hopping() const {
     Expression result;
     const auto coeff = Expression::complex_type(-t1, 0.0);
     for (size_t n = 0; n < num_cells; ++n) {
-      const size_t A = 2 * n;
-      const size_t B = 2 * n + 1;
-      result += coeff * hopping(A, B, Operator::Spin::Up);
+      result += coeff * hopping(site_A(n), site_B(n), Operator::Spin::Up);
     }
     return result;
   }
@@ -41,9 +57,8 @@ struct SSHModel : Model {
     Expression result;
     const auto coeff = Expression::complex_type(-t2, 0.0);
     for (size_t n = 0; n < num_cells; ++n) {
-      const size_t B = 2 * n + 1;
-      const size_t A_next = 2 * ((n + 1) % num_cells);
-      result += coeff * hopping(B, A_next, Operator::Spin::Up);
+      const size_t next_cell = (n + 1) % num_cells;
+      result += coeff * hopping(site_B(n), site_A(next_cell), Operator::Spin::Up);
     }
     return result;
   }
@@ -58,16 +73,16 @@ struct SSHModel : Model {
 
     // Intra-cell hopping: A_n <-> B_n
     for (size_t n = 0; n < num_cells; ++n) {
-      const size_t A = 2 * n;
-      const size_t B = 2 * n + 1;
+      const size_t A = site_A(n);
+      const size_t B = site_B(n);
       H(A, B) = -t1;
       H(B, A) = -t1;
     }
 
     // Inter-cell hopping: B_n <-> A_{n+1}
     for (size_t n = 0; n < num_cells; ++n) {
-      const size_t B = 2 * n + 1;
-      const size_t A_next = 2 * ((n + 1) % num_cells);
+      const size_t B = site_B(n);
+      const size_t A_next = site_A((n + 1) % num_cells);
       H(B, A_next) = -t2;
       H(A_next, B) = -t2;
     }
@@ -82,16 +97,16 @@ struct SSHModel : Model {
 
     // Intra-cell hopping: A_n <-> B_n
     for (size_t n = 0; n < num_cells; ++n) {
-      const size_t A = 2 * n;
-      const size_t B = 2 * n + 1;
+      const size_t A = site_A(n);
+      const size_t B = site_B(n);
       H(A, B) = -t1;
       H(B, A) = -t1;
     }
 
     // Inter-cell hopping: B_n <-> A_{n+1} (no wrapping)
     for (size_t n = 0; n + 1 < num_cells; ++n) {
-      const size_t B = 2 * n + 1;
-      const size_t A_next = 2 * (n + 1);
+      const size_t B = site_B(n);
+      const size_t A_next = site_A(n + 1);
       H(B, A_next) = -t2;
       H(A_next, B) = -t2;
     }
@@ -137,10 +152,29 @@ struct SSHModel : Model {
   double t2;         // Inter-cell hopping
   size_t num_cells;  // Number of unit cells
   size_t num_sites;  // Total number of sites (2 * num_cells)
+  Index index;       // Index for {sublattice, cell} -> site mapping
 };
 
 /// Non-interacting SSH model utilities for single-particle calculations
 namespace ssh {
+
+/// Sublattice indices
+constexpr size_t SUBLATTICE_A = 0;
+constexpr size_t SUBLATTICE_B = 1;
+
+/// Create an Index for SSH model with given number of cells
+inline Index make_index(size_t num_cells) { return Index({2, num_cells}); }
+
+/// Get site index for sublattice s in unit cell n
+inline size_t site(const Index& idx, size_t sublattice, size_t cell) {
+  return idx({sublattice, cell});
+}
+
+/// Get A sublattice site index in unit cell n
+inline size_t site_A(const Index& idx, size_t cell) { return idx({SUBLATTICE_A, cell}); }
+
+/// Get B sublattice site index in unit cell n
+inline size_t site_B(const Index& idx, size_t cell) { return idx({SUBLATTICE_B, cell}); }
 
 /// Build the projector onto occupied states (E < E_F)
 /// For half-filling, E_F = 0
@@ -185,12 +219,15 @@ inline arma::cx_mat build_position_operator_exp_cells(size_t num_cells) {
   arma::cx_mat X(num_sites, num_sites, arma::fill::zeros);
   const std::complex<double> i(0.0, 1.0);
   const double L = static_cast<double>(num_cells);
+  const Index idx = make_index(num_cells);
 
   for (size_t n = 0; n < num_cells; ++n) {
     const double phase = 2.0 * std::numbers::pi * static_cast<double>(n) / L;
     const std::complex<double> value = (L / (2.0 * std::numbers::pi)) * std::exp(i * phase);
-    X(2 * n, 2 * n) = value;
-    X(2 * n + 1, 2 * n + 1) = value;
+    const size_t A = site_A(idx, n);
+    const size_t B = site_B(idx, n);
+    X(A, A) = value;
+    X(B, B) = value;
   }
   return X;
 }
@@ -209,10 +246,13 @@ inline arma::mat build_position_operator(size_t num_sites) {
 inline arma::mat build_position_operator_cells(size_t num_cells) {
   const size_t num_sites = 2 * num_cells;
   arma::mat X(num_sites, num_sites, arma::fill::zeros);
+  const Index idx = make_index(num_cells);
   for (size_t n = 0; n < num_cells; ++n) {
     const double x = static_cast<double>(n);
-    X(2 * n, 2 * n) = x;
-    X(2 * n + 1, 2 * n + 1) = x;
+    const size_t A = site_A(idx, n);
+    const size_t B = site_B(idx, n);
+    X(A, A) = x;
+    X(B, B) = x;
   }
   return X;
 }
@@ -222,9 +262,12 @@ inline arma::mat build_position_operator_cells(size_t num_cells) {
 inline arma::mat build_chiral_operator(size_t num_cells) {
   const size_t num_sites = 2 * num_cells;
   arma::mat W(num_sites, num_sites, arma::fill::zeros);
+  const Index idx = make_index(num_cells);
   for (size_t n = 0; n < num_cells; ++n) {
-    W(2 * n, 2 * n) = 1.0;           // A sublattice
-    W(2 * n + 1, 2 * n + 1) = -1.0;  // B sublattice
+    const size_t A = site_A(idx, n);
+    const size_t B = site_B(idx, n);
+    W(A, A) = 1.0;   // A sublattice
+    W(B, B) = -1.0;  // B sublattice
   }
   return W;
 }
