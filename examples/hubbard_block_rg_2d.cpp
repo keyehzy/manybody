@@ -35,7 +35,7 @@ CliOptions parse_cli_options(int argc, char** argv) {
   CliOptions o;
 
   cxxopts::Options cli("hubbard_block_rg_2d",
-                        "Block RG for attractive 2D Hubbard model (2x2 blocks)");
+                       "Block RG for attractive 2D Hubbard model (2x2 blocks)");
   // clang-format off
   cli.add_options()
       ("t,hopping",     "Hopping amplitude",                cxxopts::value(o.t)->default_value("1.0"))
@@ -136,10 +136,10 @@ struct BrgStepResult {
   double E3;  // ground energy of (N=1, Sz=+1/2)
   double E4;  // ground energy of (N=1, Sz=-1/2)
 
-  double lambda_avg;                      // average lambda
-  double lambda_spin_diff;                // |lambda_up - lambda_down| max
-  double lambda_site_diff;                // |lambda_site1 - lambda_site3| max
-  double closure_error;                   // max closure check deviation
+  double lambda_avg;        // average lambda
+  double lambda_spin_diff;  // |lambda_up - lambda_down| max
+  double lambda_site_diff;  // |lambda_site1 - lambda_site3| max
+  double closure_error;     // max closure check deviation
 };
 
 // ---------------------------------------------------------------------------
@@ -168,7 +168,7 @@ BrgStepResult brg_step(double t, double U, double mu) {
   SectorResult res_N1_down = diagonalize_sector(basis_N1_down, H);
   SectorResult res_N2 = diagonalize_sector(basis_N2, H);
 
-  const double E1 = res_N0.eigenvalues(0);      // ground of (N=0, Sz=0)
+  const double E1 = res_N0.eigenvalues(0);       // ground of (N=0, Sz=0)
   const double E2 = res_N2.eigenvalues(0);       // ground of (N=2, Sz=0)
   const double E3 = res_N1_up.eigenvalues(0);    // ground of (N=1, Sz=+1/2)
   const double E4 = res_N1_down.eigenvalues(0);  // ground of (N=1, Sz=-1/2)
@@ -198,8 +198,8 @@ BrgStepResult brg_step(double t, double U, double mu) {
   double max_closure_error = 0.0;
 
   // Store lambda values per (site, spin) for diagnostics
-  double lambdas[2][2] = {};  // [site_idx][spin_idx]
-  double closures[2][2] = {}; // [site_idx][spin_idx]
+  double lambdas[2][2] = {};   // [site_idx][spin_idx]
+  double closures[2][2] = {};  // [site_idx][spin_idx]
 
   for (size_t si = 0; si < 2; ++si) {
     const size_t site = border_sites[si];
@@ -215,7 +215,8 @@ BrgStepResult brg_step(double t, double U, double mu) {
       const Basis& row_basis = (spi == 0) ? basis_N1_up : basis_N1_down;
       const arma::cx_vec& psi_sigma = (spi == 0) ? psi_up : psi_down;
 
-      arma::cx_mat M = compute_rectangular_matrix_elements<arma::cx_mat>(row_basis, basis_N0, c_dag);
+      arma::cx_mat M =
+          compute_rectangular_matrix_elements<arma::cx_mat>(row_basis, basis_N0, c_dag);
       std::complex<double> lambda_val = arma::cdot(psi_sigma, M * psi_0);
 
       lambdas[si][spi] = std::abs(lambda_val);
@@ -260,9 +261,8 @@ BrgStepResult brg_step(double t, double U, double mu) {
   // Hopping renormalization: t' = nu * lambda^2 * t
   const double t_prime = nu * lambda_avg * lambda_avg * t;
 
-  return BrgStepResult{t_prime,          U_prime,        mu_prime,       K_prime,
-                       E1,               E2,             E3,             E4,
-                       lambda_avg,       max_spin_diff,  max_site_diff,  max_closure_error};
+  return BrgStepResult{t_prime,    U_prime,       mu_prime,      K_prime,          E1, E2, E3, E4,
+                       lambda_avg, max_spin_diff, max_site_diff, max_closure_error};
 }
 
 // ---------------------------------------------------------------------------
@@ -347,11 +347,11 @@ int main(int argc, char** argv) {
     BrgStepResult result = brg_step(t, U, mu);
 
     // Output row
-    std::cout << std::setw(4) << n << "  " << std::setw(13) << t << " " << std::setw(13) << U
-              << " " << std::setw(13) << mu << " " << std::setw(13) << (U / t) << " "
-              << std::setw(13) << (mu / t) << " " << std::setw(13) << result.lambda_avg << " "
-              << std::setw(13) << result.lambda_spin_diff << " " << std::setw(13)
-              << result.lambda_site_diff << " " << std::setw(13) << result.closure_error;
+    std::cout << std::setw(4) << n << "  " << std::setw(13) << t << " " << std::setw(13) << U << " "
+              << std::setw(13) << mu << " " << std::setw(13) << (U / t) << " " << std::setw(13)
+              << (mu / t) << " " << std::setw(13) << result.lambda_avg << " " << std::setw(13)
+              << result.lambda_spin_diff << " " << std::setw(13) << result.lambda_site_diff << " "
+              << std::setw(13) << result.closure_error;
     if (mode_b) {
       std::cout << "   " << (window_exists ? "yes" : "NO");
     }
@@ -362,8 +362,8 @@ int main(int argc, char** argv) {
               << " E3=" << result.E3 << " E4=" << result.E4 << std::endl;
     std::cerr << "  |E3-E4| = " << std::abs(result.E3 - result.E4) << " (spin degeneracy check)"
               << std::endl;
-    std::cerr << "  U'=" << result.U_prime << " mu'=" << result.mu_prime
-              << " K'=" << result.K_prime << " t'=" << result.t_prime << std::endl;
+    std::cerr << "  U'=" << result.U_prime << " mu'=" << result.mu_prime << " K'=" << result.K_prime
+              << " t'=" << result.t_prime << std::endl;
     std::cerr << "  lambda=" << result.lambda_avg << " closure_err=" << result.closure_error
               << std::endl;
     std::cerr << std::endl;
@@ -399,8 +399,8 @@ int main(int argc, char** argv) {
     mu = mode_b ? mu : result.mu_prime;
   }
 
-  std::cerr << "Final parameters: t=" << t << ", U=" << U << ", mu=" << mu
-            << ", U/t=" << (U / t) << std::endl;
+  std::cerr << "Final parameters: t=" << t << ", U=" << U << ", mu=" << mu << ", U/t=" << (U / t)
+            << std::endl;
 
   return 0;
 }
