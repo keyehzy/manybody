@@ -15,8 +15,8 @@
 #include <string>
 
 #include "algebra/basis.h"
-#include "algebra/expression.h"
 #include "algebra/matrix_elements.h"
+#include "algorithms/brg/brg.h"
 #include "cxxopts.hpp"
 
 // ---------------------------------------------------------------------------
@@ -62,116 +62,30 @@ CliOptions parse_cli_options(int argc, char** argv) {
 }
 
 // ---------------------------------------------------------------------------
-// Block Hamiltonian (2x2 open-BC Hubbard)
-// ---------------------------------------------------------------------------
-
-// Sites:  0:(0,0)  1:(0,1)
-//         2:(1,0)  3:(1,1)
-// Bonds:  (0-1), (0-2), (1-3), (2-3)
-
-Expression build_block_hamiltonian(double t, double U, double mu) {
-  constexpr size_t num_sites = 4;
-
-  // Intra-block bonds (open boundary on the 2x2 grid)
-  const std::pair<size_t, size_t> bonds[] = {{0, 1}, {0, 2}, {1, 3}, {2, 3}};
-
-  Expression H;
-
-  // Hopping: -t * sum_{<i,j>,sigma} (c^dag_i c_j + h.c.)
-  for (auto [i, j] : bonds) {
-    for (auto sigma : {Operator::Spin::Up, Operator::Spin::Down}) {
-      H += hopping({-t, 0.0}, i, j, sigma);
-    }
-  }
-
-  // On-site interaction: U * sum_i n_{i,up} n_{i,down}
-  for (size_t i = 0; i < num_sites; ++i) {
-    H += Expression(density_density(Operator::Spin::Up, i, Operator::Spin::Down, i)) *
-         std::complex<double>(U, 0.0);
-  }
-
-  // Chemical potential: -mu * sum_i (n_{i,up} + n_{i,down})
-  for (size_t i = 0; i < num_sites; ++i) {
-    for (auto sigma : {Operator::Spin::Up, Operator::Spin::Down}) {
-      H += Expression(density(sigma, i)) * std::complex<double>(-mu, 0.0);
-    }
-  }
-
-  return H;
-}
-
-// ---------------------------------------------------------------------------
-// Sector diagonalization
-// ---------------------------------------------------------------------------
-
-struct SectorResult {
-  arma::vec eigenvalues;
-  arma::cx_mat eigenvectors;
-};
-
-SectorResult diagonalize_sector(const Basis& basis, const Expression& H) {
-  arma::cx_mat mat = compute_matrix_elements<arma::cx_mat>(basis, H);
-
-  SectorResult result;
-  if (!arma::eig_sym(result.eigenvalues, result.eigenvectors, mat)) {
-    std::cerr << "Diagonalization failed.\n";
-    std::exit(1);
-  }
-  return result;
-}
-
-// ---------------------------------------------------------------------------
-// BRG step result
-// ---------------------------------------------------------------------------
-
-struct BrgStepResult {
-  double t_prime;
-  double U_prime;
-  double mu_prime;
-  double K_prime;
-
-  // Diagnostics
-  double E1;  // ground energy of (N=0, Sz=0)
-  double E2;  // ground energy of (N=2, Sz=0)
-  double E3;  // ground energy of (N=1, Sz=+1/2)
-  double E4;  // ground energy of (N=1, Sz=-1/2)
-
-  double lambda_avg;        // average lambda
-  double lambda_spin_diff;  // |lambda_up - lambda_down| max
-  double lambda_site_diff;  // |lambda_site1 - lambda_site3| max
-  double closure_error;     // max closure check deviation
-};
-
-// ---------------------------------------------------------------------------
 // Single BRG step
 // ---------------------------------------------------------------------------
 
-BrgStepResult brg_step(double t, double U, double mu) {
-  constexpr size_t num_sites = 4;
-  constexpr double nu = 2.0;  // number of inter-block couplings per direction
+brg::BrgStepResult brg_step(double t, double U, double mu) {
+  const auto geometry = brg::block_2d_2x2();
 
-  const Expression H = build_block_hamiltonian(t, U, mu);
+  const Expression H = brg::build_hubbard_block_hamiltonian(geometry, t, U, mu);
 
   // Build sector bases using 4 orbitals (the 2x2 block)
-  // (N=0, Sz=0): vacuum
-  Basis basis_N0 = Basis::with_fixed_particle_number_and_spin(num_sites, 0, 0);
-  // (N=1, Sz=+1): one up-spin electron
-  Basis basis_N1_up = Basis::with_fixed_particle_number_and_spin(num_sites, 1, 1);
-  // (N=1, Sz=-1): one down-spin electron
-  Basis basis_N1_down = Basis::with_fixed_particle_number_and_spin(num_sites, 1, -1);
-  // (N=2, Sz=0): one up + one down
-  Basis basis_N2 = Basis::with_fixed_particle_number_and_spin(num_sites, 2, 0);
+  Basis basis_N0 = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 0, 0);
+  Basis basis_N1_up = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, 1);
+  Basis basis_N1_down = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, -1);
+  Basis basis_N2 = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 2, 0);
 
   // Diagonalize each sector
-  SectorResult res_N0 = diagonalize_sector(basis_N0, H);
-  SectorResult res_N1_up = diagonalize_sector(basis_N1_up, H);
-  SectorResult res_N1_down = diagonalize_sector(basis_N1_down, H);
-  SectorResult res_N2 = diagonalize_sector(basis_N2, H);
+  brg::SectorResult res_N0 = brg::diagonalize_sector(basis_N0, H);
+  brg::SectorResult res_N1_up = brg::diagonalize_sector(basis_N1_up, H);
+  brg::SectorResult res_N1_down = brg::diagonalize_sector(basis_N1_down, H);
+  brg::SectorResult res_N2 = brg::diagonalize_sector(basis_N2, H);
 
-  const double E1 = res_N0.eigenvalues(0);       // ground of (N=0, Sz=0)
-  const double E2 = res_N2.eigenvalues(0);       // ground of (N=2, Sz=0)
-  const double E3 = res_N1_up.eigenvalues(0);    // ground of (N=1, Sz=+1/2)
-  const double E4 = res_N1_down.eigenvalues(0);  // ground of (N=1, Sz=-1/2)
+  const double E1 = res_N0.eigenvalues(0);
+  const double E2 = res_N2.eigenvalues(0);
+  const double E3 = res_N1_up.eigenvalues(0);
+  const double E4 = res_N1_down.eigenvalues(0);
 
   // Ground eigenvectors
   const arma::cx_vec& psi_0 = res_N0.eigenvectors.col(0);
@@ -185,33 +99,24 @@ BrgStepResult brg_step(double t, double U, double mu) {
   const double K_prime = E1;
 
   // Compute lambda: <Psi_sigma | c^dag_{i,sigma} | Psi_0>
-  // Border sites for right edge: sites 1 and 3
-  const size_t border_sites[] = {1, 3};
-
-  // Also compute closure check: <Psi_updown | c^dag_{i,sigma} | Psi_{-sigma}>
-  // which should equal lambda for no-proliferation condition (Eq. 25)
-
   double lambda_sum = 0.0;
   int lambda_count = 0;
   double max_spin_diff = 0.0;
   double max_site_diff = 0.0;
   double max_closure_error = 0.0;
 
-  // Store lambda values per (site, spin) for diagnostics
-  double lambdas[2][2] = {};   // [site_idx][spin_idx]
-  double closures[2][2] = {};  // [site_idx][spin_idx]
+  const size_t num_border = geometry.border_sites.size();
+  std::vector<std::array<double, 2>> lambdas(num_border);
+  std::vector<std::array<double, 2>> closures(num_border);
 
-  for (size_t si = 0; si < 2; ++si) {
-    const size_t site = border_sites[si];
+  for (size_t si = 0; si < num_border; ++si) {
+    const size_t site = geometry.border_sites[si];
 
     for (size_t spi = 0; spi < 2; ++spi) {
       auto sigma = (spi == 0) ? Operator::Spin::Up : Operator::Spin::Down;
 
-      // Build c^dag_{site, sigma} expression
       Expression c_dag(creation(sigma, site));
 
-      // lambda = <Psi_sigma | c^dag_{site,sigma} | Psi_0>
-      // This maps from (N=0,Sz=0) to (N=1,Sz=+/-1/2)
       const Basis& row_basis = (spi == 0) ? basis_N1_up : basis_N1_down;
       const arma::cx_vec& psi_sigma = (spi == 0) ? psi_up : psi_down;
 
@@ -224,7 +129,6 @@ BrgStepResult brg_step(double t, double U, double mu) {
       ++lambda_count;
 
       // Closure check: <Psi_updown | c^dag_{site,sigma} | Psi_{-sigma}>
-      // Maps from (N=1, Sz=-/+1/2) to (N=2, Sz=0)
       const Basis& closure_col_basis = (spi == 0) ? basis_N1_down : basis_N1_up;
       const arma::cx_vec& psi_minus_sigma = (spi == 0) ? psi_down : psi_up;
 
@@ -238,20 +142,20 @@ BrgStepResult brg_step(double t, double U, double mu) {
 
   const double lambda_avg = lambda_sum / lambda_count;
 
-  // Spin-independence check: |lambda_{i,up} - lambda_{i,down}| for each site
-  for (size_t si = 0; si < 2; ++si) {
+  // Spin-independence check
+  for (size_t si = 0; si < num_border; ++si) {
     double diff = std::abs(lambdas[si][0] - lambdas[si][1]);
     max_spin_diff = std::max(max_spin_diff, diff);
   }
 
-  // Site-independence check: |lambda_{1,sigma} - lambda_{3,sigma}| for each spin
+  // Site-independence check
   for (size_t spi = 0; spi < 2; ++spi) {
     double diff = std::abs(lambdas[0][spi] - lambdas[1][spi]);
     max_site_diff = std::max(max_site_diff, diff);
   }
 
-  // Closure error: |lambda - closure| for each (site, spin)
-  for (size_t si = 0; si < 2; ++si) {
+  // Closure error
+  for (size_t si = 0; si < num_border; ++si) {
     for (size_t spi = 0; spi < 2; ++spi) {
       double err = std::abs(lambdas[si][spi] - closures[si][spi]);
       max_closure_error = std::max(max_closure_error, err);
@@ -259,42 +163,35 @@ BrgStepResult brg_step(double t, double U, double mu) {
   }
 
   // Hopping renormalization: t' = nu * lambda^2 * t
-  const double t_prime = nu * lambda_avg * lambda_avg * t;
+  const double t_prime = geometry.nu * lambda_avg * lambda_avg * t;
 
-  return BrgStepResult{t_prime,    U_prime,       mu_prime,      K_prime,          E1, E2, E3, E4,
-                       lambda_avg, max_spin_diff, max_site_diff, max_closure_error};
+  return brg::make_zero_t_result(t_prime, U_prime, mu_prime, K_prime, E1, E2, E3, E4, lambda_avg,
+                                 max_spin_diff, max_site_diff, max_closure_error);
 }
 
 // ---------------------------------------------------------------------------
 // Mode B: tune mu for quarter filling (N=1 per block)
 // ---------------------------------------------------------------------------
 
-// Returns the tuned mu, or the fallback mu if the N=1 window has collapsed.
-// Sets window_exists to indicate whether a valid window was found.
 double tune_mu_for_quarter_filling(double t, double U, bool& window_exists) {
-  constexpr size_t num_sites = 4;
+  const auto geometry = brg::block_2d_2x2();
 
-  // Build Hamiltonian at mu=0
-  const Expression H0 = build_block_hamiltonian(t, U, 0.0);
+  const Expression H0 = brg::build_hubbard_block_hamiltonian(geometry, t, U, 0.0);
 
-  Basis basis_N0 = Basis::with_fixed_particle_number_and_spin(num_sites, 0, 0);
-  Basis basis_N1_up = Basis::with_fixed_particle_number_and_spin(num_sites, 1, 1);
-  Basis basis_N1_down = Basis::with_fixed_particle_number_and_spin(num_sites, 1, -1);
-  Basis basis_N2 = Basis::with_fixed_particle_number_and_spin(num_sites, 2, 0);
+  Basis basis_N0 = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 0, 0);
+  Basis basis_N1_up = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, 1);
+  Basis basis_N1_down = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, -1);
+  Basis basis_N2 = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 2, 0);
 
-  SectorResult res_N0 = diagonalize_sector(basis_N0, H0);
-  SectorResult res_N1_up = diagonalize_sector(basis_N1_up, H0);
-  SectorResult res_N1_down = diagonalize_sector(basis_N1_down, H0);
-  SectorResult res_N2 = diagonalize_sector(basis_N2, H0);
+  brg::SectorResult res_N0 = brg::diagonalize_sector(basis_N0, H0);
+  brg::SectorResult res_N1_up = brg::diagonalize_sector(basis_N1_up, H0);
+  brg::SectorResult res_N1_down = brg::diagonalize_sector(basis_N1_down, H0);
+  brg::SectorResult res_N2 = brg::diagonalize_sector(basis_N2, H0);
 
   const double e0 = res_N0.eigenvalues(0);
   const double e1 = std::min(res_N1_up.eigenvalues(0), res_N1_down.eigenvalues(0));
   const double e2 = res_N2.eigenvalues(0);
 
-  // Stability window for N=1
-  // With chemical potential mu, energy of N-particle sector shifts by -mu*N.
-  // N=1 is ground if: e1 - mu < e0  =>  mu > e1 - e0  (mu_low)
-  //                   e1 - mu < e2 - 2*mu  =>  mu < e2 - e1  (mu_high)
   const double mu_low = e1 - e0;
   const double mu_high = e2 - e1;
 
@@ -303,7 +200,6 @@ double tune_mu_for_quarter_filling(double t, double U, bool& window_exists) {
     return (mu_low + mu_high) / 2.0;
   } else {
     window_exists = false;
-    // Fall back: use midpoint anyway (externally imposed)
     return (mu_low + mu_high) / 2.0;
   }
 }
@@ -344,7 +240,7 @@ int main(int argc, char** argv) {
       mu = tune_mu_for_quarter_filling(t, U, window_exists);
     }
 
-    BrgStepResult result = brg_step(t, U, mu);
+    brg::BrgStepResult result = brg_step(t, U, mu);
 
     // Output row
     std::cout << std::setw(4) << n << "  " << std::setw(13) << t << " " << std::setw(13) << U << " "
@@ -379,14 +275,13 @@ int main(int argc, char** argv) {
       break;
     }
 
-    // Check convergence: parameters changed by less than tolerance
+    // Check convergence
     const double dt = std::abs(result.t_prime - t);
     const double dU = std::abs(result.U_prime - U);
     const double dmu = std::abs(result.mu_prime - mu);
     if (dt / std::abs(t) < 1e-10 && dU / (std::abs(U) + 1e-15) < 1e-10 &&
         dmu / (std::abs(mu) + 1e-15) < 1e-10) {
       std::cerr << "Converged.\n";
-      // Update and print final state
       t = result.t_prime;
       U = result.U_prime;
       mu = mode_b ? mu : result.mu_prime;

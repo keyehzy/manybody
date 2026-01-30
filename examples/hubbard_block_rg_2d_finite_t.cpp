@@ -13,31 +13,12 @@
 #include <cstdlib>
 #include <iomanip>
 #include <iostream>
-#include <limits>
 #include <string>
 
 #include "algebra/basis.h"
-#include "algebra/expression.h"
 #include "algebra/matrix_elements.h"
+#include "algorithms/brg/brg.h"
 #include "cxxopts.hpp"
-
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
-constexpr double kMinTemperature = 1e-15;
-constexpr double kMaxBeta = 1e15;
-
-bool use_zero_temperature(double T) {
-  if (T <= 0.0) {
-    return true;
-  }
-  if (T < kMinTemperature) {
-    return true;
-  }
-  const double beta = 1.0 / T;
-  return beta > kMaxBeta;
-}
 
 // ---------------------------------------------------------------------------
 // CLI
@@ -96,150 +77,23 @@ CliOptions parse_cli_options(int argc, char** argv) {
 }
 
 // ---------------------------------------------------------------------------
-// Block Hamiltonian (2x2 open-BC Hubbard)
-// ---------------------------------------------------------------------------
-
-// Sites:  0:(0,0)  1:(0,1)
-//         2:(1,0)  3:(1,1)
-// Bonds:  (0-1), (0-2), (1-3), (2-3)
-
-Expression build_block_hamiltonian(double t, double U, double mu) {
-  constexpr size_t num_sites = 4;
-
-  // Intra-block bonds (open boundary on the 2x2 grid)
-  const std::pair<size_t, size_t> bonds[] = {{0, 1}, {0, 2}, {1, 3}, {2, 3}};
-
-  Expression H;
-
-  // Hopping: -t * sum_{<i,j>,sigma} (c^dag_i c_j + h.c.)
-  for (auto [i, j] : bonds) {
-    for (auto sigma : {Operator::Spin::Up, Operator::Spin::Down}) {
-      H += hopping({-t, 0.0}, i, j, sigma);
-    }
-  }
-
-  // On-site interaction: U * sum_i n_{i,up} n_{i,down}
-  for (size_t i = 0; i < num_sites; ++i) {
-    H += Expression(density_density(Operator::Spin::Up, i, Operator::Spin::Down, i)) *
-         std::complex<double>(U, 0.0);
-  }
-
-  // Chemical potential: -mu * sum_i (n_{i,up} + n_{i,down})
-  for (size_t i = 0; i < num_sites; ++i) {
-    for (auto sigma : {Operator::Spin::Up, Operator::Spin::Down}) {
-      H += Expression(density(sigma, i)) * std::complex<double>(-mu, 0.0);
-    }
-  }
-
-  return H;
-}
-
-// ---------------------------------------------------------------------------
-// Sector diagonalization
-// ---------------------------------------------------------------------------
-
-struct SectorResult {
-  arma::vec eigenvalues;
-  arma::cx_mat eigenvectors;
-};
-
-SectorResult diagonalize_sector(const Basis& basis, const Expression& H) {
-  arma::cx_mat mat = compute_matrix_elements<arma::cx_mat>(basis, H);
-
-  SectorResult result;
-  if (!arma::eig_sym(result.eigenvalues, result.eigenvectors, mat)) {
-    std::cerr << "Diagonalization failed.\n";
-    std::exit(1);
-  }
-  return result;
-}
-
-// ---------------------------------------------------------------------------
-// Thermal helpers
-// ---------------------------------------------------------------------------
-
-struct ThermalWeights {
-  arma::vec weights;  // normalized exp(-beta E_n) / Z
-  double logZ = 0.0;
-  double free_energy = 0.0;
-};
-
-ThermalWeights compute_thermal_weights(const arma::vec& evals, double beta) {
-  ThermalWeights w;
-  const size_t n = evals.n_elem;
-  w.weights.set_size(n);
-  w.weights.zeros();
-
-  if (n == 0) {
-    w.logZ = -std::numeric_limits<double>::infinity();
-    w.free_energy = 0.0;
-    return w;
-  }
-
-  const double E0 = evals(0);
-  double z_shift = 1.0;
-  for (size_t k = 1; k < n; ++k) {
-    z_shift += std::exp(-beta * (evals(k) - E0));
-  }
-
-  const double log_z_shift = std::log(z_shift);
-  w.logZ = -beta * E0 + log_z_shift;
-  w.free_energy = E0 - (1.0 / beta) * log_z_shift;
-
-  for (size_t k = 0; k < n; ++k) {
-    w.weights(k) = std::exp(-beta * (evals(k) - E0)) / z_shift;
-  }
-
-  return w;
-}
-
-// ---------------------------------------------------------------------------
-// BRG step result
-// ---------------------------------------------------------------------------
-
-struct BrgStepResult {
-  double t_prime;
-  double U_prime;
-  double mu_prime;
-  double K_prime;
-
-  // Diagnostics
-  double E1;  // ground energy of (N=0, Sz=0)
-  double E2;  // ground energy of (N=2, Sz=0)
-  double E3;  // ground energy of (N=1, Sz=+1/2)
-  double E4;  // ground energy of (N=1, Sz=-1/2)
-
-  double F1;  // free energy of (N=0, Sz=0)
-  double F2;  // free energy of (N=2, Sz=0)
-  double F3;  // free energy of (N=1, Sz=+1/2)
-  double F4;  // free energy of (N=1, Sz=-1/2)
-
-  double lambda_avg;        // average lambda amplitude
-  double lambda_sq_avg;     // average lambda^2 used for t'
-  double lambda_spin_diff;  // |lambda_up - lambda_down| max
-  double lambda_site_diff;  // |lambda_site1 - lambda_site3| max
-  double closure_error;     // max closure check deviation
-};
-
-// ---------------------------------------------------------------------------
 // Single BRG step (T=0)
 // ---------------------------------------------------------------------------
 
-BrgStepResult brg_step_zero_t(double t, double U, double mu) {
-  constexpr size_t num_sites = 4;
-  constexpr double nu = 2.0;  // number of inter-block couplings per direction
+brg::BrgStepResult brg_step_zero_t(double t, double U, double mu) {
+  const auto geometry = brg::block_2d_2x2();
 
-  const Expression H = build_block_hamiltonian(t, U, mu);
+  const Expression H = brg::build_hubbard_block_hamiltonian(geometry, t, U, mu);
 
-  Basis basis_N0 = Basis::with_fixed_particle_number_and_spin(num_sites, 0, 0);
-  Basis basis_N1_up = Basis::with_fixed_particle_number_and_spin(num_sites, 1, 1);
-  Basis basis_N1_down = Basis::with_fixed_particle_number_and_spin(num_sites, 1, -1);
-  Basis basis_N2 = Basis::with_fixed_particle_number_and_spin(num_sites, 2, 0);
+  Basis basis_N0 = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 0, 0);
+  Basis basis_N1_up = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, 1);
+  Basis basis_N1_down = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, -1);
+  Basis basis_N2 = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 2, 0);
 
-  SectorResult res_N0 = diagonalize_sector(basis_N0, H);
-  SectorResult res_N1_up = diagonalize_sector(basis_N1_up, H);
-  SectorResult res_N1_down = diagonalize_sector(basis_N1_down, H);
-  SectorResult res_N2 = diagonalize_sector(basis_N2, H);
+  brg::SectorResult res_N0 = brg::diagonalize_sector(basis_N0, H);
+  brg::SectorResult res_N1_up = brg::diagonalize_sector(basis_N1_up, H);
+  brg::SectorResult res_N1_down = brg::diagonalize_sector(basis_N1_down, H);
+  brg::SectorResult res_N2 = brg::diagonalize_sector(basis_N2, H);
 
   const double E1 = res_N0.eigenvalues(0);
   const double E2 = res_N2.eigenvalues(0);
@@ -255,7 +109,7 @@ BrgStepResult brg_step_zero_t(double t, double U, double mu) {
   const double mu_prime = E1 - E3;
   const double K_prime = E1;
 
-  const size_t border_sites[] = {1, 3};
+  const size_t num_border = geometry.border_sites.size();
 
   double lambda_sum = 0.0;
   int lambda_count = 0;
@@ -263,11 +117,11 @@ BrgStepResult brg_step_zero_t(double t, double U, double mu) {
   double max_site_diff = 0.0;
   double max_closure_error = 0.0;
 
-  double lambdas[2][2] = {};   // [site_idx][spin_idx]
-  double closures[2][2] = {};  // [site_idx][spin_idx]
+  std::vector<std::array<double, 2>> lambdas(num_border);
+  std::vector<std::array<double, 2>> closures(num_border);
 
-  for (size_t si = 0; si < 2; ++si) {
-    const size_t site = border_sites[si];
+  for (size_t si = 0; si < num_border; ++si) {
+    const size_t site = geometry.border_sites[si];
 
     for (size_t spi = 0; spi < 2; ++spi) {
       auto sigma = (spi == 0) ? Operator::Spin::Up : Operator::Spin::Down;
@@ -298,7 +152,7 @@ BrgStepResult brg_step_zero_t(double t, double U, double mu) {
 
   const double lambda_avg = lambda_sum / lambda_count;
 
-  for (size_t si = 0; si < 2; ++si) {
+  for (size_t si = 0; si < num_border; ++si) {
     double diff = std::abs(lambdas[si][0] - lambdas[si][1]);
     max_spin_diff = std::max(max_spin_diff, diff);
   }
@@ -308,58 +162,41 @@ BrgStepResult brg_step_zero_t(double t, double U, double mu) {
     max_site_diff = std::max(max_site_diff, diff);
   }
 
-  for (size_t si = 0; si < 2; ++si) {
+  for (size_t si = 0; si < num_border; ++si) {
     for (size_t spi = 0; spi < 2; ++spi) {
       double err = std::abs(lambdas[si][spi] - closures[si][spi]);
       max_closure_error = std::max(max_closure_error, err);
     }
   }
 
-  const double t_prime = nu * lambda_avg * lambda_avg * t;
-  const double lambda_sq_avg = lambda_avg * lambda_avg;
+  const double t_prime = geometry.nu * lambda_avg * lambda_avg * t;
 
-  return BrgStepResult{t_prime,
-                       U_prime,
-                       mu_prime,
-                       K_prime,
-                       E1,
-                       E2,
-                       E3,
-                       E4,
-                       E1,
-                       E2,
-                       E3,
-                       E4,
-                       lambda_avg,
-                       lambda_sq_avg,
-                       max_spin_diff,
-                       max_site_diff,
-                       max_closure_error};
+  return brg::make_zero_t_result(t_prime, U_prime, mu_prime, K_prime, E1, E2, E3, E4, lambda_avg,
+                                 max_spin_diff, max_site_diff, max_closure_error);
 }
 
 // ---------------------------------------------------------------------------
 // Single BRG step (finite T)
 // ---------------------------------------------------------------------------
 
-BrgStepResult brg_step_finite_t(double t, double U, double mu, double T) {
-  if (use_zero_temperature(T)) {
+brg::BrgStepResult brg_step_finite_t(double t, double U, double mu, double T) {
+  if (brg::use_zero_temperature(T)) {
     return brg_step_zero_t(t, U, mu);
   }
 
-  constexpr size_t num_sites = 4;
-  constexpr double nu = 2.0;  // number of inter-block couplings per direction
+  const auto geometry = brg::block_2d_2x2();
 
-  const Expression H = build_block_hamiltonian(t, U, mu);
+  const Expression H = brg::build_hubbard_block_hamiltonian(geometry, t, U, mu);
 
-  Basis basis_N0 = Basis::with_fixed_particle_number_and_spin(num_sites, 0, 0);
-  Basis basis_N1_up = Basis::with_fixed_particle_number_and_spin(num_sites, 1, 1);
-  Basis basis_N1_down = Basis::with_fixed_particle_number_and_spin(num_sites, 1, -1);
-  Basis basis_N2 = Basis::with_fixed_particle_number_and_spin(num_sites, 2, 0);
+  Basis basis_N0 = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 0, 0);
+  Basis basis_N1_up = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, 1);
+  Basis basis_N1_down = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, -1);
+  Basis basis_N2 = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 2, 0);
 
-  SectorResult res_N0 = diagonalize_sector(basis_N0, H);
-  SectorResult res_N1_up = diagonalize_sector(basis_N1_up, H);
-  SectorResult res_N1_down = diagonalize_sector(basis_N1_down, H);
-  SectorResult res_N2 = diagonalize_sector(basis_N2, H);
+  brg::SectorResult res_N0 = brg::diagonalize_sector(basis_N0, H);
+  brg::SectorResult res_N1_up = brg::diagonalize_sector(basis_N1_up, H);
+  brg::SectorResult res_N1_down = brg::diagonalize_sector(basis_N1_down, H);
+  brg::SectorResult res_N2 = brg::diagonalize_sector(basis_N2, H);
 
   const double E1 = res_N0.eigenvalues(0);
   const double E2 = res_N2.eigenvalues(0);
@@ -367,10 +204,10 @@ BrgStepResult brg_step_finite_t(double t, double U, double mu, double T) {
   const double E4 = res_N1_down.eigenvalues(0);
 
   const double beta = 1.0 / T;
-  const ThermalWeights w_N0 = compute_thermal_weights(res_N0.eigenvalues, beta);
-  const ThermalWeights w_N1_up = compute_thermal_weights(res_N1_up.eigenvalues, beta);
-  const ThermalWeights w_N1_down = compute_thermal_weights(res_N1_down.eigenvalues, beta);
-  const ThermalWeights w_N2 = compute_thermal_weights(res_N2.eigenvalues, beta);
+  const brg::ThermalWeights w_N0 = brg::compute_thermal_weights(res_N0.eigenvalues, beta);
+  const brg::ThermalWeights w_N1_up = brg::compute_thermal_weights(res_N1_up.eigenvalues, beta);
+  const brg::ThermalWeights w_N1_down = brg::compute_thermal_weights(res_N1_down.eigenvalues, beta);
+  const brg::ThermalWeights w_N2 = brg::compute_thermal_weights(res_N2.eigenvalues, beta);
 
   const double F1 = w_N0.free_energy;
   const double F2 = w_N2.free_energy;
@@ -386,7 +223,7 @@ BrgStepResult brg_step_finite_t(double t, double U, double mu, double T) {
   const arma::cx_mat& eigvecs_down = res_N1_down.eigenvectors;
   const arma::cx_mat& eigvecs_ud = res_N2.eigenvectors;
 
-  const size_t border_sites[] = {1, 3};
+  const size_t num_border = geometry.border_sites.size();
 
   double lambda_sum = 0.0;
   double lambda_sq_sum = 0.0;
@@ -395,11 +232,11 @@ BrgStepResult brg_step_finite_t(double t, double U, double mu, double T) {
   double max_site_diff = 0.0;
   double max_closure_error = 0.0;
 
-  double lambdas[2][2] = {};   // lambda_th per site/spin
-  double closures[2][2] = {};  // closure_th per site/spin
+  std::vector<std::array<double, 2>> lambdas(num_border);
+  std::vector<std::array<double, 2>> closures(num_border);
 
-  for (size_t si = 0; si < 2; ++si) {
-    const size_t site = border_sites[si];
+  for (size_t si = 0; si < num_border; ++si) {
+    const size_t site = geometry.border_sites[si];
 
     for (size_t spi = 0; spi < 2; ++spi) {
       auto sigma = (spi == 0) ? Operator::Spin::Up : Operator::Spin::Down;
@@ -442,7 +279,7 @@ BrgStepResult brg_step_finite_t(double t, double U, double mu, double T) {
   const double lambda_avg = lambda_sum / lambda_count;
   const double lambda_sq_avg = lambda_sq_sum / lambda_count;
 
-  for (size_t si = 0; si < 2; ++si) {
+  for (size_t si = 0; si < num_border; ++si) {
     double diff = std::abs(lambdas[si][0] - lambdas[si][1]);
     max_spin_diff = std::max(max_spin_diff, diff);
   }
@@ -452,54 +289,52 @@ BrgStepResult brg_step_finite_t(double t, double U, double mu, double T) {
     max_site_diff = std::max(max_site_diff, diff);
   }
 
-  for (size_t si = 0; si < 2; ++si) {
+  for (size_t si = 0; si < num_border; ++si) {
     for (size_t spi = 0; spi < 2; ++spi) {
       double err = std::abs(lambdas[si][spi] - closures[si][spi]);
       max_closure_error = std::max(max_closure_error, err);
     }
   }
 
-  const double t_prime = nu * lambda_sq_avg * t;
+  const double t_prime = geometry.nu * lambda_sq_avg * t;
 
-  return BrgStepResult{t_prime,
-                       U_prime,
-                       mu_prime,
-                       K_prime,
-                       E1,
-                       E2,
-                       E3,
-                       E4,
-                       F1,
-                       F2,
-                       F3,
-                       F4,
-                       lambda_avg,
-                       lambda_sq_avg,
-                       max_spin_diff,
-                       max_site_diff,
-                       max_closure_error};
+  return brg::BrgStepResult{t_prime,
+                            U_prime,
+                            mu_prime,
+                            K_prime,
+                            E1,
+                            E2,
+                            E3,
+                            E4,
+                            F1,
+                            F2,
+                            F3,
+                            F4,
+                            lambda_avg,
+                            lambda_sq_avg,
+                            max_spin_diff,
+                            max_site_diff,
+                            max_closure_error};
 }
 
 // ---------------------------------------------------------------------------
 // Mode B: tune mu for quarter filling (N=1 per block)
 // ---------------------------------------------------------------------------
 
-// Returns the tuned mu, or the fallback mu if the N=1 window has collapsed.
-// Sets window_exists to indicate whether a valid window was found.
 double tune_mu_for_quarter_filling_zero_t(double t, double U, bool& window_exists) {
-  constexpr size_t num_sites = 4;
+  const auto geometry = brg::block_2d_2x2();
 
-  const Expression H0 = build_block_hamiltonian(t, U, 0.0);
+  const Expression H0 = brg::build_hubbard_block_hamiltonian(geometry, t, U, 0.0);
 
-  Basis basis_N0 = Basis::with_fixed_particle_number_and_spin(num_sites, 0, 0);
-  Basis basis_N1_up = Basis::with_fixed_particle_number_and_spin(num_sites, 1, 1);
-  Basis basis_N1_down = Basis::with_fixed_particle_number_and_spin(num_sites, 1, -1);
-  Basis basis_N2 = Basis::with_fixed_particle_number_and_spin(num_sites, 2, 0);
+  Basis basis_N0 = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 0, 0);
+  Basis basis_N1_up = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, 1);
+  Basis basis_N1_down = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, -1);
+  Basis basis_N2 = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 2, 0);
 
-  SectorResult res_N0 = diagonalize_sector(basis_N0, H0);
-  SectorResult res_N1_up = diagonalize_sector(basis_N1_up, H0);
-  SectorResult res_N1_down = diagonalize_sector(basis_N1_down, H0);
-  SectorResult res_N2 = diagonalize_sector(basis_N2, H0);
+  brg::SectorResult res_N0 = brg::diagonalize_sector(basis_N0, H0);
+  brg::SectorResult res_N1_up = brg::diagonalize_sector(basis_N1_up, H0);
+  brg::SectorResult res_N1_down = brg::diagonalize_sector(basis_N1_down, H0);
+  brg::SectorResult res_N2 = brg::diagonalize_sector(basis_N2, H0);
 
   const double e0 = res_N0.eigenvalues(0);
   const double e1 = std::min(res_N1_up.eigenvalues(0), res_N1_down.eigenvalues(0));
@@ -518,29 +353,29 @@ double tune_mu_for_quarter_filling_zero_t(double t, double U, bool& window_exist
 }
 
 double tune_mu_for_quarter_filling_finite_t(double t, double U, double T, bool& window_exists) {
-  if (use_zero_temperature(T)) {
+  if (brg::use_zero_temperature(T)) {
     return tune_mu_for_quarter_filling_zero_t(t, U, window_exists);
   }
 
-  constexpr size_t num_sites = 4;
+  const auto geometry = brg::block_2d_2x2();
 
-  const Expression H0 = build_block_hamiltonian(t, U, 0.0);
+  const Expression H0 = brg::build_hubbard_block_hamiltonian(geometry, t, U, 0.0);
 
-  Basis basis_N0 = Basis::with_fixed_particle_number_and_spin(num_sites, 0, 0);
-  Basis basis_N1_up = Basis::with_fixed_particle_number_and_spin(num_sites, 1, 1);
-  Basis basis_N1_down = Basis::with_fixed_particle_number_and_spin(num_sites, 1, -1);
-  Basis basis_N2 = Basis::with_fixed_particle_number_and_spin(num_sites, 2, 0);
+  Basis basis_N0 = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 0, 0);
+  Basis basis_N1_up = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, 1);
+  Basis basis_N1_down = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, -1);
+  Basis basis_N2 = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 2, 0);
 
-  SectorResult res_N0 = diagonalize_sector(basis_N0, H0);
-  SectorResult res_N1_up = diagonalize_sector(basis_N1_up, H0);
-  SectorResult res_N1_down = diagonalize_sector(basis_N1_down, H0);
-  SectorResult res_N2 = diagonalize_sector(basis_N2, H0);
+  brg::SectorResult res_N0 = brg::diagonalize_sector(basis_N0, H0);
+  brg::SectorResult res_N1_up = brg::diagonalize_sector(basis_N1_up, H0);
+  brg::SectorResult res_N1_down = brg::diagonalize_sector(basis_N1_down, H0);
+  brg::SectorResult res_N2 = brg::diagonalize_sector(basis_N2, H0);
 
   const double beta = 1.0 / T;
-  const ThermalWeights w_N0 = compute_thermal_weights(res_N0.eigenvalues, beta);
-  const ThermalWeights w_N1_up = compute_thermal_weights(res_N1_up.eigenvalues, beta);
-  const ThermalWeights w_N1_down = compute_thermal_weights(res_N1_down.eigenvalues, beta);
-  const ThermalWeights w_N2 = compute_thermal_weights(res_N2.eigenvalues, beta);
+  const brg::ThermalWeights w_N0 = brg::compute_thermal_weights(res_N0.eigenvalues, beta);
+  const brg::ThermalWeights w_N1_up = brg::compute_thermal_weights(res_N1_up.eigenvalues, beta);
+  const brg::ThermalWeights w_N1_down = brg::compute_thermal_weights(res_N1_down.eigenvalues, beta);
+  const brg::ThermalWeights w_N2 = brg::compute_thermal_weights(res_N2.eigenvalues, beta);
 
   const double F0 = w_N0.free_energy;
   const double F1 = 0.5 * (w_N1_up.free_energy + w_N1_down.free_energy);
@@ -600,7 +435,7 @@ int main(int argc, char** argv) {
       mu = tune_mu_for_quarter_filling_finite_t(t, U, T_iter, window_exists);
     }
 
-    BrgStepResult result = brg_step_finite_t(t, U, mu, T_iter);
+    brg::BrgStepResult result = brg_step_finite_t(t, U, mu, T_iter);
 
     const double T_over_t = (std::abs(t) > 0.0) ? (T_iter / t) : 0.0;
 
