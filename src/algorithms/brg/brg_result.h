@@ -23,19 +23,27 @@ struct BrgStepResult {
   double F3;
   double F4;
 
-  // Lambda diagnostics
+  // Lambda diagnostics (single-particle)
   double lambda_avg;        // average lambda amplitude
   double lambda_sq_avg;     // average lambda^2 (used for t')
   double lambda_spin_diff;  // max |lambda_up - lambda_down|
   double lambda_site_diff;  // max |lambda_i - lambda_j| across border sites
   double closure_error;     // max closure check deviation
+
+  // Pairing diagnostics (superconductivity)
+  double lambda_pair_avg;        // average pairing amplitude <psi_N2|c^dag_up c^dag_down|psi_N0>
+  double lambda_pair_site_diff;  // max |lambda_pair_i - lambda_pair_j| across sites
+  double pair_correlation_avg;   // average inter-site pair correlation <Delta^dag_i Delta_j>
 };
 
 /// Create a BrgStepResult for T=0 calculations where F=E.
 inline BrgStepResult make_zero_t_result(double t_prime, double U_prime, double mu_prime,
                                         double K_prime, double E1, double E2, double E3, double E4,
                                         double lambda_avg, double lambda_spin_diff,
-                                        double lambda_site_diff, double closure_error) {
+                                        double lambda_site_diff, double closure_error,
+                                        double lambda_pair_avg = 0.0,
+                                        double lambda_pair_site_diff = 0.0,
+                                        double pair_correlation_avg = 0.0) {
   return BrgStepResult{
       t_prime,
       U_prime,
@@ -54,6 +62,9 @@ inline BrgStepResult make_zero_t_result(double t_prime, double U_prime, double m
       lambda_spin_diff,
       lambda_site_diff,
       closure_error,
+      lambda_pair_avg,
+      lambda_pair_site_diff,
+      pair_correlation_avg,
   };
 }
 

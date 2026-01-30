@@ -162,11 +162,66 @@ brg::BrgStepResult brg_step(double t, double U, double mu) {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // Pairing correlations (superconductivity diagnostics)
+  // ---------------------------------------------------------------------------
+
+  // 1. Pairing amplitude: lambda_pair_i = <psi_N2 | Delta^dag_i | psi_N0>
+  //    where Delta^dag_i = c^dag_{i,up} c^dag_{i,down}
+  std::vector<double> lambda_pairs(geometry.num_sites);
+  double lambda_pair_sum = 0.0;
+
+  for (size_t site = 0; site < geometry.num_sites; ++site) {
+    Expression Delta_dag = brg::pair_creation(site);
+    arma::cx_mat M_pair =
+        compute_rectangular_matrix_elements<arma::cx_mat>(basis_N2, basis_N0, Delta_dag);
+    std::complex<double> pair_val = arma::cdot(psi_ud, M_pair * psi_0);
+    lambda_pairs[site] = std::abs(pair_val);
+    lambda_pair_sum += std::abs(pair_val);
+  }
+
+  const double lambda_pair_avg = lambda_pair_sum / geometry.num_sites;
+
+  // Site-independence check for pairing
+  double max_pair_site_diff = 0.0;
+  for (size_t i = 0; i < geometry.num_sites; ++i) {
+    for (size_t j = i + 1; j < geometry.num_sites; ++j) {
+      double diff = std::abs(lambda_pairs[i] - lambda_pairs[j]);
+      max_pair_site_diff = std::max(max_pair_site_diff, diff);
+    }
+  }
+
+  // 2. Inter-site pair correlation: <psi_N2 | Delta^dag_i Delta_j | psi_N2> for i != j
+  //    This measures pair coherence/delocalization in the two-particle ground state
+  double pair_corr_sum = 0.0;
+  int pair_corr_count = 0;
+
+  for (size_t i = 0; i < geometry.num_sites; ++i) {
+    for (size_t j = 0; j < geometry.num_sites; ++j) {
+      if (i == j) continue;
+
+      // Delta^dag_i Delta_j = c^dag_{i,up} c^dag_{i,down} c_{j,down} c_{j,up}
+      Expression Delta_dag_i = brg::pair_creation(i);
+      Expression Delta_j = brg::pair_annihilation(j);
+      Expression pair_hop = Delta_dag_i * Delta_j;
+
+      arma::cx_mat M_corr =
+          compute_rectangular_matrix_elements<arma::cx_mat>(basis_N2, basis_N2, pair_hop);
+      std::complex<double> corr_val = arma::cdot(psi_ud, M_corr * psi_ud);
+
+      pair_corr_sum += std::real(corr_val);
+      ++pair_corr_count;
+    }
+  }
+
+  const double pair_correlation_avg = (pair_corr_count > 0) ? pair_corr_sum / pair_corr_count : 0.0;
+
   // Hopping renormalization: t' = nu * lambda^2 * t
   const double t_prime = geometry.nu * lambda_avg * lambda_avg * t;
 
   return brg::make_zero_t_result(t_prime, U_prime, mu_prime, K_prime, E1, E2, E3, E4, lambda_avg,
-                                 max_spin_diff, max_site_diff, max_closure_error);
+                                 max_spin_diff, max_site_diff, max_closure_error, lambda_pair_avg,
+                                 max_pair_site_diff, pair_correlation_avg);
 }
 
 // ---------------------------------------------------------------------------
@@ -222,7 +277,8 @@ int main(int argc, char** argv) {
   // Print header
   std::cout << std::setprecision(8) << std::fixed;
   std::cout << "# iter      t             U             mu            U/t           mu/t"
-            << "          lambda        spin_diff     site_diff     closure_err";
+            << "          lambda        spin_diff     site_diff     closure_err"
+            << "   lambda_pair   pair_corr";
   if (mode_b) {
     std::cout << "   window";
   }
@@ -247,7 +303,8 @@ int main(int argc, char** argv) {
               << std::setw(13) << mu << " " << std::setw(13) << (U / t) << " " << std::setw(13)
               << (mu / t) << " " << std::setw(13) << result.lambda_avg << " " << std::setw(13)
               << result.lambda_spin_diff << " " << std::setw(13) << result.lambda_site_diff << " "
-              << std::setw(13) << result.closure_error;
+              << std::setw(13) << result.closure_error << " " << std::setw(13)
+              << result.lambda_pair_avg << " " << std::setw(13) << result.pair_correlation_avg;
     if (mode_b) {
       std::cout << "   " << (window_exists ? "yes" : "NO");
     }
@@ -262,6 +319,9 @@ int main(int argc, char** argv) {
               << " t'=" << result.t_prime << std::endl;
     std::cerr << "  lambda=" << result.lambda_avg << " closure_err=" << result.closure_error
               << std::endl;
+    std::cerr << "  lambda_pair=" << result.lambda_pair_avg
+              << " pair_corr=" << result.pair_correlation_avg
+              << " pair_site_diff=" << result.lambda_pair_site_diff << std::endl;
     std::cerr << std::endl;
 
     // Convergence/divergence checks

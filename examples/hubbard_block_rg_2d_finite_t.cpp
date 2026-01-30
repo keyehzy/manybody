@@ -169,10 +169,62 @@ brg::BrgStepResult brg_step_zero_t(double t, double U, double mu) {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // Pairing correlations (superconductivity diagnostics)
+  // ---------------------------------------------------------------------------
+
+  // 1. Pairing amplitude: lambda_pair_i = <psi_N2 | Delta^dag_i | psi_N0>
+  std::vector<double> lambda_pairs(geometry.num_sites);
+  double lambda_pair_sum = 0.0;
+
+  for (size_t site = 0; site < geometry.num_sites; ++site) {
+    Expression Delta_dag = brg::pair_creation(site);
+    arma::cx_mat M_pair =
+        compute_rectangular_matrix_elements<arma::cx_mat>(basis_N2, basis_N0, Delta_dag);
+    std::complex<double> pair_val = arma::cdot(psi_ud, M_pair * psi_0);
+    lambda_pairs[site] = std::abs(pair_val);
+    lambda_pair_sum += std::abs(pair_val);
+  }
+
+  const double lambda_pair_avg = lambda_pair_sum / geometry.num_sites;
+
+  // Site-independence check for pairing
+  double max_pair_site_diff = 0.0;
+  for (size_t i = 0; i < geometry.num_sites; ++i) {
+    for (size_t j = i + 1; j < geometry.num_sites; ++j) {
+      double diff = std::abs(lambda_pairs[i] - lambda_pairs[j]);
+      max_pair_site_diff = std::max(max_pair_site_diff, diff);
+    }
+  }
+
+  // 2. Inter-site pair correlation: <psi_N2 | Delta^dag_i Delta_j | psi_N2> for i != j
+  double pair_corr_sum = 0.0;
+  int pair_corr_count = 0;
+
+  for (size_t i = 0; i < geometry.num_sites; ++i) {
+    for (size_t j = 0; j < geometry.num_sites; ++j) {
+      if (i == j) continue;
+
+      Expression Delta_dag_i = brg::pair_creation(i);
+      Expression Delta_j = brg::pair_annihilation(j);
+      Expression pair_hop = Delta_dag_i * Delta_j;
+
+      arma::cx_mat M_corr =
+          compute_rectangular_matrix_elements<arma::cx_mat>(basis_N2, basis_N2, pair_hop);
+      std::complex<double> corr_val = arma::cdot(psi_ud, M_corr * psi_ud);
+
+      pair_corr_sum += std::real(corr_val);
+      ++pair_corr_count;
+    }
+  }
+
+  const double pair_correlation_avg = (pair_corr_count > 0) ? pair_corr_sum / pair_corr_count : 0.0;
+
   const double t_prime = geometry.nu * lambda_avg * lambda_avg * t;
 
   return brg::make_zero_t_result(t_prime, U_prime, mu_prime, K_prime, E1, E2, E3, E4, lambda_avg,
-                                 max_spin_diff, max_site_diff, max_closure_error);
+                                 max_spin_diff, max_site_diff, max_closure_error, lambda_pair_avg,
+                                 max_pair_site_diff, pair_correlation_avg);
 }
 
 // ---------------------------------------------------------------------------
@@ -296,6 +348,66 @@ brg::BrgStepResult brg_step_finite_t(double t, double U, double mu, double T) {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // Pairing correlations (superconductivity diagnostics) - finite T
+  // ---------------------------------------------------------------------------
+
+  // 1. Thermal pairing amplitude: sqrt(sum_n w_n |<n|Delta^dag|0>|^2)
+  std::vector<double> lambda_pairs(geometry.num_sites);
+  double lambda_pair_sum = 0.0;
+
+  for (size_t site = 0; site < geometry.num_sites; ++site) {
+    Expression Delta_dag = brg::pair_creation(site);
+    arma::cx_mat M_pair =
+        compute_rectangular_matrix_elements<arma::cx_mat>(basis_N2, basis_N0, Delta_dag);
+    arma::cx_vec v = M_pair * psi_0;
+    arma::cx_vec overlaps = eigvecs_ud.st() * v;
+
+    arma::vec overlap_sq = arma::square(arma::abs(overlaps));
+    double pair_sq = arma::dot(w_N2.weights, overlap_sq);
+    double pair_th = std::sqrt(pair_sq);
+
+    lambda_pairs[site] = pair_th;
+    lambda_pair_sum += pair_th;
+  }
+
+  const double lambda_pair_avg = lambda_pair_sum / geometry.num_sites;
+
+  // Site-independence check for pairing
+  double max_pair_site_diff = 0.0;
+  for (size_t i = 0; i < geometry.num_sites; ++i) {
+    for (size_t j = i + 1; j < geometry.num_sites; ++j) {
+      double diff = std::abs(lambda_pairs[i] - lambda_pairs[j]);
+      max_pair_site_diff = std::max(max_pair_site_diff, diff);
+    }
+  }
+
+  // 2. Inter-site pair correlation (thermally averaged)
+  double pair_corr_sum = 0.0;
+  int pair_corr_count = 0;
+
+  for (size_t i = 0; i < geometry.num_sites; ++i) {
+    for (size_t j = 0; j < geometry.num_sites; ++j) {
+      if (i == j) continue;
+
+      Expression Delta_dag_i = brg::pair_creation(i);
+      Expression Delta_j = brg::pair_annihilation(j);
+      Expression pair_hop = Delta_dag_i * Delta_j;
+
+      arma::cx_mat M_corr =
+          compute_rectangular_matrix_elements<arma::cx_mat>(basis_N2, basis_N2, pair_hop);
+
+      // Thermal average: sum_n w_n <n|O|n>
+      for (arma::uword n = 0; n < eigvecs_ud.n_cols; ++n) {
+        std::complex<double> diag_val = arma::cdot(eigvecs_ud.col(n), M_corr * eigvecs_ud.col(n));
+        pair_corr_sum += w_N2.weights(n) * std::real(diag_val);
+      }
+      ++pair_corr_count;
+    }
+  }
+
+  const double pair_correlation_avg = (pair_corr_count > 0) ? pair_corr_sum / pair_corr_count : 0.0;
+
   const double t_prime = geometry.nu * lambda_sq_avg * t;
 
   return brg::BrgStepResult{t_prime,
@@ -314,7 +426,10 @@ brg::BrgStepResult brg_step_finite_t(double t, double U, double mu, double T) {
                             lambda_sq_avg,
                             max_spin_diff,
                             max_site_diff,
-                            max_closure_error};
+                            max_closure_error,
+                            lambda_pair_avg,
+                            max_pair_site_diff,
+                            pair_correlation_avg};
 }
 
 // ---------------------------------------------------------------------------
@@ -416,6 +531,7 @@ int main(int argc, char** argv) {
   std::cout << std::setprecision(8) << std::fixed;
   std::cout << "# iter      t             U             mu            U/t           mu/t"
             << "          lambda        spin_diff     site_diff     closure_err"
+            << "   lambda_pair   pair_corr"
             << "       T             T/t           F1            F2            F3            F4";
   if (mode_b) {
     std::cout << "   window";
@@ -443,10 +559,11 @@ int main(int argc, char** argv) {
               << std::setw(13) << mu << " " << std::setw(13) << (U / t) << " " << std::setw(13)
               << (mu / t) << " " << std::setw(13) << result.lambda_avg << " " << std::setw(13)
               << result.lambda_spin_diff << " " << std::setw(13) << result.lambda_site_diff << " "
-              << std::setw(13) << result.closure_error << " " << std::setw(13) << T_iter << " "
-              << std::setw(13) << T_over_t << " " << std::setw(13) << result.F1 << " "
-              << std::setw(13) << result.F2 << " " << std::setw(13) << result.F3 << " "
-              << std::setw(13) << result.F4;
+              << std::setw(13) << result.closure_error << " " << std::setw(13)
+              << result.lambda_pair_avg << " " << std::setw(13) << result.pair_correlation_avg
+              << " " << std::setw(13) << T_iter << " " << std::setw(13) << T_over_t << " "
+              << std::setw(13) << result.F1 << " " << std::setw(13) << result.F2 << " "
+              << std::setw(13) << result.F3 << " " << std::setw(13) << result.F4;
     if (mode_b) {
       std::cout << "   " << (window_exists ? "yes" : "NO");
     }
@@ -462,6 +579,9 @@ int main(int argc, char** argv) {
               << " t'=" << result.t_prime << std::endl;
     std::cerr << "  lambda=" << result.lambda_avg << " closure_err=" << result.closure_error
               << std::endl;
+    std::cerr << "  lambda_pair=" << result.lambda_pair_avg
+              << " pair_corr=" << result.pair_correlation_avg
+              << " pair_site_diff=" << result.lambda_pair_site_diff << std::endl;
     std::cerr << std::endl;
 
     const double Ut_ratio = std::abs(U / t);
