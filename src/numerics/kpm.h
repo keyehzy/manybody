@@ -60,20 +60,6 @@ inline std::vector<double> projector_moments(size_t M, double epsilon) {
   return mu;
 }
 
-/// Compute Chebyshev moments for the complementary projector Q = 1 - P
-/// These have opposite sign for m > 0
-inline std::vector<double> complementary_projector_moments(size_t M, double epsilon) {
-  std::vector<double> mu(M + 1);
-  const double acos_eps = std::acos(epsilon);
-
-  mu[0] = acos_eps / std::numbers::pi;
-  for (size_t m = 1; m <= M; ++m) {
-    const double md = static_cast<double>(m);
-    mu[m] = 2.0 * std::sin(md * acos_eps) / (md * std::numbers::pi);
-  }
-  return mu;
-}
-
 /// KPM expansion of projector onto states below E_fermi
 /// P_KPM = Σ_m g_m μ_m T_m(H_scaled)
 ///
@@ -123,6 +109,27 @@ class KPMProjector final : public LinearOperator<arma::vec> {
     // Recurrence: T_{m+1} = 2H T_m - T_{m-1}
     for (size_t m = 2; m <= M_; ++m) {
       arma::vec T_next = 2.0 * (H_scaled_ * T_curr) - T_prev;
+      result += damped_moments_[m] * T_next;
+
+      T_prev = T_curr;
+      T_curr = T_next;
+    }
+
+    return result;
+  }
+
+  /// Apply projector to a complex vector using Chebyshev recurrence
+  arma::cx_vec apply(const arma::cx_vec& v) const {
+    arma::cx_vec T_prev = v;
+    arma::cx_vec result = damped_moments_[0] * T_prev;
+
+    if (M_ == 0) return result;
+
+    arma::cx_vec T_curr = H_scaled_ * v;
+    result += damped_moments_[1] * T_curr;
+
+    for (size_t m = 2; m <= M_; ++m) {
+      arma::cx_vec T_next = 2.0 * (H_scaled_ * T_curr) - T_prev;
       result += damped_moments_[m] * T_next;
 
       T_prev = T_curr;

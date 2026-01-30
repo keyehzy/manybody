@@ -4,6 +4,7 @@
 #include <cmath>
 #include <complex>
 #include <numbers>
+#include <random>
 #include <vector>
 
 #include "numerics/kpm.h"
@@ -104,6 +105,19 @@ struct Marker1D {
     return marker;
   }
 
+  std::vector<double> local_marker_cells() const {
+    arma::cx_mat C = marker_operator();
+    const size_t num_cells = n_sites / 2;
+    std::vector<double> marker(num_cells);
+    const Index idx({2, num_cells});
+    for (size_t n = 0; n < num_cells; ++n) {
+      const size_t A = idx({0, n});
+      const size_t B = idx({1, n});
+      marker[n] = std::imag(C(A, A) + C(B, B)) / 2.0;
+    }
+    return marker;
+  }
+
   /// Spatially averaged marker = (1/L) Σ_r C(r) = (1/L) Tr(Ĉ)
   /// This should give the winding number
   double average_marker() const {
@@ -119,7 +133,12 @@ struct Marker1D {
 };
 
 /// KPM-based 1D topological marker
-/// Uses KPM to approximate the projector P
+/// Uses KPM to approximate the projector P via vector applications
+///
+/// Instead of building the full projector matrix, we use the identity:
+///   C|r⟩ = N1 W [X u + P X|r⟩ - 2 P X u], where u = P|r⟩
+///
+/// This allows computing local markers using only P.apply() calls.
 struct Marker1D_KPM {
   kpm::KPMProjector P_kpm;
   arma::mat W;
@@ -137,202 +156,101 @@ struct Marker1D_KPM {
                size_t kpm_order, double E_fermi = 0.0)
       : P_kpm(H, kpm_order, E_fermi), W(chiral), X(position), n_sites(H.n_rows) {}
 
-  arma::cx_mat marker_operator() const {
+  /// Compute C(r,r) = ⟨r|Ĉ|r⟩ for a single site using vector formulation
+  /// C|r⟩ = N1 W [X u + P X|r⟩ - 2 P X u], where u = P|r⟩
+  double local_marker_at(size_t r) const {
     const std::complex<double> N1(0.0, 2.0 * std::numbers::pi);
 
-    arma::mat P = P_kpm.build_matrix();
-    arma::cx_mat Pc = arma::conv_to<arma::cx_mat>::from(P);
-    arma::cx_mat Qc = arma::eye<arma::cx_mat>(n_sites, n_sites) - Pc;
-    arma::cx_mat Wc = arma::conv_to<arma::cx_mat>::from(W);
+    // Basis vector |r⟩
+    arma::vec e_r(n_sites, arma::fill::zeros);
+    e_r(r) = 1.0;
 
-    arma::cx_mat sum = Qc * X * Pc + Pc * X * Qc;
-    return N1 * (Wc * sum);
+    // u = P|r⟩
+    arma::vec u = P_kpm.apply(e_r);
+    arma::cx_vec u_cx(u, arma::vec(n_sites, arma::fill::zeros));
+
+    // X|r⟩ (column r of X) and X|u⟩
+    arma::cx_vec X_r = X.col(r);
+    arma::cx_vec X_u = X * u_cx;
+
+    // P(X|r⟩) and P(X|u⟩)
+    arma::cx_vec P_X_r = P_kpm.apply(X_r);
+    arma::cx_vec P_X_u = P_kpm.apply(X_u);
+
+    // Combine: X u + P X r - 2 P X u
+    arma::cx_vec combined = X_u + P_X_r - 2.0 * P_X_u;
+
+    // W * combined (only need element r)
+    std::complex<double> W_combined_r = 0.0;
+    for (size_t i = 0; i < n_sites; ++i) {
+      W_combined_r += W(r, i) * combined(i);
+    }
+
+    return std::imag(N1 * W_combined_r);
+  }
+
+  /// Build full marker operator matrix (expensive, for verification only)
+  arma::cx_mat marker_operator() const {
+    const std::complex<double> N1(0.0, 2.0 * std::numbers::pi);
+    arma::cx_mat Wc = arma::conv_to<arma::cx_mat>::from(W);
+    arma::cx_mat C(n_sites, n_sites);
+
+    for (size_t r = 0; r < n_sites; ++r) {
+      arma::vec e_r(n_sites, arma::fill::zeros);
+      e_r(r) = 1.0;
+
+      arma::vec u = P_kpm.apply(e_r);
+      arma::cx_vec u_cx(u, arma::vec(n_sites, arma::fill::zeros));
+
+      arma::cx_vec X_r = X.col(r);
+      arma::cx_vec X_u = X * u_cx;
+
+      arma::cx_vec P_X_r = P_kpm.apply(X_r);
+      arma::cx_vec P_X_u = P_kpm.apply(X_u);
+
+      arma::cx_vec combined = X_u + P_X_r - 2.0 * P_X_u;
+      C.col(r) = N1 * (Wc * combined);
+    }
+    return C;
   }
 
   std::vector<double> local_marker() const {
-    arma::cx_mat C = marker_operator();
     std::vector<double> marker(n_sites);
     for (size_t r = 0; r < n_sites; ++r) {
-      marker[r] = std::imag(C(r, r));
+      marker[r] = local_marker_at(r);
+    }
+    return marker;
+  }
+
+  std::vector<double> local_marker_cells() const {
+    const size_t num_cells = n_sites / 2;
+    std::vector<double> marker(num_cells);
+    const Index idx({2, num_cells});
+    for (size_t n = 0; n < num_cells; ++n) {
+      const size_t A = idx({0, n});
+      const size_t B = idx({1, n});
+      marker[n] = (local_marker_at(A) + local_marker_at(B)) / 2.0;
     }
     return marker;
   }
 
   double average_marker() const {
-    arma::cx_mat C = marker_operator();
-    return std::imag(arma::trace(C)) / static_cast<double>(n_sites);
+    double sum = 0.0;
+    for (size_t r = 0; r < n_sites; ++r) {
+      sum += local_marker_at(r);
+    }
+    return sum / static_cast<double>(n_sites);
   }
 
   double total_marker() const {
-    arma::cx_mat C = marker_operator();
-    return std::imag(arma::trace(C));
+    double sum = 0.0;
+    for (size_t r = 0; r < n_sites; ++r) {
+      sum += local_marker_at(r);
+    }
+    return sum;
   }
 
   size_t expansion_order() const { return P_kpm.expansion_order(); }
-};
-
-/// Lanczos-based 1D topological marker
-/// Uses Lanczos-Ritz to approximate the projector P
-struct Marker1D_Lanczos {
-  const arma::mat& H;
-  arma::mat W;
-  arma::cx_mat X;
-  size_t n_sites;
-  double E_fermi;
-
-  Marker1D_Lanczos(const arma::mat& H_in, const arma::mat& chiral, double E_fermi_in = 0.0)
-      : Marker1D_Lanczos(H_in, chiral, detail::default_position_operator(H_in.n_rows), E_fermi_in) {
-  }
-
-  Marker1D_Lanczos(const arma::mat& H_in, const arma::mat& chiral, const arma::mat& position,
-                   double E_fermi_in = 0.0)
-      : Marker1D_Lanczos(H_in, chiral, detail::to_complex(position), E_fermi_in) {}
-
-  Marker1D_Lanczos(const arma::mat& H_in, const arma::mat& chiral, const arma::cx_mat& position,
-                   double E_fermi_in = 0.0)
-      : H(H_in), W(chiral), X(position), n_sites(H_in.n_rows), E_fermi(E_fermi_in) {}
-
-  /// Build projector using Lanczos from a random starting vector
-  std::pair<arma::mat, size_t> build_projector(size_t max_krylov) const {
-    arma::vec start = arma::randn<arma::vec>(n_sites);
-    start /= arma::norm(start);
-
-    MatrixOperator op(H);
-    auto decomp = lanczos_pass_one(op, start, max_krylov);
-
-    const size_t m = decomp.steps_taken;
-    if (m == 0) {
-      return {arma::mat(n_sites, n_sites, arma::fill::zeros), 0};
-    }
-
-    // Build tridiagonal matrix T
-    arma::mat T(m, m, arma::fill::zeros);
-    for (size_t i = 0; i < m; ++i) {
-      T(i, i) = decomp.alphas[i];
-      if (i + 1 < m) {
-        T(i, i + 1) = decomp.betas[i];
-        T(i + 1, i) = decomp.betas[i];
-      }
-    }
-
-    // Diagonalize T to get Ritz values and vectors
-    arma::vec ritz_vals;
-    arma::mat ritz_vecs_T;
-    arma::eig_sym(ritz_vals, ritz_vecs_T, T);
-
-    // Reconstruct Ritz vectors in full space and build projector
-    arma::mat P(n_sites, n_sites, arma::fill::zeros);
-    for (size_t k = 0; k < m; ++k) {
-      std::vector<double> y_k(m);
-      for (size_t i = 0; i < m; ++i) {
-        y_k[i] = ritz_vecs_T(i, k) * decomp.b_norm;
-      }
-      arma::vec rv = lanczos_pass_two(op, start, decomp, y_k);
-      double norm = arma::norm(rv);
-      if (norm > 1e-10) {
-        rv /= norm;
-        if (ritz_vals(k) < E_fermi) {
-          P += rv * rv.t();
-        }
-      }
-    }
-
-    return {P, m};
-  }
-
-  /// Compute marker with given Krylov dimension
-  std::pair<arma::cx_mat, size_t> marker_operator(size_t max_krylov) const {
-    auto [P, m] = build_projector(max_krylov);
-
-    const std::complex<double> N1(0.0, 2.0 * std::numbers::pi);
-    arma::cx_mat Pc = arma::conv_to<arma::cx_mat>::from(P);
-    arma::cx_mat Qc = arma::eye<arma::cx_mat>(n_sites, n_sites) - Pc;
-    arma::cx_mat Wc = arma::conv_to<arma::cx_mat>::from(W);
-    arma::cx_mat sum = Qc * X * Pc + Pc * X * Qc;
-
-    return {N1 * (Wc * sum), m};
-  }
-
-  std::pair<std::vector<double>, size_t> local_marker(size_t max_krylov) const {
-    auto [C, m] = marker_operator(max_krylov);
-    std::vector<double> marker(n_sites);
-    for (size_t r = 0; r < n_sites; ++r) {
-      marker[r] = std::imag(C(r, r));
-    }
-    return {marker, m};
-  }
-
-  std::pair<double, size_t> average_marker(size_t max_krylov) const {
-    auto [C, m] = marker_operator(max_krylov);
-    return {std::imag(arma::trace(C)) / static_cast<double>(n_sites), m};
-  }
-
-  std::pair<double, size_t> total_marker(size_t max_krylov) const {
-    auto [C, m] = marker_operator(max_krylov);
-    return {std::imag(arma::trace(C)), m};
-  }
-
-  /// Compute with convergence tracking
-  struct ConvergenceResult {
-    double marker;
-    size_t krylov_dim;
-    double error_estimate;
-    bool converged;
-  };
-
-  ConvergenceResult compute_with_convergence(double tolerance = 1e-4,
-                                             size_t max_krylov = 500) const {
-    double prev_marker = 0.0;
-
-    for (size_t m = 10; m <= max_krylov; m += 10) {
-      auto [marker, actual_m] = average_marker(m);
-      double error = std::abs(marker - prev_marker);
-
-      if (error < tolerance && m > 10) {
-        return {marker, actual_m, error, true};
-      }
-
-      prev_marker = marker;
-    }
-
-    auto [marker, actual_m] = average_marker(max_krylov);
-    return {marker, actual_m, std::abs(marker - prev_marker), false};
-  }
-};
-
-/// IPR analysis for Ritz vectors (from Paper 1)
-struct IPRAnalysis {
-  static double ipr_krylov(const arma::vec& initial_state,
-                           const std::vector<arma::vec>& ritz_vectors) {
-    double ipr = 0.0;
-    double norm_sq = 0.0;
-
-    for (const auto& rv : ritz_vectors) {
-      double overlap_sq = std::pow(arma::dot(rv, initial_state), 2);
-      ipr += overlap_sq * overlap_sq;
-      norm_sq += overlap_sq;
-    }
-
-    return (norm_sq > 1e-10) ? ipr / (norm_sq * norm_sq) : 0.0;
-  }
-
-  static double ipr_local(const arma::vec& ritz_vector) {
-    double ipr = 0.0;
-    for (size_t i = 0; i < ritz_vector.n_elem; ++i) {
-      double val = ritz_vector(i);
-      ipr += val * val * val * val;
-    }
-    return ipr;
-  }
-
-  static double ipr_local_average(const std::vector<arma::vec>& ritz_vectors) {
-    if (ritz_vectors.empty()) return 0.0;
-    double sum = 0.0;
-    for (const auto& rv : ritz_vectors) {
-      sum += ipr_local(rv);
-    }
-    return sum / static_cast<double>(ritz_vectors.size());
-  }
 };
 
 }  // namespace topological

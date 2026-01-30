@@ -90,6 +90,40 @@ struct SSHModel : Model {
     return H;
   }
 
+  /// Build the single-particle Hamiltonian with twisted boundary conditions.
+  /// The boundary hopping B_{N-1} <-> A_0 gets a phase factor e^{iθ}.
+  /// This breaks translation symmetry while preserving periodic topology.
+  /// TBC is useful for computing topological invariants.
+  arma::cx_mat single_particle_hamiltonian_tbc(double theta) const {
+    arma::cx_mat H(num_sites, num_sites, arma::fill::zeros);
+    const std::complex<double> phase = std::exp(std::complex<double>(0.0, theta));
+
+    // Intra-cell hopping: A_n <-> B_n (no phase)
+    for (size_t n = 0; n < num_cells; ++n) {
+      const size_t A = site_A(n);
+      const size_t B = site_B(n);
+      H(A, B) = -t1;
+      H(B, A) = -t1;
+    }
+
+    // Inter-cell hopping: B_n <-> A_{n+1}
+    // Bulk hoppings (no phase)
+    for (size_t n = 0; n + 1 < num_cells; ++n) {
+      const size_t B = site_B(n);
+      const size_t A_next = site_A(n + 1);
+      H(B, A_next) = -t2;
+      H(A_next, B) = -t2;
+    }
+
+    // Boundary hopping B_{N-1} <-> A_0 gets the twist phase
+    const size_t B_last = site_B(num_cells - 1);
+    const size_t A_first = site_A(0);
+    H(B_last, A_first) = -t2 * phase;
+    H(A_first, B_last) = -t2 * std::conj(phase);
+
+    return H;
+  }
+
   /// Build the single-particle Hamiltonian with open boundary conditions.
   /// This is important for observing edge states in the topological phase.
   arma::mat single_particle_hamiltonian_obc() const {
