@@ -1,14 +1,14 @@
 #!/bin/bash
 # Generate U-T phase diagram data for the attractive Hubbard model
-# using the 2D Block RG example with superconducting correlation diagnostics.
+# using the 3D Block RG example with superconducting correlation diagnostics.
 #
-# Usage: ./scripts/phase_diagram_scan.sh [output_dir]
+# Usage: ./scripts/phase_diagram_scan_3d.sh [output_dir]
 #
 # Outputs:
-#   - phase_diagram_data.dat: Raw data (U, T, lambda_pair, pair_corr)
-#   - phase_diagram_combined.png: Side-by-side heatmaps
-#   - phase_diagram_lambda_pair.png: Pairing amplitude heatmap
-#   - phase_diagram_pair_corr.png: Pair correlation heatmap
+#   - phase_diagram_3d_data.dat: Raw data (U, T, lambda_pair, pair_corr)
+#   - phase_diagram_3d_combined.png: Side-by-side heatmaps
+#   - phase_diagram_3d_lambda_pair.png: Pairing amplitude heatmap
+#   - phase_diagram_3d_pair_corr.png: Pair correlation heatmap
 
 set -e
 
@@ -16,7 +16,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 OUTPUT_DIR="${1:-$PROJECT_DIR}"
 
-BRG_EXECUTABLE="$PROJECT_DIR/build/examples/example_hubbard_block_rg_2d_finite_t"
+BRG_EXECUTABLE="$PROJECT_DIR/build/examples/example_hubbard_block_rg_3d_finite_t"
 
 if [[ ! -x "$BRG_EXECUTABLE" ]]; then
     echo "Error: BRG executable not found at $BRG_EXECUTABLE"
@@ -25,8 +25,8 @@ if [[ ! -x "$BRG_EXECUTABLE" ]]; then
 fi
 
 echo "============================================================="
-echo "  Attractive Hubbard Model: U-T Phase Diagram Scan"
-echo "  Using 2x2 Block RG at quarter filling (Mode B)"
+echo "  Attractive Hubbard Model: U-T Phase Diagram Scan (3D)"
+echo "  Using 2x2x2 Block RG at 1/8 filling (Mode B)"
 echo "============================================================="
 echo ""
 
@@ -34,7 +34,7 @@ echo ""
 U_VALUES=($(seq 0.0 -1.0 -10.0))
 T_VALUES=($(seq 0.0 0.1 1.0))
 
-DATA_FILE="$OUTPUT_DIR/phase_diagram_data.dat"
+DATA_FILE="$OUTPUT_DIR/phase_diagram_3d_data.dat"
 
 echo "Generating ${#U_VALUES[@]}x${#T_VALUES[@]} grid data..."
 echo "Output: $DATA_FILE"
@@ -42,7 +42,7 @@ echo ""
 
 # Create data file with header
 cat > "$DATA_FILE" << 'EOF'
-# U-T Phase Diagram for Attractive Hubbard Model (2x2 Block RG)
+# U-T Phase Diagram for Attractive Hubbard Model (2x2x2 Block RG, 3D)
 # Columns: U  T  lambda_pair  pair_corr
 # lambda_pair = <psi_N2|c^dag_up c^dag_down|psi_N0> (pairing amplitude)
 # pair_corr = <Delta^dag_i Delta_j> for i!=j (inter-site pair correlation)
@@ -78,9 +78,9 @@ fi
 echo "Generating plots with gnuplot..."
 
 # Plot 1: lambda_pair heatmap
-cat > /tmp/plot_lambda_pair.gp << EOF
+cat > /tmp/plot_3d_lambda_pair.gp << EOF
 set terminal pngcairo size 800,600 enhanced font 'Arial,12'
-set output '$OUTPUT_DIR/phase_diagram_lambda_pair.png'
+set output '$OUTPUT_DIR/phase_diagram_3d_lambda_pair.png'
 
 set title "Pairing Amplitude λ_{pair} = ⟨ψ_{N=2}|c^†_↑c^†_↓|ψ_{N=0}⟩" font 'Arial,14'
 set xlabel "|U|/t (Interaction Strength)" font 'Arial,12'
@@ -95,13 +95,13 @@ set cblabel "λ_{pair}" font 'Arial,12'
 
 splot '$DATA_FILE' using 1:2:3 with pm3d notitle
 EOF
-gnuplot /tmp/plot_lambda_pair.gp
-echo "  Created: $OUTPUT_DIR/phase_diagram_lambda_pair.png"
+gnuplot /tmp/plot_3d_lambda_pair.gp
+echo "  Created: $OUTPUT_DIR/phase_diagram_3d_lambda_pair.png"
 
 # Plot 2: pair_corr heatmap
-cat > /tmp/plot_pair_corr.gp << EOF
+cat > /tmp/plot_3d_pair_corr.gp << EOF
 set terminal pngcairo size 800,600 enhanced font 'Arial,12'
-set output '$OUTPUT_DIR/phase_diagram_pair_corr.png'
+set output '$OUTPUT_DIR/phase_diagram_3d_pair_corr.png'
 
 set title "Inter-site Pair Correlation ⟨Δ^†_i Δ_j⟩ (i≠j)" font 'Arial,14'
 set xlabel "|U|/t (Interaction Strength)" font 'Arial,12'
@@ -116,15 +116,15 @@ set cblabel "⟨Δ^†_i Δ_j⟩" font 'Arial,12'
 
 splot '$DATA_FILE' using 1:2:4 with pm3d notitle
 EOF
-gnuplot /tmp/plot_pair_corr.gp
-echo "  Created: $OUTPUT_DIR/phase_diagram_pair_corr.png"
+gnuplot /tmp/plot_3d_pair_corr.gp
+echo "  Created: $OUTPUT_DIR/phase_diagram_3d_pair_corr.png"
 
 # Plot 3: Combined side-by-side
-cat > /tmp/plot_combined.gp << EOF
+cat > /tmp/plot_3d_combined.gp << EOF
 set terminal pngcairo size 1400,600 enhanced font 'Arial,12'
-set output '$OUTPUT_DIR/phase_diagram_combined.png'
+set output '$OUTPUT_DIR/phase_diagram_3d_combined.png'
 
-set multiplot layout 1,2 title "Attractive Hubbard Model: Superconducting Correlations (2x2 Block RG)" font 'Arial,16'
+set multiplot layout 1,2 title "Attractive Hubbard Model: Superconducting Correlations (2x2x2 Block RG, 3D)" font 'Arial,16'
 
 # Left plot: lambda_pair
 set title "Pairing Amplitude λ_{pair}" font 'Arial,14'
@@ -153,11 +153,11 @@ splot '$DATA_FILE' using 1:2:4 with pm3d notitle
 
 unset multiplot
 EOF
-gnuplot /tmp/plot_combined.gp
-echo "  Created: $OUTPUT_DIR/phase_diagram_combined.png"
+gnuplot /tmp/plot_3d_combined.gp
+echo "  Created: $OUTPUT_DIR/phase_diagram_3d_combined.png"
 
 # Cleanup
-rm -f /tmp/plot_lambda_pair.gp /tmp/plot_pair_corr.gp /tmp/plot_combined.gp
+rm -f /tmp/plot_3d_lambda_pair.gp /tmp/plot_3d_pair_corr.gp /tmp/plot_3d_combined.gp
 
 echo ""
 echo "============================================================="
@@ -165,10 +165,10 @@ echo "  Phase diagram generation complete!"
 echo "============================================================="
 echo ""
 echo "Output files:"
-echo "  $OUTPUT_DIR/phase_diagram_data.dat"
-echo "  $OUTPUT_DIR/phase_diagram_lambda_pair.png"
-echo "  $OUTPUT_DIR/phase_diagram_pair_corr.png"
-echo "  $OUTPUT_DIR/phase_diagram_combined.png"
+echo "  $OUTPUT_DIR/phase_diagram_3d_data.dat"
+echo "  $OUTPUT_DIR/phase_diagram_3d_lambda_pair.png"
+echo "  $OUTPUT_DIR/phase_diagram_3d_pair_corr.png"
+echo "  $OUTPUT_DIR/phase_diagram_3d_combined.png"
 echo ""
 echo "Physical interpretation:"
 echo "  - lambda_pair: Local pairing amplitude (0.25=non-interacting, 0.5=maximal)"
