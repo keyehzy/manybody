@@ -48,12 +48,21 @@ MajoranaExpression::MajoranaExpression(complex_type c) {
 }
 
 MajoranaExpression::MajoranaExpression(int sign, const MajoranaString& str) {
-  hashmap.emplace(str, complex_type{static_cast<double>(sign), 0.0});
+  auto canonical = majorana_string::canonicalize(str);
+  auto coeff = complex_type{static_cast<double>(sign * canonical.sign), 0.0};
+  if (!is_zero(coeff)) {
+    hashmap.emplace(std::move(canonical.string), coeff);
+  }
 }
 
 MajoranaExpression::MajoranaExpression(complex_type c, const MajoranaString& str) {
-  if (!is_zero(c)) {
-    hashmap.emplace(str, c);
+  if (is_zero(c)) {
+    return;
+  }
+  auto canonical = majorana_string::canonicalize(str);
+  auto coeff = c * static_cast<double>(canonical.sign);
+  if (!is_zero(coeff)) {
+    hashmap.emplace(std::move(canonical.string), coeff);
   }
 }
 

@@ -44,12 +44,12 @@ TEST_CASE("majorana_conversion_single_creation") {
   MajoranaString odd_str = make_string({odd(0, Operator::Spin::Up)});
   CHECK(maj.size() == 2u);
 
-  auto it_e = maj.hashmap.find(even_str);
-  CHECK(it_e != maj.hashmap.end());
+  auto it_e = maj.terms().find(even_str);
+  CHECK(it_e != maj.terms().end());
   CHECK(std::abs(it_e->second - MajoranaExpression::complex_type(0.5, 0.0)) < 1e-12);
 
-  auto it_o = maj.hashmap.find(odd_str);
-  CHECK(it_o != maj.hashmap.end());
+  auto it_o = maj.terms().find(odd_str);
+  CHECK(it_o != maj.terms().end());
   CHECK(std::abs(it_o->second - MajoranaExpression::complex_type(0.0, 0.5)) < 1e-12);
 }
 
@@ -64,12 +64,12 @@ TEST_CASE("majorana_conversion_single_annihilation") {
   MajoranaString odd_str = make_string({odd(0, Operator::Spin::Up)});
   CHECK(maj.size() == 2u);
 
-  auto it_e = maj.hashmap.find(even_str);
-  CHECK(it_e != maj.hashmap.end());
+  auto it_e = maj.terms().find(even_str);
+  CHECK(it_e != maj.terms().end());
   CHECK(std::abs(it_e->second - MajoranaExpression::complex_type(0.5, 0.0)) < 1e-12);
 
-  auto it_o = maj.hashmap.find(odd_str);
-  CHECK(it_o != maj.hashmap.end());
+  auto it_o = maj.terms().find(odd_str);
+  CHECK(it_o != maj.terms().end());
   CHECK(std::abs(it_o->second - MajoranaExpression::complex_type(0.0, -0.5)) < 1e-12);
 }
 
@@ -84,12 +84,12 @@ TEST_CASE("majorana_conversion_density_operator") {
   MajoranaString empty;
   MajoranaString pair = make_string({even(0, Operator::Spin::Up), odd(0, Operator::Spin::Up)});
 
-  auto it_id = maj.hashmap.find(empty);
-  CHECK(it_id != maj.hashmap.end());
+  auto it_id = maj.terms().find(empty);
+  CHECK(it_id != maj.terms().end());
   CHECK(std::abs(it_id->second - MajoranaExpression::complex_type(0.5, 0.0)) < 1e-12);
 
-  auto it_pair = maj.hashmap.find(pair);
-  CHECK(it_pair != maj.hashmap.end());
+  auto it_pair = maj.terms().find(pair);
+  CHECK(it_pair != maj.terms().end());
   CHECK(std::abs(it_pair->second - MajoranaExpression::complex_type(0.0, -0.5)) < 1e-12);
 
   CHECK(maj.size() == 2u);

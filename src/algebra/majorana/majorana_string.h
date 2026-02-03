@@ -82,3 +82,20 @@ inline constexpr MajoranaProduct multiply_strings(const MajoranaString& a,
 
   return result;
 }
+
+namespace majorana_string {
+inline MajoranaProduct canonicalize(const MajoranaString& str) noexcept {
+  MajoranaProduct result;
+  result.sign = 1;
+
+  for (const auto& op : str) {
+    MajoranaString single;
+    single.push_back(op);
+    auto product = multiply_strings(result.string, single);
+    result.sign *= product.sign;
+    result.string = product.string;
+  }
+
+  return result;
+}
+}  // namespace majorana_string

@@ -11,8 +11,6 @@ struct MajoranaExpression {
   using complex_type = std::complex<double>;
   using map_type = robin_hood::unordered_map<MajoranaString, complex_type>;
 
-  map_type hashmap{};
-
   MajoranaExpression() = default;
   ~MajoranaExpression() = default;
 
@@ -34,6 +32,8 @@ struct MajoranaExpression {
   void to_string(std::ostringstream& oss) const;
   std::string to_string() const;
 
+  const map_type& terms() const noexcept { return hashmap; }
+
   MajoranaExpression& operator+=(const complex_type& value);
   MajoranaExpression& operator-=(const complex_type& value);
   MajoranaExpression& operator*=(const complex_type& value);
@@ -48,6 +48,10 @@ struct MajoranaExpression {
                                            const MajoranaExpression& B);
 
   static bool is_zero(const complex_type& value);
+
+ private:
+  map_type hashmap{};
+
   static void add_to_map(map_type& target, const MajoranaString& str, const complex_type& coeff);
   static void add_to_map(map_type& target, MajoranaString&& str, const complex_type& coeff);
 };

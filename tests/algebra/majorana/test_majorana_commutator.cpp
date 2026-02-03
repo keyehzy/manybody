@@ -27,8 +27,8 @@ TEST_CASE("majorana_clifford_anticommutator_same_index") {
 
   MajoranaString empty;
   CHECK(result.size() == 1u);
-  auto it = result.hashmap.find(empty);
-  CHECK(it != result.hashmap.end());
+  auto it = result.terms().find(empty);
+  CHECK(it != result.terms().end());
   CHECK(std::abs(it->second - MajoranaExpression::complex_type(2.0, 0.0)) < 1e-12);
 }
 
@@ -66,8 +66,8 @@ TEST_CASE("majorana_commutator_different_indices") {
   MajoranaString expected =
       make_string({even(0, Operator::Spin::Down), even(1, Operator::Spin::Up)});
   CHECK(result.size() == 1u);
-  auto it = result.hashmap.find(expected);
-  CHECK(it != result.hashmap.end());
+  auto it = result.terms().find(expected);
+  CHECK(it != result.terms().end());
   CHECK(std::abs(it->second - MajoranaExpression::complex_type(2.0, 0.0)) < 1e-12);
 }
 
@@ -85,9 +85,9 @@ TEST_CASE("majorana_commutator_distributes_over_sum") {
   auto expected = commutator(a, c) + commutator(b, c);
 
   CHECK(result.size() == expected.size());
-  for (const auto& [str, coeff] : expected.hashmap) {
-    auto it = result.hashmap.find(str);
-    CHECK(it != result.hashmap.end());
+  for (const auto& [str, coeff] : expected.terms()) {
+    auto it = result.terms().find(str);
+    CHECK(it != result.terms().end());
     CHECK(std::abs(it->second - coeff) < 1e-12);
   }
 }
@@ -106,9 +106,9 @@ TEST_CASE("majorana_anticommutator_distributes_over_sum") {
   auto expected = anticommutator(a, c) + anticommutator(b, c);
 
   CHECK(result.size() == expected.size());
-  for (const auto& [str, coeff] : expected.hashmap) {
-    auto it = result.hashmap.find(str);
-    CHECK(it != result.hashmap.end());
+  for (const auto& [str, coeff] : expected.terms()) {
+    auto it = result.terms().find(str);
+    CHECK(it != result.terms().end());
     CHECK(std::abs(it->second - coeff) < 1e-12);
   }
 }
@@ -161,8 +161,8 @@ TEST_CASE("majorana_commutator_string_with_overlap") {
   MajoranaString expected =
       make_string({even(0, Operator::Spin::Down), odd(0, Operator::Spin::Up)});
   CHECK(result.size() == 1u);
-  auto it = result.hashmap.find(expected);
-  CHECK(it != result.hashmap.end());
+  auto it = result.terms().find(expected);
+  CHECK(it != result.terms().end());
   CHECK(std::abs(it->second - MajoranaExpression::complex_type(-2.0, 0.0)) < 1e-12);
 }
 

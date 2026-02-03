@@ -58,7 +58,7 @@ Expression from_majorana(const MajoranaExpression& expr) {
   NormalOrderer orderer;
   Expression result;
 
-  for (const auto& [str, coeff] : expr.hashmap) {
+  for (const auto& [str, coeff] : expr.terms()) {
     Expression term_expr(coeff);
 
     for (const auto& element : str) {
