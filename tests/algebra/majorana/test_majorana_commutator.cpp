@@ -6,7 +6,7 @@ namespace majorana_commutator_tests {
 
 static MajoranaString make_string(std::initializer_list<MajoranaElement> elements) {
   MajoranaString str;
-  str.data.append_range(elements.begin(), elements.end());
+  str.append_range(elements.begin(), elements.end());
   return str;
 }
 

@@ -23,8 +23,8 @@ MajoranaExpression to_majorana(const Expression& expr) {
       const Operator op = ops[k];
       MajoranaString even_str;
       MajoranaString odd_str;
-      even_str.data.push_back(MajoranaElement::even(op.value(), op.spin()));
-      odd_str.data.push_back(MajoranaElement::odd(op.value(), op.spin()));
+      even_str.push_back(MajoranaElement::even(op.value(), op.spin()));
+      odd_str.push_back(MajoranaElement::odd(op.value(), op.spin()));
 
       // c+  = (gamma_e + i * gamma_o) / 2
       // c   = (gamma_e - i * gamma_o) / 2
@@ -61,7 +61,7 @@ Expression from_majorana(const MajoranaExpression& expr) {
   for (const auto& [str, coeff] : expr.hashmap) {
     Expression term_expr(coeff);
 
-    for (const auto& element : str.data) {
+    for (const auto& element : str) {
       const size_t orbital = element.orbital();
       const auto spin = element.spin();
 

@@ -6,7 +6,7 @@ namespace majorana_string_tests {
 
 static MajoranaString make_string(std::initializer_list<MajoranaElement> elements) {
   MajoranaString str;
-  str.data.append_range(elements.begin(), elements.end());
+  str.append_range(elements.begin(), elements.end());
   return str;
 }
 
@@ -55,7 +55,7 @@ TEST_CASE("majorana_string_overlap_cancellation") {
 
   auto result = multiply_strings(a, b);
 
-  CHECK(result.string.data.empty());
+  CHECK(result.string.empty());
   // gamma_1 gamma_3 gamma_5 * gamma_1 gamma_3 gamma_5
   // b[0]=1 matches a[0], passes 2 remaining a (even) => no flip (still +1)
   // b[1]=3 matches a[1], passes 1 remaining a (odd)  => flip   (now -1)
@@ -84,7 +84,7 @@ TEST_CASE("majorana_string_self_multiply_single_index") {
 
   auto result = multiply_strings(a, a);
 
-  CHECK(result.string.data.empty());
+  CHECK(result.string.empty());
   CHECK(result.sign == 1);
 }
 

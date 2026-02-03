@@ -56,17 +56,7 @@ struct MajoranaElement {
   storage_type data{};
 };
 
-struct MajoranaString {
-  static_vector<MajoranaElement, 24, std::uint8_t> data{};
-};
-
-inline bool operator==(const MajoranaString& lhs, const MajoranaString& rhs) noexcept {
-  return lhs.data == rhs.data;
-}
-
-inline bool operator!=(const MajoranaString& lhs, const MajoranaString& rhs) noexcept {
-  return !(lhs == rhs);
-}
+using MajoranaString = static_vector<MajoranaElement, 24, std::uint8_t>;
 
 struct MajoranaProduct {
   int sign = 1;
@@ -84,14 +74,14 @@ inline MajoranaProduct multiply_strings(const MajoranaString& a, const MajoranaS
   // Count how many elements from b must pass elements from a (= swaps).
   size_t i = 0;
   size_t j = 0;
-  const size_t na = a.data.size();
-  const size_t nb = b.data.size();
+  const size_t na = a.size();
+  const size_t nb = b.size();
 
   while (i < na && j < nb) {
-    if (a.data[i] < b.data[j]) {
-      result.string.data.push_back(a.data[i]);
+    if (a[i] < b[j]) {
+      result.string.push_back(a[i]);
       ++i;
-    } else if (a.data[i] > b.data[j]) {
+    } else if (a[i] > b[j]) {
       // b[j] must hop past (na - i) remaining elements of a in the merged
       // string.  But we only need parity of the number of swaps past the
       // *surviving* elements already placed, so just count the remaining a
@@ -99,7 +89,7 @@ inline MajoranaProduct multiply_strings(const MajoranaString& a, const MajoranaS
       if ((na - i) % 2 != 0) {
         result.sign = -result.sign;
       }
-      result.string.data.push_back(b.data[j]);
+      result.string.push_back(b[j]);
       ++j;
     } else {
       // Equal indices: gamma_i * gamma_i = 1 (cancel the pair).
@@ -115,20 +105,13 @@ inline MajoranaProduct multiply_strings(const MajoranaString& a, const MajoranaS
 
   // Append remaining elements from whichever string is not exhausted.
   while (i < na) {
-    result.string.data.push_back(a.data[i]);
+    result.string.push_back(a[i]);
     ++i;
   }
   while (j < nb) {
-    result.string.data.push_back(b.data[j]);
+    result.string.push_back(b[j]);
     ++j;
   }
 
   return result;
 }
-
-namespace std {
-template <>
-struct hash<MajoranaString> {
-  size_t operator()(const MajoranaString& value) const noexcept { return value.data.hash(); }
-};
-}  // namespace std
