@@ -1,62 +1,12 @@
 #pragma once
 
-#include <cassert>
 #include <cstddef>
 #include <cstdint>
-#include <limits>
 
-#include "algebra/operator.h"
+#include "algebra/majorana/majorana_operator.h"
 #include "utils/static_vector.h"
 
-struct MajoranaElement {
-  using storage_type = std::uint16_t;
-
-  enum class Parity : storage_type { Even = 0, Odd = 1 };
-
-  constexpr MajoranaElement() noexcept = default;
-
-  constexpr MajoranaElement(std::size_t orbital, Operator::Spin spin, Parity parity) noexcept
-      : data(pack(orbital, spin, parity)) {}
-
-  constexpr std::size_t orbital() const noexcept { return static_cast<std::size_t>(data >> 2); }
-
-  constexpr Operator::Spin spin() const noexcept {
-    return ((data & storage_type{1}) == storage_type{0}) ? Operator::Spin::Up
-                                                         : Operator::Spin::Down;
-  }
-
-  constexpr Parity parity() const noexcept {
-    return ((data >> 1) & storage_type{1}) == storage_type{0} ? Parity::Even : Parity::Odd;
-  }
-
-  constexpr bool is_even() const noexcept { return parity() == Parity::Even; }
-  constexpr bool is_odd() const noexcept { return parity() == Parity::Odd; }
-
-  constexpr bool operator<(MajoranaElement other) const noexcept { return data < other.data; }
-  constexpr bool operator>(MajoranaElement other) const noexcept { return data > other.data; }
-  constexpr bool operator==(MajoranaElement other) const noexcept { return data == other.data; }
-  constexpr bool operator!=(MajoranaElement other) const noexcept { return data != other.data; }
-
-  constexpr static MajoranaElement even(std::size_t orbital, Operator::Spin spin) noexcept {
-    return MajoranaElement(orbital, spin, Parity::Even);
-  }
-
-  constexpr static MajoranaElement odd(std::size_t orbital, Operator::Spin spin) noexcept {
-    return MajoranaElement(orbital, spin, Parity::Odd);
-  }
-
- private:
-  static constexpr storage_type pack(std::size_t orbital, Operator::Spin spin,
-                                     Parity parity) noexcept {
-    assert(orbital <= (std::numeric_limits<storage_type>::max() - 3u) / 4u);
-    return static_cast<storage_type>(4u * orbital + 2u * static_cast<storage_type>(parity) +
-                                     static_cast<storage_type>(spin));
-  }
-
-  storage_type data{};
-};
-
-using MajoranaString = static_vector<MajoranaElement, 24, std::uint8_t>;
+using MajoranaString = static_vector<MajoranaOperator, 24, std::uint8_t>;
 
 struct MajoranaProduct {
   int sign = 1;

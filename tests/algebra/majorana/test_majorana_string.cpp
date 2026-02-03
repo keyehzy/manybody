@@ -4,18 +4,18 @@
 
 namespace majorana_string_tests {
 
-static MajoranaString make_string(std::initializer_list<MajoranaElement> elements) {
+static MajoranaString make_string(std::initializer_list<MajoranaOperator> elements) {
   MajoranaString str;
   str.append_range(elements.begin(), elements.end());
   return str;
 }
 
-static MajoranaElement even(size_t orbital, Operator::Spin spin) {
-  return MajoranaElement::even(orbital, spin);
+static MajoranaOperator even(size_t orbital, Operator::Spin spin) {
+  return MajoranaOperator::even(orbital, spin);
 }
 
-static MajoranaElement odd(size_t orbital, Operator::Spin spin) {
-  return MajoranaElement::odd(orbital, spin);
+static MajoranaOperator odd(size_t orbital, Operator::Spin spin) {
+  return MajoranaOperator::odd(orbital, spin);
 }
 
 TEST_CASE("majorana_string_disjoint_multiply_concatenates") {
@@ -132,28 +132,28 @@ TEST_CASE("majorana_string_three_element_anticommutation") {
 }
 
 TEST_CASE("majorana_element_accessors") {
-  auto even_elem = MajoranaElement::even(3, Operator::Spin::Up);
-  auto odd_elem = MajoranaElement::odd(2, Operator::Spin::Down);
+  auto even_elem = MajoranaOperator::even(3, Operator::Spin::Up);
+  auto odd_elem = MajoranaOperator::odd(2, Operator::Spin::Down);
 
   CHECK(even_elem.orbital() == 3u);
   CHECK(even_elem.spin() == Operator::Spin::Up);
-  CHECK(even_elem.parity() == MajoranaElement::Parity::Even);
+  CHECK(even_elem.parity() == MajoranaOperator::Parity::Even);
   CHECK(even_elem.is_even());
   CHECK(!even_elem.is_odd());
 
   CHECK(odd_elem.orbital() == 2u);
   CHECK(odd_elem.spin() == Operator::Spin::Down);
-  CHECK(odd_elem.parity() == MajoranaElement::Parity::Odd);
+  CHECK(odd_elem.parity() == MajoranaOperator::Parity::Odd);
   CHECK(!odd_elem.is_even());
   CHECK(odd_elem.is_odd());
 }
 
 TEST_CASE("majorana_element_ordering_by_packed_bits") {
-  auto e_u0 = MajoranaElement::even(0, Operator::Spin::Up);
-  auto e_d0 = MajoranaElement::even(0, Operator::Spin::Down);
-  auto o_u0 = MajoranaElement::odd(0, Operator::Spin::Up);
-  auto o_d0 = MajoranaElement::odd(0, Operator::Spin::Down);
-  auto e_u1 = MajoranaElement::even(1, Operator::Spin::Up);
+  auto e_u0 = MajoranaOperator::even(0, Operator::Spin::Up);
+  auto e_d0 = MajoranaOperator::even(0, Operator::Spin::Down);
+  auto o_u0 = MajoranaOperator::odd(0, Operator::Spin::Up);
+  auto o_d0 = MajoranaOperator::odd(0, Operator::Spin::Down);
+  auto e_u1 = MajoranaOperator::even(1, Operator::Spin::Up);
 
   CHECK(e_u0 < e_d0);
   CHECK(e_d0 < o_u0);

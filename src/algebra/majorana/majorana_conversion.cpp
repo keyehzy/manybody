@@ -23,8 +23,8 @@ MajoranaExpression to_majorana(const Expression& expr) {
       const Operator op = ops[k];
       MajoranaString even_str;
       MajoranaString odd_str;
-      even_str.push_back(MajoranaElement::even(op.value(), op.spin()));
-      odd_str.push_back(MajoranaElement::odd(op.value(), op.spin()));
+      even_str.push_back(MajoranaOperator::even(op.value(), op.spin()));
+      odd_str.push_back(MajoranaOperator::odd(op.value(), op.spin()));
 
       // c+  = (gamma_e + i * gamma_o) / 2
       // c   = (gamma_e - i * gamma_o) / 2

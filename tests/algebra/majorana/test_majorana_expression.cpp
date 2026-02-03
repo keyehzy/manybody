@@ -5,18 +5,18 @@
 
 namespace majorana_expression_tests {
 
-static MajoranaString make_string(std::initializer_list<MajoranaElement> elements) {
+static MajoranaString make_string(std::initializer_list<MajoranaOperator> elements) {
   MajoranaString str;
   str.append_range(elements.begin(), elements.end());
   return str;
 }
 
-static MajoranaElement even(size_t orbital, Operator::Spin spin) {
-  return MajoranaElement::even(orbital, spin);
+static MajoranaOperator even(size_t orbital, Operator::Spin spin) {
+  return MajoranaOperator::even(orbital, spin);
 }
 
-static MajoranaElement odd(size_t orbital, Operator::Spin spin) {
-  return MajoranaElement::odd(orbital, spin);
+static MajoranaOperator odd(size_t orbital, Operator::Spin spin) {
+  return MajoranaOperator::odd(orbital, spin);
 }
 
 TEST_CASE("majorana_expression_construct_from_scalar") {
