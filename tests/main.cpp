@@ -1,6 +1,10 @@
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
 
+#include "algebra/majorana/test_majorana_commutator.cpp"
+#include "algebra/majorana/test_majorana_conversion.cpp"
+#include "algebra/majorana/test_majorana_expression.cpp"
+#include "algebra/majorana/test_majorana_string.cpp"
 #include "algebra/test_basis.cpp"
 #include "algebra/test_commutator.cpp"
 #include "algebra/test_expression.cpp"
