@@ -4,7 +4,7 @@
 #include <sstream>
 #include <string>
 
-#include "algebra/majorana/majorana_string.h"
+#include "algebra/majorana/string.h"
 #include "robin_hood.h"
 
 namespace majorana {

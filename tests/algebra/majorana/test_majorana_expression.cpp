@@ -1,6 +1,6 @@
 #include <catch2/catch.hpp>
 
-#include "algebra/majorana/majorana_expression.h"
+#include "algebra/majorana/expression.h"
 #include "utils/tolerances.h"
 
 using namespace majorana;

@@ -1,4 +1,4 @@
-#include "algebra/majorana/majorana_commutator.h"
+#include "algebra/majorana/commutator.h"
 
 namespace majorana {
 

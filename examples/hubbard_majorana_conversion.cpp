@@ -1,7 +1,7 @@
 #include <cstddef>
 #include <iostream>
 
-#include "algebra/majorana/majorana_conversion.h"
+#include "algebra/majorana/conversion.h"
 #include "algebra/model/hubbard_model.h"
 
 using namespace majorana;

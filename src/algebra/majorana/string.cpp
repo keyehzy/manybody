@@ -1,4 +1,4 @@
-#include "algebra/majorana/majorana_string.h"
+#include "algebra/majorana/string.h"
 
 namespace majorana {
 

@@ -5,7 +5,7 @@
 #include <sstream>
 #include <string>
 
-#include "algebra/majorana/majorana_operator.h"
+#include "algebra/majorana/operator.h"
 #include "utils/static_vector.h"
 
 namespace majorana {

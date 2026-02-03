@@ -1,6 +1,6 @@
 #include <catch2/catch.hpp>
 
-#include "algebra/majorana/majorana_commutator.h"
+#include "algebra/majorana/commutator.h"
 
 using namespace majorana;
 

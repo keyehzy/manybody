@@ -1,6 +1,6 @@
 #pragma once
 
-#include "algebra/majorana/majorana_expression.h"
+#include "algebra/majorana/expression.h"
 
 namespace majorana {
 

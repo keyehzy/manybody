@@ -1,7 +1,7 @@
 #include <catch2/catch.hpp>
 #include <cstdint>
 
-#include "algebra/majorana/majorana_operator.h"
+#include "algebra/majorana/operator.h"
 
 using namespace majorana;
 

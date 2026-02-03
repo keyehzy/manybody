@@ -1,6 +1,6 @@
 #include <catch2/catch.hpp>
 
-#include "algebra/majorana/majorana_string.h"
+#include "algebra/majorana/string.h"
 
 using namespace majorana;
 

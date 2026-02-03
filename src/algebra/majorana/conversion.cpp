@@ -1,4 +1,4 @@
-#include "algebra/majorana/majorana_conversion.h"
+#include "algebra/majorana/conversion.h"
 
 #include "algebra/normal_order.h"
 

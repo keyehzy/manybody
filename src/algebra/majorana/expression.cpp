@@ -1,4 +1,4 @@
-#include "algebra/majorana/majorana_expression.h"
+#include "algebra/majorana/expression.h"
 
 #include <algorithm>
 #include <sstream>
