@@ -3,6 +3,8 @@
 #include "algebra/majorana/majorana_expression.h"
 #include "utils/tolerances.h"
 
+using namespace majorana;
+
 namespace majorana_expression_tests {
 
 static MajoranaString make_string(std::initializer_list<MajoranaOperator> elements) {

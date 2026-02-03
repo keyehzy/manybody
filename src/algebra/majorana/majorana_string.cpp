@@ -1,6 +1,6 @@
 #include "algebra/majorana/majorana_string.h"
 
-namespace majorana_string {
+namespace majorana {
 
 void to_string(std::ostringstream& oss, const MajoranaString& str) {
   for (const auto& op : str) {
@@ -28,8 +28,6 @@ MajoranaProduct canonicalize(const MajoranaString& str) noexcept {
 
   return result;
 }
-
-}  // namespace majorana_string
 
 MajoranaProduct multiply_strings(const MajoranaString& a, const MajoranaString& b) noexcept {
   MajoranaProduct result;
@@ -80,3 +78,5 @@ MajoranaProduct multiply_strings(const MajoranaString& a, const MajoranaString& 
 
   return result;
 }
+
+}  // namespace majorana

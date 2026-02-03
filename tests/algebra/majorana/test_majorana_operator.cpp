@@ -3,6 +3,8 @@
 
 #include "algebra/majorana/majorana_operator.h"
 
+using namespace majorana;
+
 namespace {
 constexpr std::size_t kMaxMajoranaOrbital = MajoranaOperator::max_index();
 }

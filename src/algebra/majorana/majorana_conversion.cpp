@@ -2,6 +2,8 @@
 
 #include "algebra/normal_order.h"
 
+namespace majorana {
+
 /// Convert a fermionic Expression (in terms of c, c+) to a MajoranaExpression.
 ///
 /// For each fermionic mode (orbital, spin) with Majorana indices (e, o):
@@ -87,3 +89,5 @@ Expression from_majorana(const MajoranaExpression& expr) {
 
   return orderer.normal_order(result);
 }
+
+}  // namespace majorana

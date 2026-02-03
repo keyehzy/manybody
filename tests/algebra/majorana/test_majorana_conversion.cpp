@@ -4,6 +4,8 @@
 #include "algebra/normal_order.h"
 #include "utils/tolerances.h"
 
+using namespace majorana;
+
 static constexpr auto tol = tolerances::tolerance<double>();
 
 namespace majorana_conversion_tests {

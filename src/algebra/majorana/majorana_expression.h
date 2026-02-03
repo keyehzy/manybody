@@ -7,6 +7,8 @@
 #include "algebra/majorana/majorana_string.h"
 #include "robin_hood.h"
 
+namespace majorana {
+
 struct MajoranaExpression {
   using complex_type = std::complex<double>;
   using map_type = robin_hood::unordered_map<MajoranaString, complex_type>;
@@ -82,3 +84,5 @@ inline MajoranaExpression operator*(const MajoranaExpression::complex_type& lhs,
   rhs *= lhs;
   return rhs;
 }
+
+}  // namespace majorana

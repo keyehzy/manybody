@@ -4,6 +4,8 @@
 #include "algebra/majorana/majorana_conversion.h"
 #include "algebra/model/hubbard_model.h"
 
+using namespace majorana;
+
 int main() {
   const double t = 1.0;
   const double u = 4.0;

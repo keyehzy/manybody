@@ -10,6 +10,8 @@
 
 #include "algebra/operator.h"
 
+namespace majorana {
+
 using MajoranaOperatorStorage = std::uint16_t;
 
 template <class Storage>
@@ -110,3 +112,5 @@ struct BasicMajoranaOperator {
 using MajoranaOperator = BasicMajoranaOperator<MajoranaOperatorStorage>;
 
 static_assert(sizeof(MajoranaOperator) == sizeof(MajoranaOperatorStorage));
+
+}  // namespace majorana

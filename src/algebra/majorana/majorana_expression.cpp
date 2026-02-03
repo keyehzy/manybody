@@ -7,6 +7,8 @@
 
 #include "utils/tolerances.h"
 
+namespace majorana {
+
 constexpr auto tolerance = tolerances::tolerance<MajoranaExpression::complex_type::value_type>();
 
 bool MajoranaExpression::is_zero(const complex_type& value) {
@@ -48,7 +50,7 @@ MajoranaExpression::MajoranaExpression(complex_type c) {
 }
 
 MajoranaExpression::MajoranaExpression(int sign, const MajoranaString& str) {
-  auto canonical = majorana_string::canonicalize(str);
+  auto canonical = canonicalize(str);
   auto coeff = complex_type{static_cast<double>(sign * canonical.sign), 0.0};
   if (!is_zero(coeff)) {
     hashmap.emplace(std::move(canonical.string), coeff);
@@ -59,7 +61,7 @@ MajoranaExpression::MajoranaExpression(complex_type c, const MajoranaString& str
   if (is_zero(c)) {
     return;
   }
-  auto canonical = majorana_string::canonicalize(str);
+  auto canonical = canonicalize(str);
   auto coeff = c * static_cast<double>(canonical.sign);
   if (!is_zero(coeff)) {
     hashmap.emplace(std::move(canonical.string), coeff);
@@ -121,7 +123,7 @@ void MajoranaExpression::to_string(std::ostringstream& oss) const {
     const auto& string_data = entry->first;
     if (!string_data.empty()) {
       oss << " ";
-      majorana_string::to_string(oss, string_data);
+      ::majorana::to_string(oss, string_data);
     }
     first = false;
   }
@@ -192,3 +194,5 @@ MajoranaExpression& MajoranaExpression::operator*=(const MajoranaExpression& val
   hashmap = std::move(result);
   return *this;
 }
+
+}  // namespace majorana

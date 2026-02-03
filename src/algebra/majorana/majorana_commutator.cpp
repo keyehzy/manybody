@@ -1,5 +1,7 @@
 #include "algebra/majorana/majorana_commutator.h"
 
+namespace majorana {
+
 MajoranaExpression commutator(const MajoranaExpression& A, const MajoranaExpression& B) {
   // [A, B] = AB - BA
   // For each pair of Majorana strings (a, b):
@@ -40,3 +42,5 @@ MajoranaExpression anticommutator(const MajoranaExpression& A, const MajoranaExp
   }
   return result;
 }
+
+}  // namespace majorana

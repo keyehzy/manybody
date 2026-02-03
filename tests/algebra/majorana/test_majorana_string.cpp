@@ -2,6 +2,8 @@
 
 #include "algebra/majorana/majorana_string.h"
 
+using namespace majorana;
+
 namespace majorana_string_tests {
 
 static MajoranaString make_string(std::initializer_list<MajoranaOperator> elements) {
