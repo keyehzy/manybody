@@ -6,6 +6,22 @@
 
 static constexpr auto tol = tolerances::tolerance<double>();
 
+namespace majorana_conversion_tests {
+
+static MajoranaString make_string(std::initializer_list<MajoranaElement> elements) {
+  MajoranaString str;
+  str.data.append_range(elements.begin(), elements.end());
+  return str;
+}
+
+static MajoranaElement even(size_t orbital, Operator::Spin spin) {
+  return MajoranaElement::even(orbital, spin);
+}
+
+static MajoranaElement odd(size_t orbital, Operator::Spin spin) {
+  return MajoranaElement::odd(orbital, spin);
+}
+
 /// Helper: compare two Expressions term-by-term within tolerance.
 static bool expressions_equal(const Expression& a, const Expression& b) {
   if (a.size() != b.size()) return false;
@@ -24,8 +40,8 @@ TEST_CASE("majorana_conversion_single_creation") {
 
   auto maj = to_majorana(expr);
 
-  MajoranaString even_str{0};
-  MajoranaString odd_str{2};
+  MajoranaString even_str = make_string({even(0, Operator::Spin::Up)});
+  MajoranaString odd_str = make_string({odd(0, Operator::Spin::Up)});
   CHECK(maj.size() == 2u);
 
   auto it_e = maj.hashmap.find(even_str);
@@ -44,8 +60,8 @@ TEST_CASE("majorana_conversion_single_annihilation") {
 
   auto maj = to_majorana(expr);
 
-  MajoranaString even_str{0};
-  MajoranaString odd_str{2};
+  MajoranaString even_str = make_string({even(0, Operator::Spin::Up)});
+  MajoranaString odd_str = make_string({odd(0, Operator::Spin::Up)});
   CHECK(maj.size() == 2u);
 
   auto it_e = maj.hashmap.find(even_str);
@@ -65,8 +81,8 @@ TEST_CASE("majorana_conversion_density_operator") {
 
   auto maj = to_majorana(expr);
 
-  MajoranaString empty{};
-  MajoranaString pair{0, 2};
+  MajoranaString empty;
+  MajoranaString pair = make_string({even(0, Operator::Spin::Up), odd(0, Operator::Spin::Up)});
 
   auto it_id = maj.hashmap.find(empty);
   CHECK(it_id != maj.hashmap.end());
@@ -156,3 +172,5 @@ TEST_CASE("majorana_conversion_tv_hamiltonian") {
 
   CHECK(expressions_equal(H_roundtrip, H_normal));
 }
+
+}  // namespace majorana_conversion_tests

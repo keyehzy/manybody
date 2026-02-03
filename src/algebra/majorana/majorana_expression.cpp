@@ -94,8 +94,8 @@ void MajoranaExpression::to_string(std::ostringstream& oss) const {
   }
   std::sort(ordered.begin(), ordered.end(),
             [](const map_type::value_type* left, const map_type::value_type* right) {
-              const auto left_size = left->first.size();
-              const auto right_size = right->first.size();
+              const auto left_size = left->first.data.size();
+              const auto right_size = right->first.data.size();
               if (left_size != right_size) {
                 return left_size < right_size;
               }
@@ -109,11 +109,15 @@ void MajoranaExpression::to_string(std::ostringstream& oss) const {
     }
     const auto& coeff = entry->second;
     oss << "(" << coeff.real() << ", " << coeff.imag() << ")";
-    if (!entry->first.empty()) {
+    const auto& string_data = entry->first.data;
+    if (!string_data.empty()) {
       oss << " * gamma[";
-      for (size_t i = 0; i < entry->first.size(); ++i) {
+      for (size_t i = 0; i < string_data.size(); ++i) {
         if (i > 0) oss << ",";
-        oss << entry->first[i];
+        const auto& element = string_data[i];
+        const char spin_tag = (element.spin() == Operator::Spin::Up) ? 'u' : 'd';
+        const char parity_tag = element.is_even() ? 'e' : 'o';
+        oss << element.orbital() << ":" << spin_tag << ":" << parity_tag;
       }
       oss << "]";
     }

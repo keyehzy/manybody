@@ -1,13 +1,72 @@
 #pragma once
 
+#include <cassert>
+#include <cstddef>
 #include <cstdint>
-#include <utility>
+#include <limits>
 
 #include "algebra/operator.h"
 #include "utils/static_vector.h"
 
-using MajoranaIndex = uint16_t;
-using MajoranaString = static_vector<MajoranaIndex, 24, uint8_t>;
+struct MajoranaElement {
+  using storage_type = std::uint16_t;
+
+  enum class Parity : storage_type { Even = 0, Odd = 1 };
+
+  constexpr MajoranaElement() noexcept = default;
+
+  constexpr MajoranaElement(std::size_t orbital, Operator::Spin spin, Parity parity) noexcept
+      : data(pack(orbital, spin, parity)) {}
+
+  constexpr std::size_t orbital() const noexcept { return static_cast<std::size_t>(data >> 2); }
+
+  constexpr Operator::Spin spin() const noexcept {
+    return ((data & storage_type{1}) == storage_type{0}) ? Operator::Spin::Up
+                                                         : Operator::Spin::Down;
+  }
+
+  constexpr Parity parity() const noexcept {
+    return ((data >> 1) & storage_type{1}) == storage_type{0} ? Parity::Even : Parity::Odd;
+  }
+
+  constexpr bool is_even() const noexcept { return parity() == Parity::Even; }
+  constexpr bool is_odd() const noexcept { return parity() == Parity::Odd; }
+
+  constexpr bool operator<(MajoranaElement other) const noexcept { return data < other.data; }
+  constexpr bool operator>(MajoranaElement other) const noexcept { return data > other.data; }
+  constexpr bool operator==(MajoranaElement other) const noexcept { return data == other.data; }
+  constexpr bool operator!=(MajoranaElement other) const noexcept { return data != other.data; }
+
+  constexpr static MajoranaElement even(std::size_t orbital, Operator::Spin spin) noexcept {
+    return MajoranaElement(orbital, spin, Parity::Even);
+  }
+
+  constexpr static MajoranaElement odd(std::size_t orbital, Operator::Spin spin) noexcept {
+    return MajoranaElement(orbital, spin, Parity::Odd);
+  }
+
+ private:
+  static constexpr storage_type pack(std::size_t orbital, Operator::Spin spin,
+                                     Parity parity) noexcept {
+    assert(orbital <= (std::numeric_limits<storage_type>::max() - 3u) / 4u);
+    return static_cast<storage_type>(4u * orbital + 2u * static_cast<storage_type>(parity) +
+                                     static_cast<storage_type>(spin));
+  }
+
+  storage_type data{};
+};
+
+struct MajoranaString {
+  static_vector<MajoranaElement, 24, std::uint8_t> data{};
+};
+
+inline bool operator==(const MajoranaString& lhs, const MajoranaString& rhs) noexcept {
+  return lhs.data == rhs.data;
+}
+
+inline bool operator!=(const MajoranaString& lhs, const MajoranaString& rhs) noexcept {
+  return !(lhs == rhs);
+}
 
 struct MajoranaProduct {
   int sign = 1;
@@ -25,14 +84,14 @@ inline MajoranaProduct multiply_strings(const MajoranaString& a, const MajoranaS
   // Count how many elements from b must pass elements from a (= swaps).
   size_t i = 0;
   size_t j = 0;
-  const size_t na = a.size();
-  const size_t nb = b.size();
+  const size_t na = a.data.size();
+  const size_t nb = b.data.size();
 
   while (i < na && j < nb) {
-    if (a[i] < b[j]) {
-      result.string.push_back(a[i]);
+    if (a.data[i] < b.data[j]) {
+      result.string.data.push_back(a.data[i]);
       ++i;
-    } else if (a[i] > b[j]) {
+    } else if (a.data[i] > b.data[j]) {
       // b[j] must hop past (na - i) remaining elements of a in the merged
       // string.  But we only need parity of the number of swaps past the
       // *surviving* elements already placed, so just count the remaining a
@@ -40,7 +99,7 @@ inline MajoranaProduct multiply_strings(const MajoranaString& a, const MajoranaS
       if ((na - i) % 2 != 0) {
         result.sign = -result.sign;
       }
-      result.string.push_back(b[j]);
+      result.string.data.push_back(b.data[j]);
       ++j;
     } else {
       // Equal indices: gamma_i * gamma_i = 1 (cancel the pair).
@@ -56,28 +115,20 @@ inline MajoranaProduct multiply_strings(const MajoranaString& a, const MajoranaS
 
   // Append remaining elements from whichever string is not exhausted.
   while (i < na) {
-    result.string.push_back(a[i]);
+    result.string.data.push_back(a.data[i]);
     ++i;
   }
   while (j < nb) {
-    result.string.push_back(b[j]);
+    result.string.data.push_back(b.data[j]);
     ++j;
   }
 
   return result;
 }
 
-/// Majorana index encoding for a fermionic mode (orbital, spin):
-///   flat = 4 * orbital + 2 * parity + spin_bit
-/// where parity=0 gives the "even" Majorana (gamma = c + c+)
-/// and   parity=1 gives the "odd"  Majorana (gamma = -i(c - c+)).
-/// spin_bit: Up=0, Down=1.
-///
-/// Returns (even_index, odd_index) for the given operator.
-inline std::pair<MajoranaIndex, MajoranaIndex> majorana_indices(Operator op) noexcept {
-  const auto orbital = static_cast<MajoranaIndex>(op.value());
-  const MajoranaIndex spin_bit = (op.spin() == Operator::Spin::Down) ? 1 : 0;
-  const MajoranaIndex even_idx = 4 * orbital + spin_bit;
-  const MajoranaIndex odd_idx = 4 * orbital + 2 + spin_bit;
-  return {even_idx, odd_idx};
-}
+namespace std {
+template <>
+struct hash<MajoranaString> {
+  size_t operator()(const MajoranaString& value) const noexcept { return value.data.hash(); }
+};
+}  // namespace std

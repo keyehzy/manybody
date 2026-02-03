@@ -21,10 +21,10 @@ MajoranaExpression to_majorana(const Expression& expr) {
 
     for (size_t k = 0; k < ops.size(); ++k) {
       const Operator op = ops[k];
-      auto [even_idx, odd_idx] = majorana_indices(op);
-
-      MajoranaString even_str{even_idx};
-      MajoranaString odd_str{odd_idx};
+      MajoranaString even_str;
+      MajoranaString odd_str;
+      even_str.data.push_back(MajoranaElement::even(op.value(), op.spin()));
+      odd_str.data.push_back(MajoranaElement::odd(op.value(), op.spin()));
 
       // c+  = (gamma_e + i * gamma_o) / 2
       // c   = (gamma_e - i * gamma_o) / 2
@@ -61,19 +61,15 @@ Expression from_majorana(const MajoranaExpression& expr) {
   for (const auto& [str, coeff] : expr.hashmap) {
     Expression term_expr(coeff);
 
-    for (size_t k = 0; k < str.size(); ++k) {
-      const MajoranaIndex idx = str[k];
-      // Decode: flat = 4 * orbital + 2 * parity + spin_bit
-      const size_t orbital = idx / 4;
-      const auto parity = static_cast<size_t>((idx / 2) % 2);
-      const auto spin_bit = static_cast<size_t>(idx % 2);
-      const auto spin = (spin_bit == 0) ? Operator::Spin::Up : Operator::Spin::Down;
+    for (const auto& element : str.data) {
+      const size_t orbital = element.orbital();
+      const auto spin = element.spin();
 
       Operator create = Operator::creation(spin, orbital);
       Operator annihilate = Operator::annihilation(spin, orbital);
 
       Expression op_expr;
-      if (parity == 0) {
+      if (element.is_even()) {
         // gamma_e = c + c+
         op_expr += Expression(create);
         op_expr += Expression(annihilate);

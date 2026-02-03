@@ -3,17 +3,34 @@
 #include "algebra/majorana/majorana_expression.h"
 #include "utils/tolerances.h"
 
+namespace majorana_expression_tests {
+
+static MajoranaString make_string(std::initializer_list<MajoranaElement> elements) {
+  MajoranaString str;
+  str.data.append_range(elements.begin(), elements.end());
+  return str;
+}
+
+static MajoranaElement even(size_t orbital, Operator::Spin spin) {
+  return MajoranaElement::even(orbital, spin);
+}
+
+static MajoranaElement odd(size_t orbital, Operator::Spin spin) {
+  return MajoranaElement::odd(orbital, spin);
+}
+
 TEST_CASE("majorana_expression_construct_from_scalar") {
   MajoranaExpression expr(MajoranaExpression::complex_type(3.0, -1.0));
   CHECK(expr.size() == 1u);
-  MajoranaString empty{};
+  MajoranaString empty;
   auto it = expr.hashmap.find(empty);
   CHECK(it != expr.hashmap.end());
   CHECK(it->second == MajoranaExpression::complex_type(3.0, -1.0));
 }
 
 TEST_CASE("majorana_expression_construct_from_string") {
-  MajoranaString str{1, 3, 5};
+  MajoranaString str = make_string(
+      {even(0, Operator::Spin::Down), odd(0, Operator::Spin::Down), even(1, Operator::Spin::Down)});
   MajoranaExpression expr(MajoranaExpression::complex_type(2.0, 0.0), str);
   CHECK(expr.size() == 1u);
   auto it = expr.hashmap.find(str);
@@ -22,7 +39,7 @@ TEST_CASE("majorana_expression_construct_from_string") {
 }
 
 TEST_CASE("majorana_expression_construct_from_sign") {
-  MajoranaString str{0, 1};
+  MajoranaString str = make_string({even(0, Operator::Spin::Up), even(0, Operator::Spin::Down)});
   MajoranaExpression expr(-1, str);
   CHECK(expr.size() == 1u);
   auto it = expr.hashmap.find(str);
@@ -31,7 +48,7 @@ TEST_CASE("majorana_expression_construct_from_sign") {
 }
 
 TEST_CASE("majorana_expression_add_combines_coefficients") {
-  MajoranaString str{2, 4};
+  MajoranaString str = make_string({odd(0, Operator::Spin::Up), even(1, Operator::Spin::Up)});
   MajoranaExpression a(MajoranaExpression::complex_type(1.0, 0.0), str);
   MajoranaExpression b(MajoranaExpression::complex_type(2.5, 0.0), str);
 
@@ -44,7 +61,7 @@ TEST_CASE("majorana_expression_add_combines_coefficients") {
 }
 
 TEST_CASE("majorana_expression_subtract_cancels") {
-  MajoranaString str{1};
+  MajoranaString str = make_string({even(0, Operator::Spin::Down)});
   MajoranaExpression a(MajoranaExpression::complex_type(1.0, 0.0), str);
   MajoranaExpression b(MajoranaExpression::complex_type(1.0, 0.0), str);
 
@@ -54,7 +71,7 @@ TEST_CASE("majorana_expression_subtract_cancels") {
 }
 
 TEST_CASE("majorana_expression_scalar_multiply") {
-  MajoranaString str{0, 3};
+  MajoranaString str = make_string({even(0, Operator::Spin::Up), odd(0, Operator::Spin::Down)});
   MajoranaExpression expr(MajoranaExpression::complex_type(2.0, 1.0), str);
 
   expr *= MajoranaExpression::complex_type(0.0, 1.0);
@@ -66,14 +83,15 @@ TEST_CASE("majorana_expression_scalar_multiply") {
 }
 
 TEST_CASE("majorana_expression_multiply_expressions") {
-  MajoranaString str_a{0};
-  MajoranaString str_b{1};
+  MajoranaString str_a = make_string({even(0, Operator::Spin::Up)});
+  MajoranaString str_b = make_string({even(0, Operator::Spin::Down)});
   MajoranaExpression a(MajoranaExpression::complex_type(1.0, 0.0), str_a);
   MajoranaExpression b(MajoranaExpression::complex_type(1.0, 0.0), str_b);
 
   a *= b;
 
-  MajoranaString expected{0, 1};
+  MajoranaString expected =
+      make_string({even(0, Operator::Spin::Up), even(0, Operator::Spin::Down)});
   CHECK(a.size() == 1u);
   auto it = a.hashmap.find(expected);
   CHECK(it != a.hashmap.end());
@@ -82,13 +100,13 @@ TEST_CASE("majorana_expression_multiply_expressions") {
 
 TEST_CASE("majorana_expression_multiply_cancellation") {
   // gamma_0 * gamma_0 = identity (empty string)
-  MajoranaString str{0};
+  MajoranaString str = make_string({even(0, Operator::Spin::Up)});
   MajoranaExpression a(MajoranaExpression::complex_type(1.0, 0.0), str);
   MajoranaExpression b(MajoranaExpression::complex_type(1.0, 0.0), str);
 
   a *= b;
 
-  MajoranaString empty{};
+  MajoranaString empty;
   CHECK(a.size() == 1u);
   auto it = a.hashmap.find(empty);
   CHECK(it != a.hashmap.end());
@@ -96,8 +114,8 @@ TEST_CASE("majorana_expression_multiply_cancellation") {
 }
 
 TEST_CASE("majorana_expression_norm_squared") {
-  MajoranaString str_a{0, 1};
-  MajoranaString str_b{2, 3};
+  MajoranaString str_a = make_string({even(0, Operator::Spin::Up), even(0, Operator::Spin::Down)});
+  MajoranaString str_b = make_string({odd(0, Operator::Spin::Up), odd(0, Operator::Spin::Down)});
   MajoranaExpression expr;
   expr += MajoranaExpression(MajoranaExpression::complex_type(3.0, 0.0), str_a);
   expr += MajoranaExpression(MajoranaExpression::complex_type(0.0, 4.0), str_b);
@@ -107,7 +125,8 @@ TEST_CASE("majorana_expression_norm_squared") {
 }
 
 TEST_CASE("majorana_expression_zero_scalar_clears") {
-  MajoranaString str{1, 2, 3};
+  MajoranaString str = make_string(
+      {even(0, Operator::Spin::Down), odd(0, Operator::Spin::Up), odd(0, Operator::Spin::Down)});
   MajoranaExpression expr(MajoranaExpression::complex_type(5.0, 0.0), str);
 
   expr *= MajoranaExpression::complex_type(0.0, 0.0);
@@ -121,3 +140,5 @@ TEST_CASE("majorana_expression_ignores_near_zero_coefficients") {
   MajoranaExpression expr(small);
   CHECK(expr.size() == 0u);
 }
+
+}  // namespace majorana_expression_tests
