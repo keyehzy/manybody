@@ -66,7 +66,8 @@ struct MajoranaProduct {
 /// Multiply two sorted Majorana strings using the Clifford algebra relation
 /// {gamma_i, gamma_j} = 2 * delta_ij.  Each pair of equal indices cancels
 /// (gamma_i^2 = 1) and every anticommutation swap contributes a sign flip.
-inline MajoranaProduct multiply_strings(const MajoranaString& a, const MajoranaString& b) noexcept {
+inline constexpr MajoranaProduct multiply_strings(const MajoranaString& a,
+                                                  const MajoranaString& b) noexcept {
   MajoranaProduct result;
   result.sign = 1;
 
