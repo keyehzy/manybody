@@ -108,18 +108,11 @@ void MajoranaExpression::to_string(std::ostringstream& oss) const {
       oss << "\n";
     }
     const auto& coeff = entry->second;
-    oss << "(" << coeff.real() << ", " << coeff.imag() << ")";
+    oss << coeff;
     const auto& string_data = entry->first;
     if (!string_data.empty()) {
-      oss << " * gamma[";
-      for (size_t i = 0; i < string_data.size(); ++i) {
-        if (i > 0) oss << ",";
-        const auto& element = string_data[i];
-        const char spin_tag = (element.spin() == Operator::Spin::Up) ? 'u' : 'd';
-        const char parity_tag = element.is_even() ? 'e' : 'o';
-        oss << element.orbital() << ":" << spin_tag << ":" << parity_tag;
-      }
-      oss << "]";
+      oss << " ";
+      majorana_string::to_string(oss, string_data);
     }
     first = false;
   }

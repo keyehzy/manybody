@@ -2,11 +2,27 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <sstream>
+#include <string>
 
 #include "algebra/majorana/majorana_operator.h"
 #include "utils/static_vector.h"
 
 using MajoranaString = static_vector<MajoranaOperator, 24, std::uint8_t>;
+
+namespace majorana_string {
+inline void to_string(std::ostringstream& oss, const MajoranaString& str) {
+  for (const auto& op : str) {
+    op.to_string(oss);
+  }
+}
+
+inline std::string to_string(const MajoranaString& str) {
+  std::ostringstream oss;
+  to_string(oss, str);
+  return oss.str();
+}
+}  // namespace majorana_string
 
 struct MajoranaProduct {
   int sign = 1;

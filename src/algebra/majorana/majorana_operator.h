@@ -4,6 +4,8 @@
 #include <cstddef>
 #include <cstdint>
 #include <limits>
+#include <sstream>
+#include <string>
 #include <type_traits>
 
 #include "algebra/operator.h"
@@ -55,6 +57,23 @@ struct BasicMajoranaOperator {
 
   constexpr bool is_even() const noexcept { return parity() == Parity::Even; }
   constexpr bool is_odd() const noexcept { return parity() == Parity::Odd; }
+
+  // Printing convention: gamma(index, spin) with index = 2 * orbital + parity,
+  // where parity is 0 for even (gamma_e) and 1 for odd (gamma_o).
+  // This is the 0-based equivalent of the common paper convention:
+  //   gamma_{2j-1, sigma} = c_{j sigma} + c^\dagger_{j sigma}
+  //   gamma_{2j,   sigma} = -i(c_{j sigma} - c^\dagger_{j sigma}).
+  void to_string(std::ostringstream& oss) const {
+    const char* spin_arrow = spin() == Operator::Spin::Up ? "↑" : "↓";
+    const std::size_t index = 2 * orbital() + (is_odd() ? 1u : 0u);
+    oss << "γ(" << index << ", " << spin_arrow << ")";
+  }
+
+  std::string to_string() const {
+    std::ostringstream oss;
+    to_string(oss);
+    return oss.str();
+  }
 
   constexpr bool operator<(BasicMajoranaOperator other) const noexcept { return data < other.data; }
   constexpr bool operator>(BasicMajoranaOperator other) const noexcept { return data > other.data; }
