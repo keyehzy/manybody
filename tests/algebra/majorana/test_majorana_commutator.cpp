@@ -6,8 +6,9 @@ using namespace majorana;
 
 namespace majorana_commutator_tests {
 
-static MajoranaString make_string(std::initializer_list<MajoranaOperator> elements) {
-  MajoranaString str;
+static MajoranaMonomial::container_type make_string(
+    std::initializer_list<MajoranaOperator> elements) {
+  MajoranaMonomial::container_type str;
   str.append_range(elements.begin(), elements.end());
   return str;
 }
@@ -22,12 +23,12 @@ static MajoranaOperator odd(size_t orbital, Operator::Spin spin) {
 
 TEST_CASE("majorana_clifford_anticommutator_same_index") {
   // {gamma_i, gamma_i} = 2
-  MajoranaString str = make_string({odd(0, Operator::Spin::Down)});
+  MajoranaMonomial::container_type str = make_string({odd(0, Operator::Spin::Down)});
   MajoranaExpression gi(MajoranaExpression::complex_type(1.0, 0.0), str);
 
   auto result = anticommutator(gi, gi);
 
-  MajoranaString empty;
+  MajoranaMonomial::container_type empty;
   CHECK(result.size() == 1u);
   auto it = result.terms().find(empty);
   CHECK(it != result.terms().end());
@@ -36,8 +37,8 @@ TEST_CASE("majorana_clifford_anticommutator_same_index") {
 
 TEST_CASE("majorana_clifford_anticommutator_different_indices") {
   // {gamma_i, gamma_j} = 0 for i != j
-  MajoranaString str_i = make_string({odd(0, Operator::Spin::Up)});
-  MajoranaString str_j = make_string({even(1, Operator::Spin::Down)});
+  MajoranaMonomial::container_type str_i = make_string({odd(0, Operator::Spin::Up)});
+  MajoranaMonomial::container_type str_j = make_string({even(1, Operator::Spin::Down)});
   MajoranaExpression gi(MajoranaExpression::complex_type(1.0, 0.0), str_i);
   MajoranaExpression gj(MajoranaExpression::complex_type(1.0, 0.0), str_j);
 
@@ -48,7 +49,7 @@ TEST_CASE("majorana_clifford_anticommutator_different_indices") {
 
 TEST_CASE("majorana_commutator_same_index_vanishes") {
   // [gamma_i, gamma_i] = 0
-  MajoranaString str = make_string({odd(1, Operator::Spin::Down)});
+  MajoranaMonomial::container_type str = make_string({odd(1, Operator::Spin::Down)});
   MajoranaExpression gi(MajoranaExpression::complex_type(1.0, 0.0), str);
 
   auto result = commutator(gi, gi);
@@ -58,14 +59,14 @@ TEST_CASE("majorana_commutator_same_index_vanishes") {
 
 TEST_CASE("majorana_commutator_different_indices") {
   // [gamma_i, gamma_j] = 2 * gamma_i * gamma_j for i != j
-  MajoranaString str_i = make_string({even(0, Operator::Spin::Down)});
-  MajoranaString str_j = make_string({even(1, Operator::Spin::Up)});
+  MajoranaMonomial::container_type str_i = make_string({even(0, Operator::Spin::Down)});
+  MajoranaMonomial::container_type str_j = make_string({even(1, Operator::Spin::Up)});
   MajoranaExpression gi(MajoranaExpression::complex_type(1.0, 0.0), str_i);
   MajoranaExpression gj(MajoranaExpression::complex_type(1.0, 0.0), str_j);
 
   auto result = commutator(gi, gj);
 
-  MajoranaString expected =
+  MajoranaMonomial::container_type expected =
       make_string({even(0, Operator::Spin::Down), even(1, Operator::Spin::Up)});
   CHECK(result.size() == 1u);
   auto it = result.terms().find(expected);
@@ -74,9 +75,9 @@ TEST_CASE("majorana_commutator_different_indices") {
 }
 
 TEST_CASE("majorana_commutator_distributes_over_sum") {
-  MajoranaString str_a = make_string({even(0, Operator::Spin::Up)});
-  MajoranaString str_b = make_string({even(0, Operator::Spin::Down)});
-  MajoranaString str_c = make_string({odd(0, Operator::Spin::Up)});
+  MajoranaMonomial::container_type str_a = make_string({even(0, Operator::Spin::Up)});
+  MajoranaMonomial::container_type str_b = make_string({even(0, Operator::Spin::Down)});
+  MajoranaMonomial::container_type str_c = make_string({odd(0, Operator::Spin::Up)});
   MajoranaExpression a(MajoranaExpression::complex_type(1.0, 0.0), str_a);
   MajoranaExpression b(MajoranaExpression::complex_type(1.0, 0.0), str_b);
   MajoranaExpression c(MajoranaExpression::complex_type(1.0, 0.0), str_c);
@@ -95,9 +96,9 @@ TEST_CASE("majorana_commutator_distributes_over_sum") {
 }
 
 TEST_CASE("majorana_anticommutator_distributes_over_sum") {
-  MajoranaString str_a = make_string({even(0, Operator::Spin::Up)});
-  MajoranaString str_b = make_string({even(0, Operator::Spin::Down)});
-  MajoranaString str_c = make_string({odd(0, Operator::Spin::Up)});
+  MajoranaMonomial::container_type str_a = make_string({even(0, Operator::Spin::Up)});
+  MajoranaMonomial::container_type str_b = make_string({even(0, Operator::Spin::Down)});
+  MajoranaMonomial::container_type str_c = make_string({odd(0, Operator::Spin::Up)});
   MajoranaExpression a(MajoranaExpression::complex_type(1.0, 0.0), str_a);
   MajoranaExpression b(MajoranaExpression::complex_type(1.0, 0.0), str_b);
   MajoranaExpression c(MajoranaExpression::complex_type(1.0, 0.0), str_c);
@@ -118,8 +119,9 @@ TEST_CASE("majorana_anticommutator_distributes_over_sum") {
 TEST_CASE("majorana_commutator_bilinear_identity") {
   // [gamma_i gamma_j, gamma_k] with i < j, k different from both
   // should be non-zero
-  MajoranaString str_ij = make_string({even(0, Operator::Spin::Up), even(0, Operator::Spin::Down)});
-  MajoranaString str_k = make_string({odd(0, Operator::Spin::Up)});
+  MajoranaMonomial::container_type str_ij =
+      make_string({even(0, Operator::Spin::Up), even(0, Operator::Spin::Down)});
+  MajoranaMonomial::container_type str_k = make_string({odd(0, Operator::Spin::Up)});
   MajoranaExpression ij(MajoranaExpression::complex_type(1.0, 0.0), str_ij);
   MajoranaExpression gk(MajoranaExpression::complex_type(1.0, 0.0), str_k);
 
@@ -138,8 +140,10 @@ TEST_CASE("majorana_commutator_bilinear_identity") {
 
 TEST_CASE("majorana_commutator_string_with_overlap") {
   // [gamma_0 gamma_1, gamma_0 gamma_2]
-  MajoranaString str_a = make_string({even(0, Operator::Spin::Up), even(0, Operator::Spin::Down)});
-  MajoranaString str_b = make_string({even(0, Operator::Spin::Up), odd(0, Operator::Spin::Up)});
+  MajoranaMonomial::container_type str_a =
+      make_string({even(0, Operator::Spin::Up), even(0, Operator::Spin::Down)});
+  MajoranaMonomial::container_type str_b =
+      make_string({even(0, Operator::Spin::Up), odd(0, Operator::Spin::Up)});
   MajoranaExpression a(MajoranaExpression::complex_type(1.0, 0.0), str_a);
   MajoranaExpression b(MajoranaExpression::complex_type(1.0, 0.0), str_b);
 
@@ -160,7 +164,7 @@ TEST_CASE("majorana_commutator_string_with_overlap") {
   //   result: {1,2} with sign +1
   //
   // Signs differ => commutator = 2 * (-1) * {1,2} = -2 * gamma_1 gamma_2
-  MajoranaString expected =
+  MajoranaMonomial::container_type expected =
       make_string({even(0, Operator::Spin::Down), odd(0, Operator::Spin::Up)});
   CHECK(result.size() == 1u);
   auto it = result.terms().find(expected);

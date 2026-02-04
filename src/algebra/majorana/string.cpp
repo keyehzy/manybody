@@ -2,24 +2,24 @@
 
 namespace majorana {
 
-void to_string(std::ostringstream& oss, const MajoranaString& str) {
+void to_string(std::ostringstream& oss, const MajoranaMonomial::container_type& str) {
   for (const auto& op : str) {
     op.to_string(oss);
   }
 }
 
-std::string to_string(const MajoranaString& str) {
+std::string to_string(const MajoranaMonomial::container_type& str) {
   std::ostringstream oss;
   to_string(oss, str);
   return oss.str();
 }
 
-MajoranaProduct canonicalize(const MajoranaString& str) noexcept {
+MajoranaProduct canonicalize(const MajoranaMonomial::container_type& str) noexcept {
   MajoranaProduct result;
   result.sign = 1;
 
   for (const auto& op : str) {
-    MajoranaString single;
+    MajoranaMonomial::container_type single;
     single.push_back(op);
     auto product = multiply_strings(result.string, single);
     result.sign *= product.sign;
@@ -29,7 +29,8 @@ MajoranaProduct canonicalize(const MajoranaString& str) noexcept {
   return result;
 }
 
-MajoranaProduct multiply_strings(const MajoranaString& a, const MajoranaString& b) noexcept {
+MajoranaProduct multiply_strings(const MajoranaMonomial::container_type& a,
+                                 const MajoranaMonomial::container_type& b) noexcept {
   MajoranaProduct result;
   result.sign = 1;
 

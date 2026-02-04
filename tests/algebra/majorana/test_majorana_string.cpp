@@ -6,8 +6,9 @@ using namespace majorana;
 
 namespace majorana_string_tests {
 
-static MajoranaString make_string(std::initializer_list<MajoranaOperator> elements) {
-  MajoranaString str;
+static MajoranaMonomial::container_type make_string(
+    std::initializer_list<MajoranaOperator> elements) {
+  MajoranaMonomial::container_type str;
   str.append_range(elements.begin(), elements.end());
   return str;
 }
@@ -21,14 +22,14 @@ static MajoranaOperator odd(size_t orbital, Operator::Spin spin) {
 }
 
 TEST_CASE("majorana_string_disjoint_multiply_concatenates") {
-  MajoranaString a = make_string(
+  MajoranaMonomial::container_type a = make_string(
       {even(0, Operator::Spin::Up), odd(0, Operator::Spin::Up), even(1, Operator::Spin::Up)});
-  MajoranaString b = make_string(
+  MajoranaMonomial::container_type b = make_string(
       {even(0, Operator::Spin::Down), odd(0, Operator::Spin::Down), even(1, Operator::Spin::Down)});
 
   auto result = multiply_strings(a, b);
 
-  MajoranaString expected = make_string(
+  MajoranaMonomial::container_type expected = make_string(
       {even(0, Operator::Spin::Up), even(0, Operator::Spin::Down), odd(0, Operator::Spin::Up),
        odd(0, Operator::Spin::Down), even(1, Operator::Spin::Up), even(1, Operator::Spin::Down)});
   CHECK(result.string == expected);
@@ -37,12 +38,13 @@ TEST_CASE("majorana_string_disjoint_multiply_concatenates") {
 }
 
 TEST_CASE("majorana_string_disjoint_multiply_odd_sign") {
-  MajoranaString a = make_string({even(0, Operator::Spin::Up), odd(0, Operator::Spin::Up)});
-  MajoranaString b = make_string({even(0, Operator::Spin::Down)});
+  MajoranaMonomial::container_type a =
+      make_string({even(0, Operator::Spin::Up), odd(0, Operator::Spin::Up)});
+  MajoranaMonomial::container_type b = make_string({even(0, Operator::Spin::Down)});
 
   auto result = multiply_strings(a, b);
 
-  MajoranaString expected = make_string(
+  MajoranaMonomial::container_type expected = make_string(
       {even(0, Operator::Spin::Up), even(0, Operator::Spin::Down), odd(0, Operator::Spin::Up)});
   CHECK(result.string == expected);
   // b[0]=1 passes 1 remaining a-element (a[1]=2) => 1 swap (odd)
@@ -50,9 +52,9 @@ TEST_CASE("majorana_string_disjoint_multiply_odd_sign") {
 }
 
 TEST_CASE("majorana_string_overlap_cancellation") {
-  MajoranaString a = make_string(
+  MajoranaMonomial::container_type a = make_string(
       {even(0, Operator::Spin::Down), odd(0, Operator::Spin::Down), even(1, Operator::Spin::Down)});
-  MajoranaString b = make_string(
+  MajoranaMonomial::container_type b = make_string(
       {even(0, Operator::Spin::Down), odd(0, Operator::Spin::Down), even(1, Operator::Spin::Down)});
 
   auto result = multiply_strings(a, b);
@@ -66,12 +68,14 @@ TEST_CASE("majorana_string_overlap_cancellation") {
 }
 
 TEST_CASE("majorana_string_partial_overlap") {
-  MajoranaString a = make_string({even(0, Operator::Spin::Down), odd(0, Operator::Spin::Down)});
-  MajoranaString b = make_string({odd(0, Operator::Spin::Up), odd(0, Operator::Spin::Down)});
+  MajoranaMonomial::container_type a =
+      make_string({even(0, Operator::Spin::Down), odd(0, Operator::Spin::Down)});
+  MajoranaMonomial::container_type b =
+      make_string({odd(0, Operator::Spin::Up), odd(0, Operator::Spin::Down)});
 
   auto result = multiply_strings(a, b);
 
-  MajoranaString expected =
+  MajoranaMonomial::container_type expected =
       make_string({even(0, Operator::Spin::Down), odd(0, Operator::Spin::Up)});
   CHECK(result.string == expected);
   // Step by step:
@@ -82,7 +86,7 @@ TEST_CASE("majorana_string_partial_overlap") {
 }
 
 TEST_CASE("majorana_string_self_multiply_single_index") {
-  MajoranaString a = make_string({odd(1, Operator::Spin::Down)});
+  MajoranaMonomial::container_type a = make_string({odd(1, Operator::Spin::Down)});
 
   auto result = multiply_strings(a, a);
 
@@ -91,9 +95,9 @@ TEST_CASE("majorana_string_self_multiply_single_index") {
 }
 
 TEST_CASE("majorana_string_identity_multiply") {
-  MajoranaString a = make_string(
+  MajoranaMonomial::container_type a = make_string(
       {odd(0, Operator::Spin::Up), even(1, Operator::Spin::Down), even(2, Operator::Spin::Down)});
-  MajoranaString empty;
+  MajoranaMonomial::container_type empty;
 
   auto result_left = multiply_strings(empty, a);
   CHECK(result_left.string == a);
@@ -106,8 +110,8 @@ TEST_CASE("majorana_string_identity_multiply") {
 
 TEST_CASE("majorana_string_anticommutation_sign") {
   // gamma_i * gamma_j = -gamma_j * gamma_i for i != j
-  MajoranaString a = make_string({even(0, Operator::Spin::Up)});
-  MajoranaString b = make_string({even(0, Operator::Spin::Down)});
+  MajoranaMonomial::container_type a = make_string({even(0, Operator::Spin::Up)});
+  MajoranaMonomial::container_type b = make_string({even(0, Operator::Spin::Down)});
 
   auto ab = multiply_strings(a, b);
   auto ba = multiply_strings(b, a);
@@ -118,14 +122,17 @@ TEST_CASE("majorana_string_anticommutation_sign") {
 
 TEST_CASE("majorana_string_three_element_anticommutation") {
   // Verify sign consistency for longer strings
-  MajoranaString a = make_string({even(0, Operator::Spin::Up), even(0, Operator::Spin::Down)});
-  MajoranaString b = make_string({odd(0, Operator::Spin::Up), odd(0, Operator::Spin::Down)});
+  MajoranaMonomial::container_type a =
+      make_string({even(0, Operator::Spin::Up), even(0, Operator::Spin::Down)});
+  MajoranaMonomial::container_type b =
+      make_string({odd(0, Operator::Spin::Up), odd(0, Operator::Spin::Down)});
 
   auto ab = multiply_strings(a, b);
   auto ba = multiply_strings(b, a);
 
-  MajoranaString expected = make_string({even(0, Operator::Spin::Up), even(0, Operator::Spin::Down),
-                                         odd(0, Operator::Spin::Up), odd(0, Operator::Spin::Down)});
+  MajoranaMonomial::container_type expected =
+      make_string({even(0, Operator::Spin::Up), even(0, Operator::Spin::Down),
+                   odd(0, Operator::Spin::Up), odd(0, Operator::Spin::Down)});
   CHECK(ab.string == expected);
   CHECK(ba.string == expected);
   // ab: b passes 2 a-elements each: 2+2=4 swaps => sign +1

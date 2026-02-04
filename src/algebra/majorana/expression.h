@@ -12,9 +12,10 @@ namespace majorana {
 
 struct MajoranaExpression {
   using complex_type = std::complex<double>;
-  using map_type = robin_hood::unordered_map<MajoranaString, complex_type>;
+  using container_type = MajoranaMonomial::container_type;
+  using map_type = robin_hood::unordered_map<container_type, complex_type>;
 
-  ExpressionMap<MajoranaString> map{};
+  ExpressionMap<container_type> map{};
 
   MajoranaExpression() = default;
   ~MajoranaExpression() = default;
@@ -25,9 +26,9 @@ struct MajoranaExpression {
   MajoranaExpression& operator=(MajoranaExpression&&) noexcept = default;
 
   explicit MajoranaExpression(complex_type c);
-  explicit MajoranaExpression(int sign, const MajoranaString& str);
-  explicit MajoranaExpression(complex_type c, const MajoranaString& str);
-  explicit MajoranaExpression(const MajoranaTerm& term);
+  explicit MajoranaExpression(int sign, const container_type& str);
+  explicit MajoranaExpression(complex_type c, const container_type& str);
+  explicit MajoranaExpression(const MajoranaMonomial& term);
 
   size_t size() const { return map.size(); }
 
@@ -38,7 +39,7 @@ struct MajoranaExpression {
   void to_string(std::ostringstream& oss) const;
   std::string to_string() const {
     return map.to_string(
-        [](std::ostringstream& os, const MajoranaString& string_data, const complex_type& coeff) {
+        [](std::ostringstream& os, const container_type& string_data, const complex_type& coeff) {
           os << coeff;
           if (!string_data.empty()) {
             os << " ";
@@ -76,12 +77,12 @@ struct MajoranaExpression {
   }
   MajoranaExpression& operator*=(const MajoranaExpression& value);
 
-  MajoranaExpression& operator+=(const MajoranaTerm& value);
-  MajoranaExpression& operator-=(const MajoranaTerm& value);
-  MajoranaExpression& operator*=(const MajoranaTerm& value);
+  MajoranaExpression& operator+=(const MajoranaMonomial& value);
+  MajoranaExpression& operator-=(const MajoranaMonomial& value);
+  MajoranaExpression& operator*=(const MajoranaMonomial& value);
 
  private:
-  static void add_to_map(ExpressionMap<MajoranaString>& target, const MajoranaString& str,
+  static void add_to_map(ExpressionMap<container_type>& target, const container_type& str,
                          const complex_type& coeff);
 };
 

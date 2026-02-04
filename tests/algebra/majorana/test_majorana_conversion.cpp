@@ -10,8 +10,9 @@ static constexpr auto tol = tolerances::tolerance<double>();
 
 namespace majorana_conversion_tests {
 
-static MajoranaString make_string(std::initializer_list<MajoranaOperator> elements) {
-  MajoranaString str;
+static MajoranaMonomial::container_type make_string(
+    std::initializer_list<MajoranaOperator> elements) {
+  MajoranaMonomial::container_type str;
   str.append_range(elements.begin(), elements.end());
   return str;
 }
@@ -42,8 +43,8 @@ TEST_CASE("majorana_conversion_single_creation") {
 
   auto maj = to_majorana(expr);
 
-  MajoranaString even_str = make_string({even(0, Operator::Spin::Up)});
-  MajoranaString odd_str = make_string({odd(0, Operator::Spin::Up)});
+  MajoranaMonomial::container_type even_str = make_string({even(0, Operator::Spin::Up)});
+  MajoranaMonomial::container_type odd_str = make_string({odd(0, Operator::Spin::Up)});
   CHECK(maj.size() == 2u);
 
   auto it_e = maj.terms().find(even_str);
@@ -62,8 +63,8 @@ TEST_CASE("majorana_conversion_single_annihilation") {
 
   auto maj = to_majorana(expr);
 
-  MajoranaString even_str = make_string({even(0, Operator::Spin::Up)});
-  MajoranaString odd_str = make_string({odd(0, Operator::Spin::Up)});
+  MajoranaMonomial::container_type even_str = make_string({even(0, Operator::Spin::Up)});
+  MajoranaMonomial::container_type odd_str = make_string({odd(0, Operator::Spin::Up)});
   CHECK(maj.size() == 2u);
 
   auto it_e = maj.terms().find(even_str);
@@ -83,8 +84,9 @@ TEST_CASE("majorana_conversion_density_operator") {
 
   auto maj = to_majorana(expr);
 
-  MajoranaString empty;
-  MajoranaString pair = make_string({even(0, Operator::Spin::Up), odd(0, Operator::Spin::Up)});
+  MajoranaMonomial::container_type empty;
+  MajoranaMonomial::container_type pair =
+      make_string({even(0, Operator::Spin::Up), odd(0, Operator::Spin::Up)});
 
   auto it_id = maj.terms().find(empty);
   CHECK(it_id != maj.terms().end());

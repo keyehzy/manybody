@@ -23,8 +23,8 @@ MajoranaExpression to_majorana(const Expression& expr) {
 
     for (size_t k = 0; k < ops.size(); ++k) {
       const Operator op = ops[k];
-      MajoranaString even_str;
-      MajoranaString odd_str;
+      MajoranaMonomial::container_type even_str;
+      MajoranaMonomial::container_type odd_str;
       even_str.push_back(MajoranaOperator::even(op.value(), op.spin()));
       odd_str.push_back(MajoranaOperator::odd(op.value(), op.spin()));
 

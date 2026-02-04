@@ -5,34 +5,34 @@
 
 namespace majorana {
 
-void MajoranaExpression::add_to_map(ExpressionMap<MajoranaString>& target,
-                                    const MajoranaString& str, const complex_type& coeff) {
-  if (ExpressionMap<MajoranaString>::is_zero(coeff)) {
+void MajoranaExpression::add_to_map(ExpressionMap<container_type>& target,
+                                    const container_type& str, const complex_type& coeff) {
+  if (ExpressionMap<container_type>::is_zero(coeff)) {
     return;
   }
   auto canonical = canonicalize(str);
   auto scaled = coeff * static_cast<double>(canonical.sign);
-  if (ExpressionMap<MajoranaString>::is_zero(scaled)) {
+  if (ExpressionMap<container_type>::is_zero(scaled)) {
     return;
   }
   target.add(std::move(canonical.string), scaled);
 }
 
 MajoranaExpression::MajoranaExpression(complex_type c) {
-  if (!ExpressionMap<MajoranaString>::is_zero(c)) {
-    map.data.emplace(MajoranaString{}, c);
+  if (!ExpressionMap<container_type>::is_zero(c)) {
+    map.data.emplace(container_type{}, c);
   }
 }
 
-MajoranaExpression::MajoranaExpression(int sign, const MajoranaString& str) {
+MajoranaExpression::MajoranaExpression(int sign, const container_type& str) {
   add_to_map(map, str, complex_type{static_cast<double>(sign), 0.0});
 }
 
-MajoranaExpression::MajoranaExpression(complex_type c, const MajoranaString& str) {
+MajoranaExpression::MajoranaExpression(complex_type c, const container_type& str) {
   add_to_map(map, str, c);
 }
 
-MajoranaExpression::MajoranaExpression(const MajoranaTerm& term) {
+MajoranaExpression::MajoranaExpression(const MajoranaMonomial& term) {
   add_to_map(map, term.operators, term.c);
 }
 
@@ -50,7 +50,7 @@ MajoranaExpression& MajoranaExpression::truncate_by_norm(double min_norm) {
 }
 
 void MajoranaExpression::to_string(std::ostringstream& oss) const {
-  map.format_sorted(oss, [](std::ostringstream& os, const MajoranaString& string_data,
+  map.format_sorted(oss, [](std::ostringstream& os, const container_type& string_data,
                             const complex_type& coeff) {
     os << coeff;
     if (!string_data.empty()) {
@@ -65,7 +65,7 @@ MajoranaExpression& MajoranaExpression::operator*=(const MajoranaExpression& val
     map.clear();
     return *this;
   }
-  ExpressionMap<MajoranaString> result;
+  ExpressionMap<container_type> result;
   result.reserve(map.size() * value.map.size());
   for (const auto& [lhs_str, lhs_coeff] : map.data) {
     for (const auto& [rhs_str, rhs_coeff] : value.map.data) {
@@ -78,28 +78,28 @@ MajoranaExpression& MajoranaExpression::operator*=(const MajoranaExpression& val
   return *this;
 }
 
-MajoranaExpression& MajoranaExpression::operator+=(const MajoranaTerm& value) {
+MajoranaExpression& MajoranaExpression::operator+=(const MajoranaMonomial& value) {
   add_to_map(map, value.operators, value.c);
   return *this;
 }
 
-MajoranaExpression& MajoranaExpression::operator-=(const MajoranaTerm& value) {
+MajoranaExpression& MajoranaExpression::operator-=(const MajoranaMonomial& value) {
   add_to_map(map, value.operators, -value.c);
   return *this;
 }
 
-MajoranaExpression& MajoranaExpression::operator*=(const MajoranaTerm& value) {
+MajoranaExpression& MajoranaExpression::operator*=(const MajoranaMonomial& value) {
   if (map.empty()) {
     return *this;
   }
-  if (ExpressionMap<MajoranaString>::is_zero(value.c)) {
+  if (ExpressionMap<container_type>::is_zero(value.c)) {
     map.clear();
     return *this;
   }
 
   auto canonical = canonicalize(value.operators);
   auto coeff = value.c * static_cast<double>(canonical.sign);
-  if (ExpressionMap<MajoranaString>::is_zero(coeff)) {
+  if (ExpressionMap<container_type>::is_zero(coeff)) {
     map.clear();
     return *this;
   }
@@ -108,7 +108,7 @@ MajoranaExpression& MajoranaExpression::operator*=(const MajoranaTerm& value) {
     return *this;
   }
 
-  ExpressionMap<MajoranaString> result;
+  ExpressionMap<container_type> result;
   result.reserve(map.size());
   for (const auto& [lhs_str, lhs_coeff] : map.data) {
     auto product = multiply_strings(lhs_str, canonical.string);
