@@ -42,7 +42,7 @@ struct Expression {
 
   Expression adjoint() const;
 
-  size_t size() const;
+  size_t size() const { return map.size(); }
 
   Expression& truncate_by_size(size_t max_size);
   Expression& truncate_by_norm(double min_norm);
@@ -50,15 +50,21 @@ struct Expression {
   Expression& filter_by_size(size_t size);
 
   void to_string(std::ostringstream& oss) const;
-  std::string to_string() const;
+  std::string to_string() const {
+    return map.to_string(
+        [](std::ostringstream& os, const container_type& ops, const complex_type& coeff) {
+          Term term(coeff, ops);
+          term.to_string(os);
+        });
+  }
 
-  Expression& operator+=(const complex_type& value);
-  Expression& operator-=(const complex_type& value);
-  Expression& operator*=(const complex_type& value);
-  Expression& operator/=(const complex_type& value);
+  Expression& operator+=(const complex_type& value) { map += value; return *this; }
+  Expression& operator-=(const complex_type& value) { map -= value; return *this; }
+  Expression& operator*=(const complex_type& value) { map *= value; return *this; }
+  Expression& operator/=(const complex_type& value) { map /= value; return *this; }
 
-  Expression& operator+=(const Expression& value);
-  Expression& operator-=(const Expression& value);
+  Expression& operator+=(const Expression& value) { map += value.map; return *this; }
+  Expression& operator-=(const Expression& value) { map -= value.map; return *this; }
   Expression& operator*=(const Expression& value);
 
   Expression& operator+=(const Term& value);

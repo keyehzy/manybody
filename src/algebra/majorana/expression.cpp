@@ -30,8 +30,6 @@ MajoranaExpression::MajoranaExpression(complex_type c, const MajoranaString& str
   }
 }
 
-size_t MajoranaExpression::size() const { return map.size(); }
-
 double MajoranaExpression::norm_squared() const {
   double result = 0.0;
   for (const auto& [str, coeff] : map.data) {
@@ -54,42 +52,6 @@ void MajoranaExpression::to_string(std::ostringstream& oss) const {
       ::majorana::to_string(os, string_data);
     }
   });
-}
-
-std::string MajoranaExpression::to_string() const {
-  std::ostringstream oss;
-  to_string(oss);
-  return oss.str();
-}
-
-MajoranaExpression& MajoranaExpression::operator+=(const complex_type& value) {
-  map.add_scalar(value);
-  return *this;
-}
-
-MajoranaExpression& MajoranaExpression::operator-=(const complex_type& value) {
-  map.subtract_scalar(value);
-  return *this;
-}
-
-MajoranaExpression& MajoranaExpression::operator*=(const complex_type& value) {
-  map.scale(value);
-  return *this;
-}
-
-MajoranaExpression& MajoranaExpression::operator/=(const complex_type& value) {
-  map.divide(value);
-  return *this;
-}
-
-MajoranaExpression& MajoranaExpression::operator+=(const MajoranaExpression& value) {
-  map.add_all(value.map);
-  return *this;
-}
-
-MajoranaExpression& MajoranaExpression::operator-=(const MajoranaExpression& value) {
-  map.subtract_all(value.map);
-  return *this;
 }
 
 MajoranaExpression& MajoranaExpression::operator*=(const MajoranaExpression& value) {

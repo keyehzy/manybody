@@ -72,8 +72,6 @@ Expression Expression::adjoint() const {
   return result;
 }
 
-size_t Expression::size() const { return map.size(); }
-
 Expression& Expression::truncate_by_size(size_t max_size) {
   if (max_size == 0) {
     map.clear();
@@ -115,42 +113,6 @@ void Expression::to_string(std::ostringstream& oss) const {
         Term term(coeff, ops);
         term.to_string(os);
       });
-}
-
-std::string Expression::to_string() const {
-  std::ostringstream oss;
-  to_string(oss);
-  return oss.str();
-}
-
-Expression& Expression::operator+=(const complex_type& value) {
-  map.add_scalar(value);
-  return *this;
-}
-
-Expression& Expression::operator-=(const complex_type& value) {
-  map.subtract_scalar(value);
-  return *this;
-}
-
-Expression& Expression::operator*=(const complex_type& value) {
-  map.scale(value);
-  return *this;
-}
-
-Expression& Expression::operator/=(const complex_type& value) {
-  map.divide(value);
-  return *this;
-}
-
-Expression& Expression::operator+=(const Expression& value) {
-  map.add_all(value.map);
-  return *this;
-}
-
-Expression& Expression::operator-=(const Expression& value) {
-  map.subtract_all(value.map);
-  return *this;
 }
 
 Expression& Expression::operator*=(const Expression& value) {

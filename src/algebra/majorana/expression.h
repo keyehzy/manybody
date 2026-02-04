@@ -28,24 +28,33 @@ struct MajoranaExpression {
   explicit MajoranaExpression(int sign, const MajoranaString& str);
   explicit MajoranaExpression(complex_type c, const MajoranaString& str);
 
-  size_t size() const;
+  size_t size() const { return map.size(); }
 
   double norm_squared() const;
 
   MajoranaExpression& truncate_by_norm(double min_norm);
 
   void to_string(std::ostringstream& oss) const;
-  std::string to_string() const;
+  std::string to_string() const {
+    return map.to_string(
+        [](std::ostringstream& os, const MajoranaString& string_data, const complex_type& coeff) {
+          os << coeff;
+          if (!string_data.empty()) {
+            os << " ";
+            ::majorana::to_string(os, string_data);
+          }
+        });
+  }
 
   const map_type& terms() const noexcept { return map.data; }
 
-  MajoranaExpression& operator+=(const complex_type& value);
-  MajoranaExpression& operator-=(const complex_type& value);
-  MajoranaExpression& operator*=(const complex_type& value);
-  MajoranaExpression& operator/=(const complex_type& value);
+  MajoranaExpression& operator+=(const complex_type& value) { map += value; return *this; }
+  MajoranaExpression& operator-=(const complex_type& value) { map -= value; return *this; }
+  MajoranaExpression& operator*=(const complex_type& value) { map *= value; return *this; }
+  MajoranaExpression& operator/=(const complex_type& value) { map /= value; return *this; }
 
-  MajoranaExpression& operator+=(const MajoranaExpression& value);
-  MajoranaExpression& operator-=(const MajoranaExpression& value);
+  MajoranaExpression& operator+=(const MajoranaExpression& value) { map += value.map; return *this; }
+  MajoranaExpression& operator-=(const MajoranaExpression& value) { map -= value.map; return *this; }
   MajoranaExpression& operator*=(const MajoranaExpression& value);
 };
 
