@@ -3,134 +3,121 @@
 #include <algorithm>
 #include <sstream>
 #include <string>
-#include <vector>
 
-#include "algebra/expression_map.h"
+#include "algebra/expression_base.h"
 #include "algebra/term.h"
 #include "robin_hood.h"
 
-struct Expression {
-  using complex_type = FermionMonomial::complex_type;
-  using container_type = FermionMonomial::container_type;
-  using map_type = robin_hood::unordered_map<container_type, complex_type>;
+struct FermionExpression : ExpressionBase<FermionExpression, FermionMonomial> {
+  using Base = ExpressionBase<FermionExpression, FermionMonomial>;
+  using Base::operator*=;
+  using Base::operator+=;
+  using Base::operator-=;
 
-  ExpressionMap<container_type> map{};
+  // Helper to add to map with size check
+  void add_to_map(const container_type& ops, const complex_type& coeff) {
+    if (ops.size() > FermionMonomial::container_type::max_size()) {
+      return;
+    }
+    this->add(ops, coeff);
+  }
 
-  const map_type& terms() const { return map.data; }
-  map_type& terms() { return map.data; }
+  void add_to_map(container_type&& ops, const complex_type& coeff) {
+    if (ops.size() > FermionMonomial::container_type::max_size()) {
+      return;
+    }
+    this->add(std::move(ops), coeff);
+  }
 
-  Expression() = default;
-  ~Expression() = default;
+  FermionExpression() = default;
 
-  Expression(const Expression&) = default;
-  Expression& operator=(const Expression&) = default;
-  Expression(Expression&&) noexcept = default;
-  Expression& operator=(Expression&&) noexcept = default;
+  explicit FermionExpression(complex_type c) {
+    if (!is_zero(c)) {
+      data.emplace(container_type{}, c);
+    }
+  }
 
-  explicit Expression(complex_type c);
-  explicit Expression(Operator op);
-  explicit Expression(const FermionMonomial& term);
-  explicit Expression(FermionMonomial&& term);
-  explicit Expression(const container_type& container);
-  explicit Expression(container_type&& container);
-  explicit Expression(std::initializer_list<FermionMonomial> lst);
+  explicit FermionExpression(const FermionMonomial& term) { add_to_map(term.operators, term.c); }
+
+  explicit FermionExpression(FermionMonomial&& term) {
+    add_to_map(std::move(term.operators), term.c);
+  }
+
+  explicit FermionExpression(const container_type& container) {
+    data.emplace(container, complex_type{1.0, 0.0});
+  }
+
+  explicit FermionExpression(container_type&& container) {
+    data.emplace(std::move(container), complex_type{1.0, 0.0});
+  }
 
   template <typename Container>
-  Expression(complex_type c, Container&& ops) {
-    map.data.emplace(std::forward<Container>(ops), c);
+  FermionExpression(complex_type c, Container&& ops) {
+    data.emplace(std::forward<Container>(ops), c);
   }
 
-  Expression adjoint() const;
-
-  size_t size() const { return map.size(); }
-
-  Expression& truncate_by_size(size_t max_size);
-  Expression& truncate_by_norm(double min_norm);
-
-  Expression& filter_by_size(size_t size);
-
-  void to_string(std::ostringstream& oss) const;
-  std::string to_string() const {
-    return map.to_string(
-        [](std::ostringstream& os, const container_type& ops, const complex_type& coeff) {
-          FermionMonomial term(coeff, ops);
-          ::to_string(os, term);
-        });
+  explicit FermionExpression(Operator op) {
+    container_type ops{op};
+    data.emplace(std::move(ops), complex_type{1.0, 0.0});
   }
 
-  Expression& operator+=(const complex_type& value) {
-    map += value;
-    return *this;
-  }
-  Expression& operator-=(const complex_type& value) {
-    map -= value;
-    return *this;
-  }
-  Expression& operator*=(const complex_type& value) {
-    map *= value;
-    return *this;
-  }
-  Expression& operator/=(const complex_type& value) {
-    map /= value;
-    return *this;
+  explicit FermionExpression(std::initializer_list<FermionMonomial> lst) {
+    for (const auto& term : lst) {
+      add_to_map(term.operators, term.c);
+    }
   }
 
-  Expression& operator+=(const Expression& value) {
-    map += value.map;
-    return *this;
-  }
-  Expression& operator-=(const Expression& value) {
-    map -= value.map;
-    return *this;
-  }
-  Expression& operator*=(const Expression& value);
+  FermionExpression adjoint() const;
 
-  Expression& operator+=(const FermionMonomial& value);
-  Expression& operator-=(const FermionMonomial& value);
-  Expression& operator*=(const FermionMonomial& value);
+  FermionExpression& truncate_by_size(size_t max_size);
+  FermionExpression& filter_by_size(size_t size);
 
- private:
-  static void add_to_map(ExpressionMap<container_type>& target, const container_type& ops,
-                         const complex_type& coeff);
+  FermionExpression& operator*=(const FermionExpression& value);
+  FermionExpression& operator*=(const FermionMonomial& value);
 
-  static void add_to_map(ExpressionMap<container_type>& target, container_type&& ops,
-                         const complex_type& coeff);
+  void format_to(std::ostringstream& oss) const;
+  std::string to_string() const;
 };
 
-inline Expression operator+(Expression lhs, const Expression& rhs) {
+inline FermionExpression operator+(FermionExpression lhs, const FermionExpression& rhs) {
   lhs += rhs;
   return lhs;
 }
 
-inline Expression operator-(Expression lhs, const Expression& rhs) {
+inline FermionExpression operator-(FermionExpression lhs, const FermionExpression& rhs) {
   lhs -= rhs;
   return lhs;
 }
 
-inline Expression operator*(Expression lhs, const Expression& rhs) {
+inline FermionExpression operator*(FermionExpression lhs, const FermionExpression& rhs) {
   lhs *= rhs;
   return lhs;
 }
 
-inline Expression operator*(Expression lhs, const Expression::complex_type& rhs) {
+inline FermionExpression operator*(FermionExpression lhs,
+                                   const FermionExpression::complex_type& rhs) {
   lhs *= rhs;
   return lhs;
 }
 
-inline Expression operator*(const Expression::complex_type& lhs, Expression rhs) {
+inline FermionExpression operator*(const FermionExpression::complex_type& lhs,
+                                   FermionExpression rhs) {
   rhs *= lhs;
   return rhs;
 }
 
-inline Expression hopping(const FermionMonomial::complex_type& coeff, size_t from, size_t to,
-                          Operator::Spin spin) noexcept {
-  Expression result = Expression(
+inline FermionExpression hopping(const FermionExpression::complex_type& coeff, size_t from,
+                                 size_t to, Operator::Spin spin) noexcept {
+  FermionExpression result = FermionExpression(
       FermionMonomial(coeff, {Operator::creation(spin, from), Operator::annihilation(spin, to)}));
-  result += Expression(FermionMonomial(
+  result += FermionExpression(FermionMonomial(
       std::conj(coeff), {Operator::creation(spin, to), Operator::annihilation(spin, from)}));
   return result;
 }
 
-inline Expression hopping(size_t from, size_t to, Operator::Spin spin) noexcept {
+inline FermionExpression hopping(size_t from, size_t to, Operator::Spin spin) noexcept {
   return hopping(1.0, from, to, spin);
 }
+
+// Backwards compatibility alias
+using Expression = FermionExpression;

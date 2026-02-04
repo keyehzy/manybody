@@ -9,14 +9,14 @@ MajoranaExpression commutator(const MajoranaExpression& A, const MajoranaExpress
   //   If sign(ab) == sign(ba), the pair cancels in the commutator.
   //   If sign(ab) != sign(ba), the pair contributes 2 * sign(ab) * ca * cb * string.
   MajoranaExpression result;
-  for (const auto& [str_a, coeff_a] : A.map.data) {
-    for (const auto& [str_b, coeff_b] : B.map.data) {
+  for (const auto& [str_a, coeff_a] : A.data) {
+    for (const auto& [str_b, coeff_b] : B.data) {
       auto ab = multiply_strings(str_a, str_b);
       auto ba = multiply_strings(str_b, str_a);
 
       if (ab.sign != ba.sign) {
         auto coeff = 2.0 * static_cast<double>(ab.sign) * coeff_a * coeff_b;
-        result.map.add(std::move(ab.string), coeff);
+        result.add(std::move(ab.string), coeff);
       }
     }
   }
@@ -29,14 +29,14 @@ MajoranaExpression anticommutator(const MajoranaExpression& A, const MajoranaExp
   //   If sign(ab) == sign(ba), contributes 2 * sign(ab) * ca * cb * string.
   //   If sign(ab) != sign(ba), the pair cancels in the anticommutator.
   MajoranaExpression result;
-  for (const auto& [str_a, coeff_a] : A.map.data) {
-    for (const auto& [str_b, coeff_b] : B.map.data) {
+  for (const auto& [str_a, coeff_a] : A.data) {
+    for (const auto& [str_b, coeff_b] : B.data) {
       auto ab = multiply_strings(str_a, str_b);
       auto ba = multiply_strings(str_b, str_a);
 
       if (ab.sign == ba.sign) {
         auto coeff = 2.0 * static_cast<double>(ab.sign) * coeff_a * coeff_b;
-        result.map.add(std::move(ab.string), coeff);
+        result.add(std::move(ab.string), coeff);
       }
     }
   }

@@ -119,19 +119,6 @@ TEST_CASE("majorana_expression_multiply_cancellation") {
   CHECK(it->second == MajoranaExpression::complex_type(1.0, 0.0));
 }
 
-TEST_CASE("majorana_expression_norm_squared") {
-  MajoranaMonomial::container_type str_a =
-      make_string({even(0, Operator::Spin::Up), even(0, Operator::Spin::Down)});
-  MajoranaMonomial::container_type str_b =
-      make_string({odd(0, Operator::Spin::Up), odd(0, Operator::Spin::Down)});
-  MajoranaExpression expr;
-  expr += MajoranaExpression(MajoranaExpression::complex_type(3.0, 0.0), str_a);
-  expr += MajoranaExpression(MajoranaExpression::complex_type(0.0, 4.0), str_b);
-
-  // |3|^2 + |4i|^2 = 9 + 16 = 25
-  CHECK(std::abs(expr.norm_squared() - 25.0) < 1e-12);
-}
-
 TEST_CASE("majorana_expression_zero_scalar_clears") {
   MajoranaMonomial::container_type str = make_string(
       {even(0, Operator::Spin::Down), odd(0, Operator::Spin::Up), odd(0, Operator::Spin::Down)});

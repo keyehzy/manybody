@@ -4,77 +4,24 @@
 #include <sstream>
 #include <utility>
 
-void Expression::add_to_map(ExpressionMap<container_type>& target, const container_type& ops,
-                            const complex_type& coeff) {
-  if (ops.size() > FermionMonomial::container_type::max_size()) {
-    return;
-  }
-  target.add(ops, coeff);
-}
-
-void Expression::add_to_map(ExpressionMap<container_type>& target, container_type&& ops,
-                            const complex_type& coeff) {
-  if (ops.size() > FermionMonomial::container_type::max_size()) {
-    return;
-  }
-  target.add(std::move(ops), coeff);
-}
-
-Expression::Expression(complex_type c) {
-  if (!ExpressionMap<container_type>::is_zero(c)) {
-    map.data.emplace(container_type{}, c);
-  }
-}
-
-Expression::Expression(Operator op) {
-  container_type ops{op};
-  map.data.emplace(std::move(ops), complex_type{1.0, 0.0});
-}
-
-Expression::Expression(const FermionMonomial& term) {
-  if (!ExpressionMap<container_type>::is_zero(term.c)) {
-    map.data.emplace(term.operators, term.c);
-  }
-}
-
-Expression::Expression(FermionMonomial&& term) {
-  if (!ExpressionMap<container_type>::is_zero(term.c)) {
-    map.data.emplace(std::move(term.operators), term.c);
-  }
-}
-
-Expression::Expression(const container_type& container) {
-  map.data.emplace(container, complex_type{1.0, 0.0});
-}
-
-Expression::Expression(container_type&& container) {
-  map.data.emplace(std::move(container), complex_type{1.0, 0.0});
-}
-
-Expression::Expression(std::initializer_list<FermionMonomial> lst) {
-  for (const auto& term : lst) {
-    add_to_map(map, term.operators, term.c);
-  }
-}
-
-Expression Expression::adjoint() const {
-  Expression result;
-  for (const auto& [ops, coeff] : map.data) {
+FermionExpression FermionExpression::adjoint() const {
+  FermionExpression result;
+  for (const auto& [ops, coeff] : this->data) {
     FermionMonomial term(coeff, ops);
     FermionMonomial adj = ::adjoint(term);
-    add_to_map(result.map, std::move(adj.operators), adj.c);
+    result.add_to_map(std::move(adj.operators), adj.c);
   }
   return result;
 }
 
-Expression& Expression::truncate_by_size(size_t max_size) {
+FermionExpression& FermionExpression::truncate_by_size(size_t max_size) {
   if (max_size == 0) {
-    map.clear();
+    this->clear();
     return *this;
   }
-  for (auto it = map.data.begin(); it != map.data.end();) {
+  for (auto it = this->data.begin(); it != this->data.end();) {
     if (it->first.size() > max_size) {
-      it = map.data.erase(it);
+      it = this->data.erase(it);
     } else {
       ++it;
     }
@@ -82,19 +29,14 @@ Expression& Expression::truncate_by_size(size_t max_size) {
   return *this;
 }
 
-Expression& Expression::truncate_by_norm(double min_norm) {
-  map.truncate_by_norm(min_norm);
-  return *this;
-}
-
-Expression& Expression::filter_by_size(size_t size) {
+FermionExpression& FermionExpression::filter_by_size(size_t size) {
   if (size == 0) {
-    map.clear();
+    this->clear();
     return *this;
   }
-  for (auto it = map.data.begin(); it != map.data.end();) {
+  for (auto it = this->data.begin(); it != this->data.end();) {
     if (it->first.size() != size) {
-      it = map.data.erase(it);
+      it = this->data.erase(it);
     } else {
       ++it;
     }
@@ -102,70 +44,68 @@ Expression& Expression::filter_by_size(size_t size) {
   return *this;
 }
 
-void Expression::to_string(std::ostringstream& oss) const {
-  map.format_sorted(
+void FermionExpression::format_to(std::ostringstream& oss) const {
+  this->format_sorted(
       oss, [](std::ostringstream& os, const container_type& ops, const complex_type& coeff) {
         FermionMonomial term(coeff, ops);
         ::to_string(os, term);
       });
 }
 
-Expression& Expression::operator*=(const Expression& value) {
-  if (map.empty() || value.map.empty()) {
-    map.clear();
+std::string FermionExpression::to_string() const {
+  return Base::to_string(
+      [](std::ostringstream& os, const container_type& ops, const complex_type& coeff) {
+        FermionMonomial term(coeff, ops);
+        ::to_string(os, term);
+      });
+}
+
+FermionExpression& FermionExpression::operator*=(const FermionExpression& value) {
+  if (this->empty() || value.empty()) {
+    this->clear();
     return *this;
   }
-  ExpressionMap<container_type> result;
-  result.reserve(map.size() * value.map.size());
-  for (const auto& [lhs_ops, lhs_coeff] : map.data) {
-    for (const auto& [rhs_ops, rhs_coeff] : value.map.data) {
+  map_type result;
+  result.reserve(this->size() * value.size());
+  for (const auto& [lhs_ops, lhs_coeff] : this->data) {
+    for (const auto& [rhs_ops, rhs_coeff] : value.data) {
       if (lhs_ops.size() + rhs_ops.size() > FermionMonomial::container_type::max_size()) {
         continue;
       }
       container_type combined = lhs_ops;
       combined.append_range(rhs_ops.begin(), rhs_ops.end());
-      add_to_map(result, std::move(combined), lhs_coeff * rhs_coeff);
+      add_to(result, std::move(combined), lhs_coeff * rhs_coeff);
     }
   }
-  map.data = std::move(result.data);
+  this->data = std::move(result);
   return *this;
 }
 
-Expression& Expression::operator+=(const FermionMonomial& value) {
-  add_to_map(map, value.operators, value.c);
-  return *this;
-}
-
-Expression& Expression::operator-=(const FermionMonomial& value) {
-  add_to_map(map, value.operators, -value.c);
-  return *this;
-}
-
-Expression& Expression::operator*=(const FermionMonomial& value) {
-  if (map.empty()) {
+FermionExpression& FermionExpression::operator*=(const FermionMonomial& value) {
+  if (this->empty()) {
     return *this;
   }
-  if (ExpressionMap<container_type>::is_zero(value.c)) {
-    map.clear();
+  if (this->is_zero(value.c)) {
+    this->clear();
     return *this;
   }
 
   if (value.operators.size() == 0) {
-    for (auto& [ops, coeff] : map.data) {
+    for (auto& [ops, coeff] : this->data) {
       coeff *= value.c;
     }
     return *this;
   }
-  ExpressionMap<container_type> result;
-  result.reserve(map.size());
-  for (const auto& [ops, coeff] : map.data) {
+  map_type result;
+  result.reserve(this->size());
+  for (const auto& [ops, coeff] : this->data) {
     if (ops.size() + value.operators.size() > FermionMonomial::container_type::max_size()) {
       continue;
     }
     container_type combined = ops;
     combined.append_range(value.operators.begin(), value.operators.end());
-    add_to_map(result, std::move(combined), coeff * value.c);
+    add_to(result, std::move(combined), coeff * value.c);
   }
-  map.data = std::move(result.data);
+  this->data = std::move(result);
   return *this;
 }
