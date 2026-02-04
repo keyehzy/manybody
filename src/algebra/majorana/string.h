@@ -1,16 +1,20 @@
 #pragma once
 
+#include <complex>
 #include <cstddef>
 #include <cstdint>
 #include <sstream>
 #include <string>
 
 #include "algebra/majorana/operator.h"
+#include "algebra/monomial.h"
 #include "utils/static_vector.h"
 
 namespace majorana {
 
 using MajoranaString = static_vector<MajoranaOperator, 24, std::uint8_t>;
+
+using MajoranaTerm = Monomial<MajoranaOperator, 24, std::uint8_t, std::complex<double>>;
 
 void to_string(std::ostringstream& oss, const MajoranaString& str);
 

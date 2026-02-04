@@ -5,6 +5,19 @@
 
 namespace majorana {
 
+void MajoranaExpression::add_to_map(ExpressionMap<MajoranaString>& target,
+                                    const MajoranaString& str, const complex_type& coeff) {
+  if (ExpressionMap<MajoranaString>::is_zero(coeff)) {
+    return;
+  }
+  auto canonical = canonicalize(str);
+  auto scaled = coeff * static_cast<double>(canonical.sign);
+  if (ExpressionMap<MajoranaString>::is_zero(scaled)) {
+    return;
+  }
+  target.add(std::move(canonical.string), scaled);
+}
+
 MajoranaExpression::MajoranaExpression(complex_type c) {
   if (!ExpressionMap<MajoranaString>::is_zero(c)) {
     map.data.emplace(MajoranaString{}, c);
@@ -12,22 +25,15 @@ MajoranaExpression::MajoranaExpression(complex_type c) {
 }
 
 MajoranaExpression::MajoranaExpression(int sign, const MajoranaString& str) {
-  auto canonical = canonicalize(str);
-  auto coeff = complex_type{static_cast<double>(sign * canonical.sign), 0.0};
-  if (!ExpressionMap<MajoranaString>::is_zero(coeff)) {
-    map.data.emplace(std::move(canonical.string), coeff);
-  }
+  add_to_map(map, str, complex_type{static_cast<double>(sign), 0.0});
 }
 
 MajoranaExpression::MajoranaExpression(complex_type c, const MajoranaString& str) {
-  if (ExpressionMap<MajoranaString>::is_zero(c)) {
-    return;
-  }
-  auto canonical = canonicalize(str);
-  auto coeff = c * static_cast<double>(canonical.sign);
-  if (!ExpressionMap<MajoranaString>::is_zero(coeff)) {
-    map.data.emplace(std::move(canonical.string), coeff);
-  }
+  add_to_map(map, str, c);
+}
+
+MajoranaExpression::MajoranaExpression(const MajoranaTerm& term) {
+  add_to_map(map, term.operators, term.c);
 }
 
 double MajoranaExpression::norm_squared() const {
@@ -67,6 +73,47 @@ MajoranaExpression& MajoranaExpression::operator*=(const MajoranaExpression& val
       auto coeff = lhs_coeff * rhs_coeff * static_cast<double>(product.sign);
       result.add(std::move(product.string), coeff);
     }
+  }
+  map.data = std::move(result.data);
+  return *this;
+}
+
+MajoranaExpression& MajoranaExpression::operator+=(const MajoranaTerm& value) {
+  add_to_map(map, value.operators, value.c);
+  return *this;
+}
+
+MajoranaExpression& MajoranaExpression::operator-=(const MajoranaTerm& value) {
+  add_to_map(map, value.operators, -value.c);
+  return *this;
+}
+
+MajoranaExpression& MajoranaExpression::operator*=(const MajoranaTerm& value) {
+  if (map.empty()) {
+    return *this;
+  }
+  if (ExpressionMap<MajoranaString>::is_zero(value.c)) {
+    map.clear();
+    return *this;
+  }
+
+  auto canonical = canonicalize(value.operators);
+  auto coeff = value.c * static_cast<double>(canonical.sign);
+  if (ExpressionMap<MajoranaString>::is_zero(coeff)) {
+    map.clear();
+    return *this;
+  }
+  if (canonical.string.empty()) {
+    map *= coeff;
+    return *this;
+  }
+
+  ExpressionMap<MajoranaString> result;
+  result.reserve(map.size());
+  for (const auto& [lhs_str, lhs_coeff] : map.data) {
+    auto product = multiply_strings(lhs_str, canonical.string);
+    auto scaled = lhs_coeff * coeff * static_cast<double>(product.sign);
+    result.add(std::move(product.string), scaled);
   }
   map.data = std::move(result.data);
   return *this;

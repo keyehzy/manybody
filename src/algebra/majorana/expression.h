@@ -27,6 +27,7 @@ struct MajoranaExpression {
   explicit MajoranaExpression(complex_type c);
   explicit MajoranaExpression(int sign, const MajoranaString& str);
   explicit MajoranaExpression(complex_type c, const MajoranaString& str);
+  explicit MajoranaExpression(const MajoranaTerm& term);
 
   size_t size() const { return map.size(); }
 
@@ -74,6 +75,14 @@ struct MajoranaExpression {
     return *this;
   }
   MajoranaExpression& operator*=(const MajoranaExpression& value);
+
+  MajoranaExpression& operator+=(const MajoranaTerm& value);
+  MajoranaExpression& operator-=(const MajoranaTerm& value);
+  MajoranaExpression& operator*=(const MajoranaTerm& value);
+
+ private:
+  static void add_to_map(ExpressionMap<MajoranaString>& target, const MajoranaString& str,
+                         const complex_type& coeff);
 };
 
 inline MajoranaExpression operator+(MajoranaExpression lhs, const MajoranaExpression& rhs) {

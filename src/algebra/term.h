@@ -6,21 +6,22 @@
 #include <cstdint>
 #include <sstream>
 
+#include "algebra/monomial.h"
 #include "algebra/operator.h"
-#include "utils/static_vector.h"
 
 constexpr size_t term_size = 32;
 
-struct Term {
-  using complex_type = std::complex<double>;
+using TermScalar = std::complex<double>;
 
-  static constexpr size_t static_vector_size =
-      (term_size - sizeof(complex_type)) / sizeof(Operator) - 1;
+constexpr size_t term_static_vector_size = (term_size - sizeof(TermScalar)) / sizeof(Operator) - 1;
 
-  using container_type = static_vector<Operator, static_vector_size, Operator::ubyte>;
+using TermBase = Monomial<Operator, term_static_vector_size, Operator::ubyte, TermScalar>;
 
-  complex_type c{1.0, 0.0};
-  container_type operators{};
+struct Term : TermBase {
+  using complex_type = TermScalar;
+  using container_type = TermBase::container_type;
+
+  static constexpr size_t static_vector_size = term_static_vector_size;
 
   constexpr Term() noexcept = default;
   constexpr ~Term() noexcept = default;
@@ -30,19 +31,7 @@ struct Term {
   constexpr Term(Term&& other) noexcept = default;
   constexpr Term& operator=(Term&& other) noexcept = default;
 
-  explicit constexpr Term(Operator x) noexcept : operators({x}) {}
-  explicit constexpr Term(complex_type x) noexcept : c(x) {}
-  explicit constexpr Term(const container_type& ops) noexcept : operators(ops) {}
-  explicit constexpr Term(container_type&& ops) noexcept : operators(std::move(ops)) {}
-  explicit constexpr Term(complex_type x, const container_type& ops) noexcept
-      : c(x), operators(ops) {}
-  explicit constexpr Term(complex_type x, container_type&& ops) noexcept
-      : c(x), operators(std::move(ops)) {}
-  explicit constexpr Term(std::initializer_list<Operator> init) noexcept : operators(init) {}
-  explicit constexpr Term(complex_type x, std::initializer_list<Operator> init) noexcept
-      : c(x), operators(init) {}
-
-  constexpr size_t size() const noexcept { return operators.size(); }
+  using TermBase::TermBase;
 
   constexpr bool is_diagonal() const noexcept {
     constexpr size_t stride = Operator::kValueMask + 1;
@@ -79,23 +68,22 @@ struct Term {
   }
 
   constexpr Term& operator*=(const Term& value) noexcept {
-    c *= value.c;
-    operators.append_range(value.operators.begin(), value.operators.end());
+    TermBase::operator*=(value);
     return *this;
   }
 
   constexpr Term& operator*=(Operator value) noexcept {
-    operators.push_back(value);
+    TermBase::operator*=(value);
     return *this;
   }
 
   constexpr Term& operator*=(complex_type value) noexcept {
-    c *= value;
+    TermBase::operator*=(value);
     return *this;
   }
 
   constexpr Term& operator/=(complex_type value) noexcept {
-    c /= value;
+    TermBase::operator/=(value);
     return *this;
   }
 };
