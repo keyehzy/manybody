@@ -23,8 +23,8 @@ TEST_CASE("expression_construct_from_operator") {
 
 TEST_CASE("expression_initializer_list_combines_terms") {
   Operator op = Operator::annihilation(Operator::Spin::Down, 2);
-  Term term_a(Expression::complex_type(2.0f, 0.0f), {op});
-  Term term_b(Expression::complex_type(-2.0f, 0.0f), {op});
+  FermionMonomial term_a(Expression::complex_type(2.0f, 0.0f), {op});
+  FermionMonomial term_b(Expression::complex_type(-2.0f, 0.0f), {op});
   Expression expr({term_a, term_b});
   CHECK((expr.size()) == (0u));
 }
@@ -32,7 +32,7 @@ TEST_CASE("expression_initializer_list_combines_terms") {
 TEST_CASE("expression_adjoint_conjugates_and_reverses") {
   Operator a = Operator::creation(Operator::Spin::Up, 1);
   Operator b = Operator::annihilation(Operator::Spin::Down, 4);
-  Term term(Expression::complex_type(1.0f, 2.0f), {a, b});
+  FermionMonomial term(Expression::complex_type(1.0f, 2.0f), {a, b});
   Expression expr(term);
 
   Expression adj = expr.adjoint();
@@ -44,8 +44,8 @@ TEST_CASE("expression_adjoint_conjugates_and_reverses") {
 
 TEST_CASE("expression_add_expression_combines_coefficients") {
   Operator op = Operator::creation(Operator::Spin::Down, 5);
-  Expression expr(Term(Expression::complex_type(1.0f, 0.0f), {op}));
-  Expression add(Term(Expression::complex_type(2.5f, 0.0f), {op}));
+  Expression expr(FermionMonomial(Expression::complex_type(1.0f, 0.0f), {op}));
+  Expression add(FermionMonomial(Expression::complex_type(2.5f, 0.0f), {op}));
 
   expr += add;
 
@@ -58,8 +58,8 @@ TEST_CASE("expression_add_expression_combines_coefficients") {
 TEST_CASE("expression_multiply_expression_distributes") {
   Operator a = Operator::creation(Operator::Spin::Up, 1);
   Operator b = Operator::annihilation(Operator::Spin::Up, 2);
-  Expression left(Term(Expression::complex_type(2.0f, 0.0f), {a}));
-  Expression right(Term(Expression::complex_type(3.0f, 0.0f), {b}));
+  Expression left(FermionMonomial(Expression::complex_type(2.0f, 0.0f), {a}));
+  Expression right(FermionMonomial(Expression::complex_type(3.0f, 0.0f), {b}));
 
   left *= right;
 
@@ -72,8 +72,8 @@ TEST_CASE("expression_multiply_expression_distributes") {
 TEST_CASE("expression_multiply_term_appends_ops") {
   Operator a = Operator::creation(Operator::Spin::Up, 1);
   Operator b = Operator::annihilation(Operator::Spin::Down, 7);
-  Expression expr(Term(Expression::complex_type(2.0f, 0.0f), {a}));
-  Term term(Expression::complex_type(0.5f, 0.0f), {b});
+  Expression expr(FermionMonomial(Expression::complex_type(2.0f, 0.0f), {a}));
+  FermionMonomial term(Expression::complex_type(0.5f, 0.0f), {b});
 
   expr *= term;
 
@@ -93,8 +93,8 @@ TEST_CASE("expression_ignores_near_zero_coefficients") {
 TEST_CASE("expression_cancels_terms_within_tolerance") {
   constexpr auto tolerance = tolerances::tolerance<Expression::complex_type::value_type>();
   Operator op = Operator::creation(Operator::Spin::Up, 2);
-  Expression expr(Term(Expression::complex_type(1.0f, 0.0f), {op}));
-  expr += Term(Expression::complex_type(-1.0f + 0.5f * tolerance, 0.0f), {op});
+  Expression expr(FermionMonomial(Expression::complex_type(1.0f, 0.0f), {op}));
+  expr += FermionMonomial(Expression::complex_type(-1.0f + 0.5f * tolerance, 0.0f), {op});
   CHECK((expr.size()) == (0u));
 }
 
@@ -102,9 +102,9 @@ TEST_CASE("expression_truncate_by_size_drops_longer_terms") {
   Operator a = Operator::creation(Operator::Spin::Up, 1);
   Operator b = Operator::creation(Operator::Spin::Up, 2);
   Operator c = Operator::annihilation(Operator::Spin::Down, 3);
-  Term term_a(Expression::complex_type(1.0f, 0.0f), {a});
-  Term term_b(Expression::complex_type(2.0f, 0.0f), {a, b});
-  Term term_c(Expression::complex_type(3.0f, 0.0f), {a, b, c});
+  FermionMonomial term_a(Expression::complex_type(1.0f, 0.0f), {a});
+  FermionMonomial term_b(Expression::complex_type(2.0f, 0.0f), {a, b});
+  FermionMonomial term_c(Expression::complex_type(3.0f, 0.0f), {a, b, c});
   Expression expr({term_a, term_b, term_c});
 
   expr.truncate_by_size(2);
@@ -119,9 +119,9 @@ TEST_CASE("expression_truncate_by_norm_drops_small_terms") {
   Operator a = Operator::creation(Operator::Spin::Up, 1);
   Operator b = Operator::creation(Operator::Spin::Up, 2);
   Operator c = Operator::annihilation(Operator::Spin::Down, 3);
-  Term term_a(Expression::complex_type(0.25f, 0.0f), {a});
-  Term term_b(Expression::complex_type(0.6f, 0.0f), {b});
-  Term term_c(Expression::complex_type(1.2f, 0.0f), {c});
+  FermionMonomial term_a(Expression::complex_type(0.25f, 0.0f), {a});
+  FermionMonomial term_b(Expression::complex_type(0.6f, 0.0f), {b});
+  FermionMonomial term_c(Expression::complex_type(1.2f, 0.0f), {c});
   Expression expr({term_a, term_b, term_c});
 
   expr.truncate_by_norm(0.75f);
@@ -136,9 +136,9 @@ TEST_CASE("expression_filter_by_size_keeps_exact_matches") {
   Operator a = Operator::creation(Operator::Spin::Up, 1);
   Operator b = Operator::creation(Operator::Spin::Up, 2);
   Operator c = Operator::annihilation(Operator::Spin::Down, 3);
-  Term term_a(Expression::complex_type(1.0f, 0.0f), {a});
-  Term term_b(Expression::complex_type(2.0f, 0.0f), {a, b});
-  Term term_c(Expression::complex_type(3.0f, 0.0f), {a, b, c});
+  FermionMonomial term_a(Expression::complex_type(1.0f, 0.0f), {a});
+  FermionMonomial term_b(Expression::complex_type(2.0f, 0.0f), {a, b});
+  FermionMonomial term_c(Expression::complex_type(3.0f, 0.0f), {a, b, c});
   Expression expr({term_a, term_b, term_c});
 
   expr.filter_by_size(2);
@@ -152,7 +152,7 @@ TEST_CASE("expression_filter_by_size_keeps_exact_matches") {
 TEST_CASE("expression_filter_by_size_zero_clears_expression") {
   Operator a = Operator::creation(Operator::Spin::Up, 1);
   Operator b = Operator::annihilation(Operator::Spin::Down, 2);
-  Expression expr({Term(Expression::complex_type(1.0f, 0.0f), {a, b})});
+  Expression expr({FermionMonomial(Expression::complex_type(1.0f, 0.0f), {a, b})});
 
   expr.filter_by_size(0);
 

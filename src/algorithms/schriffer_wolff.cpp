@@ -87,8 +87,8 @@ Expression schriffer_wolff(const Expression& kinetic, const Expression& interact
       if (std::norm(coeff) < tolerance * tolerance) {
         continue;
       }
-      Term a = Term(basis.set.at(i));
-      Term b = Term(basis.set.at(j));
+      FermionMonomial a = FermionMonomial(basis.set.at(i));
+      FermionMonomial b = FermionMonomial(basis.set.at(j));
       Aop += coeff * a * adjoint(b);
     }
   }

@@ -14,7 +14,7 @@ Expression NormalOrderer::normal_order(const complex_type& c, const container_ty
   return result;
 }
 
-Expression NormalOrderer::normal_order(const Term& term) {
+Expression NormalOrderer::normal_order(const FermionMonomial& term) {
   return normal_order(term.c, term.operators);
 }
 

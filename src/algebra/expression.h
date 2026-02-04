@@ -10,8 +10,8 @@
 #include "robin_hood.h"
 
 struct Expression {
-  using complex_type = Term::complex_type;
-  using container_type = FermionString;
+  using complex_type = FermionMonomial::complex_type;
+  using container_type = FermionMonomial::container_type;
   using map_type = robin_hood::unordered_map<container_type, complex_type>;
 
   ExpressionMap<container_type> map{};
@@ -29,11 +29,11 @@ struct Expression {
 
   explicit Expression(complex_type c);
   explicit Expression(Operator op);
-  explicit Expression(const Term& term);
-  explicit Expression(Term&& term);
+  explicit Expression(const FermionMonomial& term);
+  explicit Expression(FermionMonomial&& term);
   explicit Expression(const container_type& container);
   explicit Expression(container_type&& container);
-  explicit Expression(std::initializer_list<Term> lst);
+  explicit Expression(std::initializer_list<FermionMonomial> lst);
 
   template <typename Container>
   Expression(complex_type c, Container&& ops) {
@@ -53,7 +53,7 @@ struct Expression {
   std::string to_string() const {
     return map.to_string(
         [](std::ostringstream& os, const container_type& ops, const complex_type& coeff) {
-          Term term(coeff, ops);
+          FermionMonomial term(coeff, ops);
           ::to_string(os, term);
         });
   }
@@ -85,9 +85,9 @@ struct Expression {
   }
   Expression& operator*=(const Expression& value);
 
-  Expression& operator+=(const Term& value);
-  Expression& operator-=(const Term& value);
-  Expression& operator*=(const Term& value);
+  Expression& operator+=(const FermionMonomial& value);
+  Expression& operator-=(const FermionMonomial& value);
+  Expression& operator*=(const FermionMonomial& value);
 
  private:
   static void add_to_map(ExpressionMap<container_type>& target, const container_type& ops,
@@ -122,12 +122,12 @@ inline Expression operator*(const Expression::complex_type& lhs, Expression rhs)
   return rhs;
 }
 
-inline Expression hopping(const Term::complex_type& coeff, size_t from, size_t to,
+inline Expression hopping(const FermionMonomial::complex_type& coeff, size_t from, size_t to,
                           Operator::Spin spin) noexcept {
-  Expression result =
-      Expression(Term(coeff, {Operator::creation(spin, from), Operator::annihilation(spin, to)}));
-  result += Expression(
-      Term(std::conj(coeff), {Operator::creation(spin, to), Operator::annihilation(spin, from)}));
+  Expression result = Expression(
+      FermionMonomial(coeff, {Operator::creation(spin, from), Operator::annihilation(spin, to)}));
+  result += Expression(FermionMonomial(
+      std::conj(coeff), {Operator::creation(spin, to), Operator::annihilation(spin, from)}));
   return result;
 }
 

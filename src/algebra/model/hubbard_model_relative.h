@@ -36,9 +36,10 @@ struct HubbardModelRelative : Model {
           2.0 * std::numbers::pi_v<double> * static_cast<double>(p * r) / static_cast<double>(size);
       const std::complex<double> coefficient =
           std::exp(std::complex<double>(0.0, phase)) * normalization;
-      result += Term(Term::complex_type(coefficient.real(), coefficient.imag()),
-                     {Operator::creation(Operator::Spin::Up, p),
-                      Operator::creation(Operator::Spin::Down, k_minus_p)});
+      result +=
+          FermionMonomial(FermionMonomial::complex_type(coefficient.real(), coefficient.imag()),
+                          {Operator::creation(Operator::Spin::Up, p),
+                           Operator::creation(Operator::Spin::Down, k_minus_p)});
     }
     return result;
   }

@@ -23,7 +23,7 @@ auto transform_operator(F&& f, Operator op, Args&&... args)
 }
 
 template <typename F, typename... Args>
-auto transform_term(F&& f, const Term& term, Args&&... args)
+auto transform_term(F&& f, const FermionMonomial& term, Args&&... args)
     -> std::enable_if_t<is_operator_callable<F, Args...>::value, Expression> {
   Expression result(term.c);
   for (const auto& op : term.operators) {
@@ -37,7 +37,8 @@ auto transform_expression(F&& f, const Expression& expr, Args&&... args)
     -> std::enable_if_t<is_operator_callable<F, Args...>::value, Expression> {
   Expression result;
   for (const auto& [ops, coeff] : expr.terms()) {
-    result += transform_term(std::forward<F>(f), Term(coeff, ops), std::forward<Args>(args)...);
+    result += transform_term(std::forward<F>(f), FermionMonomial(coeff, ops),
+                             std::forward<Args>(args)...);
   }
   return result;
 }
@@ -71,7 +72,8 @@ inline Expression fourier_transform_operator(Operator op, const Index& index,
     coefficient = std::exp(coefficient) * normalization;
 
     Operator transformed_op(op.type(), op.spin(), i);
-    result += Term(Term::complex_type(coefficient.real(), coefficient.imag()), {transformed_op});
+    result += FermionMonomial(FermionMonomial::complex_type(coefficient.real(), coefficient.imag()),
+                              {transformed_op});
   }
 
   return result;

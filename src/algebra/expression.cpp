@@ -6,7 +6,7 @@
 
 void Expression::add_to_map(ExpressionMap<container_type>& target, const container_type& ops,
                             const complex_type& coeff) {
-  if (ops.size() > Term::static_vector_size) {
+  if (ops.size() > FermionMonomial::static_vector_size) {
     return;
   }
   target.add(ops, coeff);
@@ -14,7 +14,7 @@ void Expression::add_to_map(ExpressionMap<container_type>& target, const contain
 
 void Expression::add_to_map(ExpressionMap<container_type>& target, container_type&& ops,
                             const complex_type& coeff) {
-  if (ops.size() > Term::static_vector_size) {
+  if (ops.size() > FermionMonomial::static_vector_size) {
     return;
   }
   target.add(std::move(ops), coeff);
@@ -31,13 +31,13 @@ Expression::Expression(Operator op) {
   map.data.emplace(std::move(ops), complex_type{1.0, 0.0});
 }
 
-Expression::Expression(const Term& term) {
+Expression::Expression(const FermionMonomial& term) {
   if (!ExpressionMap<container_type>::is_zero(term.c)) {
     map.data.emplace(term.operators, term.c);
   }
 }
 
-Expression::Expression(Term&& term) {
+Expression::Expression(FermionMonomial&& term) {
   if (!ExpressionMap<container_type>::is_zero(term.c)) {
     map.data.emplace(std::move(term.operators), term.c);
   }
@@ -51,7 +51,7 @@ Expression::Expression(container_type&& container) {
   map.data.emplace(std::move(container), complex_type{1.0, 0.0});
 }
 
-Expression::Expression(std::initializer_list<Term> lst) {
+Expression::Expression(std::initializer_list<FermionMonomial> lst) {
   for (const auto& term : lst) {
     add_to_map(map, term.operators, term.c);
   }
@@ -60,8 +60,8 @@ Expression::Expression(std::initializer_list<Term> lst) {
 Expression Expression::adjoint() const {
   Expression result;
   for (const auto& [ops, coeff] : map.data) {
-    Term term(coeff, ops);
-    Term adj = ::adjoint(term);
+    FermionMonomial term(coeff, ops);
+    FermionMonomial adj = ::adjoint(term);
     add_to_map(result.map, std::move(adj.operators), adj.c);
   }
   return result;
@@ -105,7 +105,7 @@ Expression& Expression::filter_by_size(size_t size) {
 void Expression::to_string(std::ostringstream& oss) const {
   map.format_sorted(
       oss, [](std::ostringstream& os, const container_type& ops, const complex_type& coeff) {
-        Term term(coeff, ops);
+        FermionMonomial term(coeff, ops);
         ::to_string(os, term);
       });
 }
@@ -119,7 +119,7 @@ Expression& Expression::operator*=(const Expression& value) {
   result.reserve(map.size() * value.map.size());
   for (const auto& [lhs_ops, lhs_coeff] : map.data) {
     for (const auto& [rhs_ops, rhs_coeff] : value.map.data) {
-      if (lhs_ops.size() + rhs_ops.size() > Term::static_vector_size) {
+      if (lhs_ops.size() + rhs_ops.size() > FermionMonomial::static_vector_size) {
         continue;
       }
       container_type combined = lhs_ops;
@@ -131,17 +131,17 @@ Expression& Expression::operator*=(const Expression& value) {
   return *this;
 }
 
-Expression& Expression::operator+=(const Term& value) {
+Expression& Expression::operator+=(const FermionMonomial& value) {
   add_to_map(map, value.operators, value.c);
   return *this;
 }
 
-Expression& Expression::operator-=(const Term& value) {
+Expression& Expression::operator-=(const FermionMonomial& value) {
   add_to_map(map, value.operators, -value.c);
   return *this;
 }
 
-Expression& Expression::operator*=(const Term& value) {
+Expression& Expression::operator*=(const FermionMonomial& value) {
   if (map.empty()) {
     return *this;
   }
@@ -159,7 +159,7 @@ Expression& Expression::operator*=(const Term& value) {
   ExpressionMap<container_type> result;
   result.reserve(map.size());
   for (const auto& [ops, coeff] : map.data) {
-    if (ops.size() + value.operators.size() > Term::static_vector_size) {
+    if (ops.size() + value.operators.size() > FermionMonomial::static_vector_size) {
       continue;
     }
     container_type combined = ops;

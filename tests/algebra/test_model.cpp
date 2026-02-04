@@ -11,7 +11,8 @@
 namespace {
 constexpr float kTolerance = 1e-6f;
 
-bool complex_near_model(const Term::complex_type& lhs, const Term::complex_type& rhs, float tol) {
+bool complex_near_model(const FermionMonomial::complex_type& lhs,
+                        const FermionMonomial::complex_type& rhs, float tol) {
   const auto delta = lhs - rhs;
   return std::abs(delta) <= tol;
 }
@@ -98,11 +99,12 @@ TEST_CASE("model_hubbard_relative_hamiltonian_coefficients") {
   const double expected_diag = (3.0 / static_cast<double>(size)) + 2.0 * t_eff * std::cos(k_phase);
   const double expected_off_diag = 3.0 / static_cast<double>(size);
 
-  CHECK(complex_near_model(
-      diag_it->second, Term::complex_type(static_cast<float>(expected_diag), 0.0f), kTolerance));
-  CHECK(complex_near_model(off_diag_it->second,
-                           Term::complex_type(static_cast<float>(expected_off_diag), 0.0f),
+  CHECK(complex_near_model(diag_it->second,
+                           FermionMonomial::complex_type(static_cast<float>(expected_diag), 0.0f),
                            kTolerance));
+  CHECK(complex_near_model(
+      off_diag_it->second,
+      FermionMonomial::complex_type(static_cast<float>(expected_off_diag), 0.0f), kTolerance));
 }
 
 TEST_CASE("model_virtual_dispatch_hamiltonian") {
@@ -236,7 +238,7 @@ TEST_CASE("model_hubbard_opposite_spin_correlation_1d_coefficients") {
 
   // Each term should have coefficient 1/N = 1/4 = 0.25
   for (const auto& [ops, coeff] : g0.terms()) {
-    CHECK(complex_near_model(coeff, Term::complex_type(0.25, 0.0), kTolerance));
+    CHECK(complex_near_model(coeff, FermionMonomial::complex_type(0.25, 0.0), kTolerance));
   }
 }
 
@@ -273,7 +275,7 @@ TEST_CASE("model_hubbard_2d_opposite_spin_correlation_coefficients") {
 
   // Each term should have coefficient 1/N = 1/4 = 0.25
   for (const auto& [ops, coeff] : g00.terms()) {
-    CHECK(complex_near_model(coeff, Term::complex_type(0.25, 0.0), kTolerance));
+    CHECK(complex_near_model(coeff, FermionMonomial::complex_type(0.25, 0.0), kTolerance));
   }
 }
 
@@ -300,7 +302,7 @@ TEST_CASE("model_hubbard_3d_opposite_spin_correlation_coefficients") {
 
   // Each term should have coefficient 1/N = 1/8 = 0.125
   for (const auto& [ops, coeff] : g000.terms()) {
-    CHECK(complex_near_model(coeff, Term::complex_type(0.125, 0.0), kTolerance));
+    CHECK(complex_near_model(coeff, FermionMonomial::complex_type(0.125, 0.0), kTolerance));
   }
 }
 

@@ -1,7 +1,7 @@
 #include "algebra/term.h"
 
-void to_string(std::ostringstream& oss, const Term& term) {
-  if (term.c == Term::complex_type{}) {
+void to_string(std::ostringstream& oss, const FermionMonomial& term) {
+  if (term.c == FermionMonomial::complex_type{}) {
     oss << "0";
     return;
   }
@@ -18,7 +18,7 @@ void to_string(std::ostringstream& oss, const Term& term) {
   }
 }
 
-std::string to_string(const Term& term) {
+std::string to_string(const FermionMonomial& term) {
   std::ostringstream oss;
   to_string(oss, term);
   return oss.str();

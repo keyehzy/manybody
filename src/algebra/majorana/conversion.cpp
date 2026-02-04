@@ -77,8 +77,8 @@ Expression from_majorana(const MajoranaExpression& expr) {
         op_expr += Expression(annihilate);
       } else {
         // gamma_o = -i(c+ - c) = -i*c+ + i*c
-        op_expr += Expression(Term(complex_type(0.0, -1.0), {create}));
-        op_expr += Expression(Term(complex_type(0.0, 1.0), {annihilate}));
+        op_expr += Expression(FermionMonomial(complex_type(0.0, -1.0), {create}));
+        op_expr += Expression(FermionMonomial(complex_type(0.0, 1.0), {annihilate}));
       }
 
       term_expr *= op_expr;

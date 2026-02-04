@@ -5,7 +5,7 @@
 #include "algebra/normal_order.h"
 #include "utils/tolerances.h"
 
-Expression commutator(const Term& A, const Term& B) {
+Expression commutator(const FermionMonomial& A, const FermionMonomial& B) {
   NormalOrderer orderer;
   Expression result = orderer.normal_order(A * B);
   result -= orderer.normal_order(B * A);
@@ -19,7 +19,7 @@ Expression commutator(const Expression& A, const Expression& B) {
   return result;
 }
 
-Expression anticommutator(const Term& A, const Term& B) {
+Expression anticommutator(const FermionMonomial& A, const FermionMonomial& B) {
   NormalOrderer orderer;
   Expression result = orderer.normal_order(A * B);
   result += orderer.normal_order(B * A);

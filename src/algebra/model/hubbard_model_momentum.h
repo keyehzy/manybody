@@ -79,12 +79,13 @@ struct HubbardModelMomentum : Model {
       const size_t k_plus_Q_idx = index(k_plus_Q);
 
       // c†_{k+Q,↑} c_{k,↑}
-      current_term += Expression(Term(coeff, {Operator::creation(Operator::Spin::Up, k_plus_Q_idx),
-                                              Operator::annihilation(Operator::Spin::Up, k)}));
+      current_term +=
+          Expression(FermionMonomial(coeff, {Operator::creation(Operator::Spin::Up, k_plus_Q_idx),
+                                             Operator::annihilation(Operator::Spin::Up, k)}));
       // c†_{k+Q,↓} c_{k,↓}
       current_term +=
-          Expression(Term(coeff, {Operator::creation(Operator::Spin::Down, k_plus_Q_idx),
-                                  Operator::annihilation(Operator::Spin::Down, k)}));
+          Expression(FermionMonomial(coeff, {Operator::creation(Operator::Spin::Down, k_plus_Q_idx),
+                                             Operator::annihilation(Operator::Spin::Down, k)}));
     }
     return current_term;
   }
@@ -106,11 +107,11 @@ struct HubbardModelMomentum : Model {
       }
 
       // n_{k,↑} = c†_{k,↑} c_{k,↑}
-      P += Expression(Term(coeff, {Operator::creation(Operator::Spin::Up, k),
-                                   Operator::annihilation(Operator::Spin::Up, k)}));
+      P += Expression(FermionMonomial(coeff, {Operator::creation(Operator::Spin::Up, k),
+                                              Operator::annihilation(Operator::Spin::Up, k)}));
       // n_{k,↓} = c†_{k,↓} c_{k,↓}
-      P += Expression(Term(coeff, {Operator::creation(Operator::Spin::Down, k),
-                                   Operator::annihilation(Operator::Spin::Down, k)}));
+      P += Expression(FermionMonomial(coeff, {Operator::creation(Operator::Spin::Down, k),
+                                              Operator::annihilation(Operator::Spin::Down, k)}));
     }
     return P;
   }
@@ -123,11 +124,13 @@ struct HubbardModelMomentum : Model {
       const auto coeff = Expression::complex_type(energy, 0.0);
 
       // n_{k,up} = c†_{k,up} c_{k,up}
-      kinetic_term += Expression(Term(coeff, {Operator::creation(Operator::Spin::Up, k),
-                                              Operator::annihilation(Operator::Spin::Up, k)}));
+      kinetic_term +=
+          Expression(FermionMonomial(coeff, {Operator::creation(Operator::Spin::Up, k),
+                                             Operator::annihilation(Operator::Spin::Up, k)}));
       // n_{k,down} = c†_{k,down} c_{k,down}
-      kinetic_term += Expression(Term(coeff, {Operator::creation(Operator::Spin::Down, k),
-                                              Operator::annihilation(Operator::Spin::Down, k)}));
+      kinetic_term +=
+          Expression(FermionMonomial(coeff, {Operator::creation(Operator::Spin::Down, k),
+                                             Operator::annihilation(Operator::Spin::Down, k)}));
     }
     return kinetic_term;
   }
@@ -156,8 +159,8 @@ struct HubbardModelMomentum : Model {
           const size_t k1_plus_q_idx = index(k1_plus_q);
           const size_t k2_minus_q_idx = index(k2_minus_q);
 
-          interaction_term +=
-              Expression(Term(u_coeff, {Operator::creation(Operator::Spin::Up, k1_plus_q_idx),
+          interaction_term += Expression(
+              FermionMonomial(u_coeff, {Operator::creation(Operator::Spin::Up, k1_plus_q_idx),
                                         Operator::creation(Operator::Spin::Down, k2_minus_q_idx),
                                         Operator::annihilation(Operator::Spin::Down, k2),
                                         Operator::annihilation(Operator::Spin::Up, k1)}));
@@ -217,11 +220,11 @@ struct HubbardModelMomentum : Model {
               Expression::complex_type(std::cos(phase) / static_cast<double>(N * N),
                                        -std::sin(phase) / static_cast<double>(N * N));
 
-          result += Expression(
-              Term(coeff, {Operator::creation(Operator::Spin::Up, k1),
-                           Operator::annihilation(Operator::Spin::Up, k1_plus_q_idx),
-                           Operator::creation(Operator::Spin::Down, k2),
-                           Operator::annihilation(Operator::Spin::Down, k2_minus_q_idx)}));
+          result += Expression(FermionMonomial(
+              coeff, {Operator::creation(Operator::Spin::Up, k1),
+                      Operator::annihilation(Operator::Spin::Up, k1_plus_q_idx),
+                      Operator::creation(Operator::Spin::Down, k2),
+                      Operator::annihilation(Operator::Spin::Down, k2_minus_q_idx)}));
         }
       }
     }

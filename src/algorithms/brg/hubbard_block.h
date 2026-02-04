@@ -119,16 +119,16 @@ inline Expression build_3d_block_hamiltonian(double t, double U, double mu) {
 /// Pair creation operator: Delta^dag_i = c^dag_{i,up} c^dag_{i,down}
 /// Creates a singlet Cooper pair at site i.
 inline Expression pair_creation(size_t site) {
-  Term t({Operator::creation(Operator::Spin::Up, site),
-          Operator::creation(Operator::Spin::Down, site)});
+  FermionMonomial t({Operator::creation(Operator::Spin::Up, site),
+                     Operator::creation(Operator::Spin::Down, site)});
   return Expression(t);
 }
 
 /// Pair annihilation operator: Delta_i = c_{i,down} c_{i,up}
 /// Annihilates a singlet Cooper pair at site i.
 inline Expression pair_annihilation(size_t site) {
-  Term t({Operator::annihilation(Operator::Spin::Down, site),
-          Operator::annihilation(Operator::Spin::Up, site)});
+  FermionMonomial t({Operator::annihilation(Operator::Spin::Down, site),
+                     Operator::annihilation(Operator::Spin::Up, site)});
   return Expression(t);
 }
 

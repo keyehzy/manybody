@@ -4,13 +4,13 @@
 #include "robin_hood.h"
 
 struct NormalOrderer {
-  using complex_type = Term::complex_type;
-  using container_type = FermionString;
+  using complex_type = FermionMonomial::complex_type;
+  using container_type = FermionMonomial::container_type;
 
   NormalOrderer() = default;
 
   Expression normal_order(const complex_type& c, const container_type& ops);
-  Expression normal_order(const Term& term);
+  Expression normal_order(const FermionMonomial& term);
   Expression normal_order(const Expression& expr);
 
   Expression normal_order_recursive(container_type ops);

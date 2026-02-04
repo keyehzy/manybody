@@ -6,7 +6,7 @@
 
 namespace {
 
-bool contains_term(const std::vector<Term>& terms, const Term& value) {
+bool contains_term(const std::vector<FermionMonomial>& terms, const FermionMonomial& value) {
   return std::find(terms.begin(), terms.end(), value) != terms.end();
 }
 
@@ -18,9 +18,9 @@ TEST_CASE("diagonal_children_assigns_off_diagonal_to_parents") {
   const auto a0 = Operator::annihilation(Operator::Spin::Up, 0);
   const auto a1 = Operator::annihilation(Operator::Spin::Up, 1);
 
-  Term diag_one(Term::complex_type(1.0f, 0.0f), {c0, c1, a0, a1});
-  Term diag_two(Term::complex_type(1.0f, 0.0f), {c0, c0, a0, a0});
-  Term off_diag(Term::complex_type(1.0f, 0.0f), {c0, c0, a0, a1});
+  FermionMonomial diag_one(FermionMonomial::complex_type(1.0f, 0.0f), {c0, c1, a0, a1});
+  FermionMonomial diag_two(FermionMonomial::complex_type(1.0f, 0.0f), {c0, c0, a0, a0});
+  FermionMonomial off_diag(FermionMonomial::complex_type(1.0f, 0.0f), {c0, c0, a0, a1});
 
   Expression expr({diag_one, diag_two, off_diag});
   const auto result = group_diagonal_children(expr);
@@ -38,8 +38,8 @@ TEST_CASE("diagonal_children_assigns_off_diagonal_to_parents") {
 }
 
 TEST_CASE("diagonal_children_keeps_empty_entries_for_diagonals") {
-  Term diag_term = density_density(Operator::Spin::Up, 0, Operator::Spin::Down, 1);
-  Term off_diag = one_body(Operator::Spin::Up, 0, Operator::Spin::Down, 2);
+  FermionMonomial diag_term = density_density(Operator::Spin::Up, 0, Operator::Spin::Down, 1);
+  FermionMonomial off_diag = one_body(Operator::Spin::Up, 0, Operator::Spin::Down, 2);
 
   Expression expr({diag_term, off_diag});
   const auto result = group_diagonal_children(expr);
@@ -59,10 +59,10 @@ TEST_CASE("diagonal_children_matches_operator_substrings") {
   const auto a2 = Operator::annihilation(Operator::Spin::Up, 2);
   const auto a3 = Operator::annihilation(Operator::Spin::Up, 3);
 
-  Term diag(Term::complex_type(1.0f, 0.0f), {c0, c2, a0, a2});
-  Term off_prefix(Term::complex_type(1.0f, 0.0f), {c0, c2, a1, a3});
-  Term off_suffix(Term::complex_type(1.0f, 0.0f), {c1, c3, a0, a2});
-  Term off_none(Term::complex_type(1.0f, 0.0f), {c1, c3, a1, a3});
+  FermionMonomial diag(FermionMonomial::complex_type(1.0f, 0.0f), {c0, c2, a0, a2});
+  FermionMonomial off_prefix(FermionMonomial::complex_type(1.0f, 0.0f), {c0, c2, a1, a3});
+  FermionMonomial off_suffix(FermionMonomial::complex_type(1.0f, 0.0f), {c1, c3, a0, a2});
+  FermionMonomial off_none(FermionMonomial::complex_type(1.0f, 0.0f), {c1, c3, a1, a3});
 
   Expression expr({diag, off_prefix, off_suffix, off_none});
   const auto result = group_diagonal_children(expr);
@@ -82,12 +82,12 @@ TEST_CASE("find_matching_terms_uses_term_containment") {
   const auto a1 = Operator::annihilation(Operator::Spin::Up, 1);
   const auto a2 = Operator::annihilation(Operator::Spin::Up, 2);
 
-  Term reference(Term::complex_type(1.0f, 0.0f), {c0, c1});
-  Term exact(Term::complex_type(2.0f, 0.0f), {c0, c1});
-  Term contains_prefix(Term::complex_type(1.0f, 0.0f), {c0, c1, a0, a1});
-  Term contains_suffix(Term::complex_type(1.0f, 0.0f), {a0, a1, c0, c1});
-  Term contains_middle(Term::complex_type(1.0f, 0.0f), {a0, c0, c1, a1});
-  Term none(Term::complex_type(1.0f, 0.0f), {c2, a2});
+  FermionMonomial reference(FermionMonomial::complex_type(1.0f, 0.0f), {c0, c1});
+  FermionMonomial exact(FermionMonomial::complex_type(2.0f, 0.0f), {c0, c1});
+  FermionMonomial contains_prefix(FermionMonomial::complex_type(1.0f, 0.0f), {c0, c1, a0, a1});
+  FermionMonomial contains_suffix(FermionMonomial::complex_type(1.0f, 0.0f), {a0, a1, c0, c1});
+  FermionMonomial contains_middle(FermionMonomial::complex_type(1.0f, 0.0f), {a0, c0, c1, a1});
+  FermionMonomial none(FermionMonomial::complex_type(1.0f, 0.0f), {c2, a2});
 
   Expression expr({exact, contains_prefix, contains_suffix, contains_middle, none});
   const auto matches = find_matching_terms(reference, expr);
@@ -104,10 +104,10 @@ TEST_CASE("find_matching_terms_handles_single_operator") {
   const auto c1 = Operator::creation(Operator::Spin::Up, 1);
   const auto a0 = Operator::annihilation(Operator::Spin::Up, 0);
 
-  Term reference(Term::complex_type(1.0f, 0.0f), {c0});
-  Term exact(Term::complex_type(1.0f, 0.0f), {c0});
-  Term embedded(Term::complex_type(1.0f, 0.0f), {c0, a0});
-  Term other(Term::complex_type(1.0f, 0.0f), {c1});
+  FermionMonomial reference(FermionMonomial::complex_type(1.0f, 0.0f), {c0});
+  FermionMonomial exact(FermionMonomial::complex_type(1.0f, 0.0f), {c0});
+  FermionMonomial embedded(FermionMonomial::complex_type(1.0f, 0.0f), {c0, a0});
+  FermionMonomial other(FermionMonomial::complex_type(1.0f, 0.0f), {c1});
 
   Expression expr({exact, embedded, other});
   const auto matches = find_matching_terms(reference, expr);
@@ -125,10 +125,10 @@ TEST_CASE("find_matching_terms_allows_out_of_order_matching") {
   const auto c2 = Operator::creation(Operator::Spin::Up, 2);
   const auto a2 = Operator::annihilation(Operator::Spin::Up, 2);
 
-  Term reference(Term::complex_type(1.0f, 0.0f), {c0, c1});
-  Term contiguous_match(Term::complex_type(1.0f, 0.0f), {a2, c0, c1, a0, a1});
-  Term non_contiguous(Term::complex_type(1.0f, 0.0f), {c0, c2, c1, a2});
-  Term missing_operator(Term::complex_type(1.0f, 0.0f), {c0, c2, a2});
+  FermionMonomial reference(FermionMonomial::complex_type(1.0f, 0.0f), {c0, c1});
+  FermionMonomial contiguous_match(FermionMonomial::complex_type(1.0f, 0.0f), {a2, c0, c1, a0, a1});
+  FermionMonomial non_contiguous(FermionMonomial::complex_type(1.0f, 0.0f), {c0, c2, c1, a2});
+  FermionMonomial missing_operator(FermionMonomial::complex_type(1.0f, 0.0f), {c0, c2, a2});
 
   Expression expr({contiguous_match, non_contiguous, missing_operator});
   const auto matches = find_matching_terms(reference, expr);
@@ -142,8 +142,8 @@ TEST_CASE("find_matching_terms_empty_reference_returns_empty") {
   const auto c0 = Operator::creation(Operator::Spin::Up, 0);
   const auto a0 = Operator::annihilation(Operator::Spin::Up, 0);
 
-  Term empty_reference;
-  Term density_term(Term::complex_type(1.0f, 0.0f), {c0, a0});
+  FermionMonomial empty_reference;
+  FermionMonomial density_term(FermionMonomial::complex_type(1.0f, 0.0f), {c0, a0});
 
   Expression expr({density_term});
   const auto matches = find_matching_terms(empty_reference, expr);

@@ -12,13 +12,15 @@
 namespace {
 constexpr float kTolerance = 1e-6f;
 
-bool complex_near(const Term::complex_type& lhs, const Term::complex_type& rhs, float tol) {
+bool complex_near(const FermionMonomial::complex_type& lhs,
+                  const FermionMonomial::complex_type& rhs, float tol) {
   const auto delta = lhs - rhs;
   return std::abs(delta) <= tol;
 }
 
-Term::complex_type expected_coefficient(Operator op, const Index& index,
-                                        const Index::container_type& other, FourierMode mode) {
+FermionMonomial::complex_type expected_coefficient(Operator op, const Index& index,
+                                                   const Index::container_type& other,
+                                                   FourierMode mode) {
   const auto from = index(op.value());
   const auto& orbital = (mode == FourierMode::Direct) ? from : other;
   const auto& momentum = (mode == FourierMode::Direct) ? other : from;
@@ -34,8 +36,8 @@ Term::complex_type expected_coefficient(Operator op, const Index& index,
   const double phase_sign = (mode == FourierMode::Direct) ? -1.0 : 1.0;
   std::complex<double> coefficient(0.0, phase_sign * type_sign * phase);
   coefficient = std::exp(coefficient) / std::sqrt(static_cast<double>(index.size()));
-  return Term::complex_type(static_cast<float>(coefficient.real()),
-                            static_cast<float>(coefficient.imag()));
+  return FermionMonomial::complex_type(static_cast<float>(coefficient.real()),
+                                       static_cast<float>(coefficient.imag()));
 }
 }  // namespace
 
@@ -113,7 +115,7 @@ TEST_CASE("fourier_transform_operator_round_trip_recovers_operator") {
   Expression::container_type ops{annihilation};
   auto it = restored.terms().find(ops);
   REQUIRE(it != restored.terms().end());
-  CHECK(complex_near(it->second, Term::complex_type{1.0f, 0.0f}, kTolerance));
+  CHECK(complex_near(it->second, FermionMonomial::complex_type{1.0f, 0.0f}, kTolerance));
   CHECK(restored.terms().size() == 1);
 }
 

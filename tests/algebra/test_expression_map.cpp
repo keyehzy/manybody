@@ -4,7 +4,7 @@
 #include "algebra/term.h"
 #include "utils/tolerances.h"
 
-using MapType = ExpressionMap<Term::container_type>;
+using MapType = ExpressionMap<FermionMonomial::container_type>;
 using complex_type = MapType::complex_type;
 using key_type = MapType::key_type;
 

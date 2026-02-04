@@ -4,8 +4,8 @@
 
 namespace {
 
-bool has_matching_substring(const FermionString& diagonal_ops,
-                            const FermionString& off_diagonal_ops) {
+bool has_matching_substring(const FermionMonomial::container_type& diagonal_ops,
+                            const FermionMonomial::container_type& off_diagonal_ops) {
   if (diagonal_ops.empty() || off_diagonal_ops.empty()) {
     return false;
   }
@@ -31,7 +31,8 @@ bool has_matching_substring(const FermionString& diagonal_ops,
   return false;
 }
 
-bool is_term_contained(const FermionString& small, const FermionString& large) {
+bool is_term_contained(const FermionMonomial::container_type& small,
+                       const FermionMonomial::container_type& large) {
   if (small.empty()) {
     return false;
   }
@@ -59,10 +60,11 @@ bool is_term_contained(const FermionString& small, const FermionString& large) {
 
 }  // namespace
 
-std::vector<Term> find_matching_terms(const Term& term, const Expression& expr) {
-  std::vector<Term> matches;
+std::vector<FermionMonomial> find_matching_terms(const FermionMonomial& term,
+                                                 const Expression& expr) {
+  std::vector<FermionMonomial> matches;
   for (const auto& [ops, coeff] : expr.terms()) {
-    Term candidate(coeff, ops);
+    FermionMonomial candidate(coeff, ops);
     if (is_term_contained(term.operators, candidate.operators)) {
       matches.push_back(candidate);
     }
@@ -72,12 +74,12 @@ std::vector<Term> find_matching_terms(const Term& term, const Expression& expr) 
 
 DiagonalChildrenResult group_diagonal_children(const Expression& expr) {
   DiagonalChildrenResult result;
-  std::vector<Term> off_diagonals;
+  std::vector<FermionMonomial> off_diagonals;
   for (const auto& [ops, coeff] : expr.terms()) {
-    Term term(coeff, ops);
+    FermionMonomial term(coeff, ops);
     if (is_diagonal(term)) {
       result.diagonals.push_back(term);
-      result.children.emplace(ops, std::vector<Term>{});
+      result.children.emplace(ops, std::vector<FermionMonomial>{});
     } else {
       off_diagonals.push_back(term);
     }

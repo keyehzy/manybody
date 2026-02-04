@@ -36,7 +36,7 @@ TEST_CASE("matrix_elements_vector_parallel_matches_serial") {
 
 TEST_CASE("matrix_elements_matrix_serial_density") {
   Basis basis = Basis::with_fixed_particle_number(1, 1);
-  Expression A(Term(
+  Expression A(FermionMonomial(
       {Operator::creation(Operator::Spin::Up, 0), Operator::annihilation(Operator::Spin::Up, 0)}));
   NormalOrderer orderer;
 
@@ -52,7 +52,7 @@ TEST_CASE("matrix_elements_matrix_serial_density") {
 
 TEST_CASE("matrix_elements_matrix_parallel_matches_serial") {
   Basis basis = Basis::with_fixed_particle_number(1, 1);
-  Expression A(Term(
+  Expression A(FermionMonomial(
       {Operator::creation(Operator::Spin::Up, 0), Operator::annihilation(Operator::Spin::Up, 0)}));
   NormalOrderer orderer;
 
