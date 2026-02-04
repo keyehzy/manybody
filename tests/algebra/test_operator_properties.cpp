@@ -4,7 +4,7 @@
 #include "algebra/operator.h"
 
 namespace {
-constexpr std::size_t kOperatorValueLimit = Operator::max_index() + 1;
+constexpr std::size_t kValueLimit = Operator::max_index() + 1;
 }
 
 namespace rc {
@@ -39,7 +39,7 @@ TEST_CASE("Operator property tests") {
 
   // Property 1: Round-trip construction
   rc::prop("round-trip construction preserves type, spin, and value", [](Type type, Spin spin) {
-    const auto value = *rc::gen::inRange<std::size_t>(0, kOperatorValueLimit);
+    const auto value = *rc::gen::inRange<std::size_t>(0, kValueLimit);
     Operator op(type, spin, value);
     RC_ASSERT(op.type() == type);
     RC_ASSERT(op.spin() == spin);
@@ -126,7 +126,7 @@ TEST_CASE("Operator property tests") {
 
   // Property 18: Factory method equivalence
   rc::prop("factory methods produce same result as constructor", [](Spin spin) {
-    const auto value = *rc::gen::inRange<std::size_t>(0, kOperatorValueLimit);
+    const auto value = *rc::gen::inRange<std::size_t>(0, kValueLimit);
     RC_ASSERT(Operator::creation(spin, value) == Operator(Type::Creation, spin, value));
     RC_ASSERT(Operator::annihilation(spin, value) == Operator(Type::Annihilation, spin, value));
   });

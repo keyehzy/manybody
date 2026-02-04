@@ -4,7 +4,7 @@
 #include "algebra/operator.h"
 
 namespace {
-constexpr std::size_t kMaxOperatorValue = Operator::max_index();
+constexpr std::size_t kMaxValue = Operator::max_index();
 }
 
 TEST_CASE("operator_storage_matches_operator_storage") {
@@ -12,7 +12,7 @@ TEST_CASE("operator_storage_matches_operator_storage") {
 }
 
 TEST_CASE("operator_bits_roundtrip") {
-  const auto value = kMaxOperatorValue / 2;
+  const auto value = kMaxValue / 2;
   Operator op = Operator::creation(Operator::Spin::Down, value);
   CHECK((op.type()) == (Operator::Type::Creation));
   CHECK((op.spin()) == (Operator::Spin::Down));
@@ -20,7 +20,7 @@ TEST_CASE("operator_bits_roundtrip") {
 }
 
 TEST_CASE("operator_bits_layout") {
-  const auto value = kMaxOperatorValue;
+  const auto value = kMaxValue;
   Operator op = Operator::annihilation(Operator::Spin::Down, value);
   const auto expected = static_cast<Operator::storage_type>(
       Operator::kTypeBit | Operator::kSpinBit |

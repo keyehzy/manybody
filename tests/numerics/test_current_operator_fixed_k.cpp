@@ -11,7 +11,7 @@
 #include "utils/index.h"
 
 namespace {
-constexpr double kCurrentTolerance = 1e-10;
+constexpr double kTolerance = 1e-10;
 
 // Helper function that wraps the unified compute_rectangular_matrix_elements
 // with the parameter order used in this test (source, target, expr).
@@ -77,7 +77,7 @@ TEST_CASE("CurrentOperatorFixedK matches dense matrix 1D", "[current][fixed-k]")
       arma::cx_vec w_dense = J_dense * v;
       arma::cx_vec w_mf = J_op.apply(v);
 
-      REQUIRE(arma::approx_equal(w_dense, w_mf, "absdiff", kCurrentTolerance));
+      REQUIRE(arma::approx_equal(w_dense, w_mf, "absdiff", kTolerance));
     }
   }
 }
@@ -117,7 +117,7 @@ TEST_CASE("CurrentOperatorFixedK adjoint matches dense matrix 1D", "[current][fi
       arma::cx_vec w_dense = J_adj_dense * v;
       arma::cx_vec w_mf = J_op.adjoint_apply(v);
 
-      REQUIRE(arma::approx_equal(w_dense, w_mf, "absdiff", kCurrentTolerance));
+      REQUIRE(arma::approx_equal(w_dense, w_mf, "absdiff", kTolerance));
     }
   }
 }
@@ -153,14 +153,14 @@ TEST_CASE("CurrentOperatorFixedK matches dense matrix 2D", "[current][fixed-k]")
     arma::cx_vec w_dense = J_dense * v;
     arma::cx_vec w_mf = J_op.apply(v);
 
-    REQUIRE(arma::approx_equal(w_dense, w_mf, "absdiff", kCurrentTolerance));
+    REQUIRE(arma::approx_equal(w_dense, w_mf, "absdiff", kTolerance));
 
     // Test adjoint
     arma::cx_vec v2(basis_KQ.set.size(), arma::fill::randn);
     arma::cx_vec w_adj_dense = J_dense.t() * v2;
     arma::cx_vec w_adj_mf = J_op.adjoint_apply(v2);
 
-    REQUIRE(arma::approx_equal(w_adj_dense, w_adj_mf, "absdiff", kCurrentTolerance));
+    REQUIRE(arma::approx_equal(w_adj_dense, w_adj_mf, "absdiff", kTolerance));
   }
 }
 
@@ -189,7 +189,7 @@ TEST_CASE("CurrentOperatorFixedK Q=0 is diagonal", "[current][fixed-k]") {
   for (size_t i = 0; i < J_dense.n_rows; ++i) {
     for (size_t j = 0; j < J_dense.n_cols; ++j) {
       if (i != j) {
-        REQUIRE(std::abs(J_dense(i, j)) < kCurrentTolerance);
+        REQUIRE(std::abs(J_dense(i, j)) < kTolerance);
       }
     }
   }
@@ -198,7 +198,7 @@ TEST_CASE("CurrentOperatorFixedK Q=0 is diagonal", "[current][fixed-k]") {
   arma::cx_vec v(basis_K.set.size(), arma::fill::randn);
   arma::cx_vec w_dense = J_dense * v;
   arma::cx_vec w_mf = J_op.apply(v);
-  REQUIRE(arma::approx_equal(w_dense, w_mf, "absdiff", kCurrentTolerance));
+  REQUIRE(arma::approx_equal(w_dense, w_mf, "absdiff", kTolerance));
 }
 
 TEST_CASE("CurrentOperatorFixedK adjoint consistency", "[current][fixed-k]") {
@@ -229,7 +229,7 @@ TEST_CASE("CurrentOperatorFixedK adjoint consistency", "[current][fixed-k]") {
   std::complex<double> inner1 = arma::cdot(u, Jv);
   std::complex<double> inner2 = arma::cdot(Jadj_u, v);
 
-  REQUIRE(std::abs(inner1 - inner2) < kCurrentTolerance);
+  REQUIRE(std::abs(inner1 - inner2) < kTolerance);
 }
 
 TEST_CASE("CurrentOperatorFixedK different particle numbers", "[current][fixed-k]") {
@@ -261,7 +261,7 @@ TEST_CASE("CurrentOperatorFixedK different particle numbers", "[current][fixed-k
   arma::cx_vec w_dense = J_dense * v;
   arma::cx_vec w_mf = J_op.apply(v);
 
-  REQUIRE(arma::approx_equal(w_dense, w_mf, "absdiff", kCurrentTolerance));
+  REQUIRE(arma::approx_equal(w_dense, w_mf, "absdiff", kTolerance));
 }
 
 TEST_CASE("CurrentOperatorFixedK velocity values", "[current][fixed-k]") {
@@ -286,8 +286,8 @@ TEST_CASE("CurrentOperatorFixedK velocity values", "[current][fixed-k]") {
   // k=2: sin(π) = 0
   // k=3: sin(3π/2) = -1
   const double factor = 2.0 * t * (2.0 * M_PI / 4.0);
-  REQUIRE(std::abs(velocities[0] - 0.0) < kCurrentTolerance);
-  REQUIRE(std::abs(velocities[1] - factor * 1.0) < kCurrentTolerance);
-  REQUIRE(std::abs(velocities[2] - 0.0) < kCurrentTolerance);
-  REQUIRE(std::abs(velocities[3] - factor * (-1.0)) < kCurrentTolerance);
+  REQUIRE(std::abs(velocities[0] - 0.0) < kTolerance);
+  REQUIRE(std::abs(velocities[1] - factor * 1.0) < kTolerance);
+  REQUIRE(std::abs(velocities[2] - 0.0) < kTolerance);
+  REQUIRE(std::abs(velocities[3] - factor * (-1.0)) < kTolerance);
 }

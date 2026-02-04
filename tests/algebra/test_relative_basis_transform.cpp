@@ -10,7 +10,7 @@
 #include "utils/index.h"
 
 namespace {
-constexpr double kRelTransformTolerance = 1e-10;
+constexpr double kTolerance = 1e-10;
 }
 
 TEST_CASE("relative_basis_transform_unitarity") {
@@ -28,7 +28,7 @@ TEST_CASE("relative_basis_transform_unitarity") {
   const arma::cx_mat identity = arma::eye<arma::cx_mat>(U.n_cols, U.n_cols);
   const double error = arma::norm(should_be_identity - identity, "fro");
 
-  CHECK(error < kRelTransformTolerance);
+  CHECK(error < kTolerance);
 }
 
 TEST_CASE("relative_basis_transform_eigenvalue_preservation") {
@@ -59,7 +59,7 @@ TEST_CASE("relative_basis_transform_eigenvalue_preservation") {
   eig_rel = arma::sort(eig_rel);
 
   const double error = arma::norm(eig_mom - eig_rel);
-  CHECK(error < kRelTransformTolerance);
+  CHECK(error < kTolerance);
 }
 
 TEST_CASE("relative_basis_transform_interaction_localization") {
@@ -90,8 +90,8 @@ TEST_CASE("relative_basis_transform_interaction_localization") {
     }
   }
 
-  CHECK(std::abs(diag_value - U_hubbard) < kRelTransformTolerance);
-  CHECK(off_diag_max < kRelTransformTolerance);
+  CHECK(std::abs(diag_value - U_hubbard) < kTolerance);
+  CHECK(off_diag_max < kTolerance);
 }
 
 TEST_CASE("relative_basis_transform_with_index") {
@@ -130,7 +130,7 @@ TEST_CASE("relative_basis_transform_different_momenta") {
     const arma::cx_mat should_be_identity = U.t() * U;
     const arma::cx_mat identity = arma::eye<arma::cx_mat>(U.n_cols, U.n_cols);
     const double unitarity_error = arma::norm(should_be_identity - identity, "fro");
-    CHECK(unitarity_error < kRelTransformTolerance);
+    CHECK(unitarity_error < kTolerance);
 
     // Check eigenvalue preservation for each K
     HubbardModelMomentum hubbard(t, U_hubbard, size);
@@ -145,6 +145,6 @@ TEST_CASE("relative_basis_transform_different_momenta") {
     arma::eig_sym(eig_rel, arma::cx_mat(H_rel));
 
     const double eig_error = arma::norm(arma::sort(eig_mom) - arma::sort(eig_rel));
-    CHECK(eig_error < kRelTransformTolerance);
+    CHECK(eig_error < kTolerance);
   }
 }

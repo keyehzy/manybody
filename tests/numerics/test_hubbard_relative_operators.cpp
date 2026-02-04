@@ -7,7 +7,7 @@
 #include "numerics/hubbard_relative_operators.h"
 
 namespace {
-constexpr double kOperatorsTolerance = 1e-10;
+constexpr double kTolerance = 1e-10;
 }
 
 TEST_CASE("hubbard_relative_interaction_keeps_origin") {
@@ -36,10 +36,10 @@ TEST_CASE("hubbard_relative_kinetic_applies_periodic_neighbors") {
   arma::cx_vec w = kinetic.apply(v);
 
   const arma::cx_double expected(-2.0, 0.0);
-  CHECK(std::abs(w(1) - expected) < kOperatorsTolerance);
-  CHECK(std::abs(w(3) - expected) < kOperatorsTolerance);
-  CHECK(std::abs(w(0)) < kOperatorsTolerance);
-  CHECK(std::abs(w(2)) < kOperatorsTolerance);
+  CHECK(std::abs(w(1) - expected) < kTolerance);
+  CHECK(std::abs(w(3) - expected) < kTolerance);
+  CHECK(std::abs(w(0)) < kTolerance);
+  CHECK(std::abs(w(2)) < kTolerance);
 }
 
 TEST_CASE("hubbard_relative_combines_kinetic_and_interaction") {
@@ -51,10 +51,10 @@ TEST_CASE("hubbard_relative_combines_kinetic_and_interaction") {
   v(0) = arma::cx_double(1.0, 0.0);
   arma::cx_vec w = hubbard.apply(v);
 
-  CHECK(std::abs(w(0) - arma::cx_double(3.0, 0.0)) < kOperatorsTolerance);
-  CHECK(std::abs(w(1) - arma::cx_double(-1.0, 0.0)) < kOperatorsTolerance);
-  CHECK(std::abs(w(3) - arma::cx_double(-1.0, 0.0)) < kOperatorsTolerance);
-  CHECK(std::abs(w(2)) < kOperatorsTolerance);
+  CHECK(std::abs(w(0) - arma::cx_double(3.0, 0.0)) < kTolerance);
+  CHECK(std::abs(w(1) - arma::cx_double(-1.0, 0.0)) < kTolerance);
+  CHECK(std::abs(w(3) - arma::cx_double(-1.0, 0.0)) < kTolerance);
+  CHECK(std::abs(w(2)) < kTolerance);
 }
 
 TEST_CASE("hubbard_relative_current_matches_neighbor_sum") {
@@ -69,10 +69,10 @@ TEST_CASE("hubbard_relative_current_matches_neighbor_sum") {
 
   const double k_phase = 2.0 * std::numbers::pi_v<double> * 1.0 / 4.0;
   const arma::cx_double expected(2.0 * t * std::sin(0.5 * k_phase), 0.0);
-  CHECK(std::abs(w(1) - expected) < kOperatorsTolerance);
-  CHECK(std::abs(w(3) - expected) < kOperatorsTolerance);
-  CHECK(std::abs(w(0)) < kOperatorsTolerance);
-  CHECK(std::abs(w(2)) < kOperatorsTolerance);
+  CHECK(std::abs(w(1) - expected) < kTolerance);
+  CHECK(std::abs(w(3) - expected) < kTolerance);
+  CHECK(std::abs(w(0)) < kTolerance);
+  CHECK(std::abs(w(2)) < kTolerance);
 }
 
 TEST_CASE("current_relative_q_adjoint_matches_inner_product") {
@@ -94,5 +94,5 @@ TEST_CASE("current_relative_q_adjoint_matches_inner_product") {
   const arma::cx_double left = arma::cdot(x, current.apply(y));
   const arma::cx_double right = arma::cdot(current_adj.apply(x), y);
 
-  CHECK(std::abs(left - right) < kOperatorsTolerance);
+  CHECK(std::abs(left - right) < kTolerance);
 }

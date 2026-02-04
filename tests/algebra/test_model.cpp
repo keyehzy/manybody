@@ -9,7 +9,7 @@
 #include "algebra/model/model.h"
 
 namespace {
-constexpr float kModelTolerance = 1e-6f;
+constexpr float kTolerance = 1e-6f;
 
 bool complex_near_model(const Term::complex_type& lhs, const Term::complex_type& rhs, float tol) {
   const auto delta = lhs - rhs;
@@ -98,12 +98,11 @@ TEST_CASE("model_hubbard_relative_hamiltonian_coefficients") {
   const double expected_diag = (3.0 / static_cast<double>(size)) + 2.0 * t_eff * std::cos(k_phase);
   const double expected_off_diag = 3.0 / static_cast<double>(size);
 
-  CHECK(complex_near_model(diag_it->second,
-                           Term::complex_type(static_cast<float>(expected_diag), 0.0f),
-                           kModelTolerance));
+  CHECK(complex_near_model(
+      diag_it->second, Term::complex_type(static_cast<float>(expected_diag), 0.0f), kTolerance));
   CHECK(complex_near_model(off_diag_it->second,
                            Term::complex_type(static_cast<float>(expected_off_diag), 0.0f),
-                           kModelTolerance));
+                           kTolerance));
 }
 
 TEST_CASE("model_virtual_dispatch_hamiltonian") {
@@ -161,23 +160,23 @@ TEST_CASE("model_hubbard_momentum_dispersion_1d") {
   HubbardModelMomentum hubbard(1.0, 2.0, {4});
 
   // k=0: ε = -2t * cos(0) = -2t = -2
-  CHECK(std::abs(hubbard.dispersion({0}) - (-2.0)) < kModelTolerance);
+  CHECK(std::abs(hubbard.dispersion({0}) - (-2.0)) < kTolerance);
 
   // k=2 (half-filling): ε = -2t * cos(π) = 2t = 2
-  CHECK(std::abs(hubbard.dispersion({2}) - (2.0)) < kModelTolerance);
+  CHECK(std::abs(hubbard.dispersion({2}) - (2.0)) < kTolerance);
 }
 
 TEST_CASE("model_hubbard_momentum_dispersion_2d") {
   HubbardModelMomentum hubbard(1.0, 2.0, {4, 4});
 
   // k=(0,0): ε = -2t * (cos(0) + cos(0)) = -4t = -4
-  CHECK(std::abs(hubbard.dispersion({0, 0}) - (-4.0)) < kModelTolerance);
+  CHECK(std::abs(hubbard.dispersion({0, 0}) - (-4.0)) < kTolerance);
 
   // k=(2,2): ε = -2t * (cos(π) + cos(π)) = 4t = 4
-  CHECK(std::abs(hubbard.dispersion({2, 2}) - (4.0)) < kModelTolerance);
+  CHECK(std::abs(hubbard.dispersion({2, 2}) - (4.0)) < kTolerance);
 
   // k=(0,2): ε = -2t * (cos(0) + cos(π)) = 0
-  CHECK(std::abs(hubbard.dispersion({0, 2})) < kModelTolerance);
+  CHECK(std::abs(hubbard.dispersion({0, 2})) < kTolerance);
 }
 
 TEST_CASE("model_hubbard_momentum_kinetic_diagonal") {
@@ -237,7 +236,7 @@ TEST_CASE("model_hubbard_opposite_spin_correlation_1d_coefficients") {
 
   // Each term should have coefficient 1/N = 1/4 = 0.25
   for (const auto& [ops, coeff] : g0.terms()) {
-    CHECK(complex_near_model(coeff, Term::complex_type(0.25, 0.0), kModelTolerance));
+    CHECK(complex_near_model(coeff, Term::complex_type(0.25, 0.0), kTolerance));
   }
 }
 
@@ -274,7 +273,7 @@ TEST_CASE("model_hubbard_2d_opposite_spin_correlation_coefficients") {
 
   // Each term should have coefficient 1/N = 1/4 = 0.25
   for (const auto& [ops, coeff] : g00.terms()) {
-    CHECK(complex_near_model(coeff, Term::complex_type(0.25, 0.0), kModelTolerance));
+    CHECK(complex_near_model(coeff, Term::complex_type(0.25, 0.0), kTolerance));
   }
 }
 
@@ -301,7 +300,7 @@ TEST_CASE("model_hubbard_3d_opposite_spin_correlation_coefficients") {
 
   // Each term should have coefficient 1/N = 1/8 = 0.125
   for (const auto& [ops, coeff] : g000.terms()) {
-    CHECK(complex_near_model(coeff, Term::complex_type(0.125, 0.0), kModelTolerance));
+    CHECK(complex_near_model(coeff, Term::complex_type(0.125, 0.0), kTolerance));
   }
 }
 
@@ -348,6 +347,6 @@ TEST_CASE("model_hubbard_momentum_opposite_spin_correlation_onsite_is_real") {
   const Expression g0 = hubbard.opposite_spin_correlation({0});
 
   for (const auto& [ops, coeff] : g0.terms()) {
-    CHECK(std::abs(coeff.imag()) < kModelTolerance);
+    CHECK(std::abs(coeff.imag()) < kTolerance);
   }
 }

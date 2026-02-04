@@ -10,7 +10,7 @@
 #include "numerics/hubbard_momentum_factorized.h"
 
 namespace {
-constexpr double kFactorizedTolerance = 1e-10;
+constexpr double kTolerance = 1e-10;
 }
 
 TEST_CASE("hubbard_momentum_factorized_construction_1d") {
@@ -44,9 +44,9 @@ TEST_CASE("hubbard_momentum_factorized_kinetic_diagonal_1d") {
   // Check that it's diagonal in the basis
   for (size_t i = 0; i < basis.set.size(); ++i) {
     if (i == 0) {
-      CHECK(std::abs(w(i) - H.kinetic_diagonal()(0)) < kFactorizedTolerance);
+      CHECK(std::abs(w(i) - H.kinetic_diagonal()(0)) < kTolerance);
     } else {
-      CHECK(std::abs(w(i)) < kFactorizedTolerance);
+      CHECK(std::abs(w(i)) < kTolerance);
     }
   }
 }
@@ -72,7 +72,7 @@ TEST_CASE("hubbard_momentum_factorized_kinetic_matches_dense_1d") {
   arma::cx_vec w_factorized = H_factorized.apply(v);
   arma::cx_vec w_dense = H_dense * v;
 
-  CHECK(arma::norm(w_factorized - w_dense) < kFactorizedTolerance * arma::norm(w_dense));
+  CHECK(arma::norm(w_factorized - w_dense) < kTolerance * arma::norm(w_dense));
 }
 
 TEST_CASE("hubbard_momentum_factorized_interaction_matches_dense_1d_small") {
@@ -96,7 +96,7 @@ TEST_CASE("hubbard_momentum_factorized_interaction_matches_dense_1d_small") {
   arma::cx_vec w_factorized = H_factorized.apply(v);
   arma::cx_vec w_dense = H_dense * v;
 
-  CHECK(arma::norm(w_factorized - w_dense) < kFactorizedTolerance * (1.0 + arma::norm(w_dense)));
+  CHECK(arma::norm(w_factorized - w_dense) < kTolerance * (1.0 + arma::norm(w_dense)));
 }
 
 TEST_CASE("hubbard_momentum_factorized_full_hamiltonian_matches_dense_1d") {
@@ -124,7 +124,7 @@ TEST_CASE("hubbard_momentum_factorized_full_hamiltonian_matches_dense_1d") {
 
     const double err = arma::norm(w_factorized - w_dense);
     const double scale = 1.0 + arma::norm(w_dense);
-    CHECK(err < kFactorizedTolerance * scale);
+    CHECK(err < kTolerance * scale);
   }
 }
 
@@ -153,7 +153,7 @@ TEST_CASE("hubbard_momentum_factorized_full_hamiltonian_matches_dense_1d_larger"
 
     const double err = arma::norm(w_factorized - w_dense);
     const double scale = 1.0 + arma::norm(w_dense);
-    CHECK(err < kFactorizedTolerance * scale);
+    CHECK(err < kTolerance * scale);
   }
 }
 
@@ -179,7 +179,7 @@ TEST_CASE("hubbard_momentum_factorized_2d") {
   arma::cx_vec w_factorized = H_factorized.apply(v);
   arma::cx_vec w_dense = H_dense * v;
 
-  CHECK(arma::norm(w_factorized - w_dense) < kFactorizedTolerance * (1.0 + arma::norm(w_dense)));
+  CHECK(arma::norm(w_factorized - w_dense) < kTolerance * (1.0 + arma::norm(w_dense)));
 }
 
 TEST_CASE("hubbard_momentum_factorized_hermitian") {
@@ -200,7 +200,7 @@ TEST_CASE("hubbard_momentum_factorized_hermitian") {
   arma::cx_double x_H_y = arma::cdot(x, H.apply(y));
   arma::cx_double y_H_x = arma::cdot(y, H.apply(x));
 
-  CHECK(std::abs(x_H_y - std::conj(y_H_x)) < kFactorizedTolerance * std::abs(x_H_y));
+  CHECK(std::abs(x_H_y - std::conj(y_H_x)) < kTolerance * std::abs(x_H_y));
 }
 
 TEST_CASE("hubbard_momentum_factorized_density_operators_sparse") {

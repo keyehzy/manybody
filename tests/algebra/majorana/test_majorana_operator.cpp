@@ -6,7 +6,7 @@
 using namespace majorana;
 
 namespace {
-constexpr std::size_t kMaxMajoranaOrbital = MajoranaOperator::max_index();
+constexpr std::size_t kMaxOrbital = MajoranaOperator::max_index();
 }
 
 TEST_CASE("majorana_operator_storage_matches_majorana_storage") {
@@ -14,7 +14,7 @@ TEST_CASE("majorana_operator_storage_matches_majorana_storage") {
 }
 
 TEST_CASE("majorana_operator_bits_roundtrip") {
-  const auto orbital = kMaxMajoranaOrbital / 2;
+  const auto orbital = kMaxOrbital / 2;
   MajoranaOperator op = MajoranaOperator::odd(orbital, Operator::Spin::Down);
 
   CHECK(op.orbital() == orbital);
@@ -23,7 +23,7 @@ TEST_CASE("majorana_operator_bits_roundtrip") {
 }
 
 TEST_CASE("majorana_operator_bits_layout") {
-  const auto orbital = kMaxMajoranaOrbital;
+  const auto orbital = kMaxOrbital;
   MajoranaOperator op = MajoranaOperator::odd(orbital, Operator::Spin::Down);
   const auto expected = static_cast<MajoranaOperator::storage_type>(
       (static_cast<MajoranaOperator::storage_type>(orbital) << MajoranaOperator::kOrbitalShift) |
