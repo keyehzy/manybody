@@ -16,8 +16,8 @@ TEST_CASE("normal_order_single_operator_is_identity") {
   Expression result = orderer.normal_order(term);
 
   Expression::container_type ops{op};
-  auto it = result.hashmap.find(ops);
-  CHECK(it != result.hashmap.end());
+  auto it = result.terms().find(ops);
+  CHECK(it != result.terms().end());
   CHECK((it->second) == (Expression::complex_type(1.0f, 0.0f)));
 }
 
@@ -29,8 +29,8 @@ TEST_CASE("normal_order_commuting_swap_introduces_phase") {
   Expression result = orderer.normal_order(term);
 
   Expression::container_type ordered{a, b};
-  auto it = result.hashmap.find(ordered);
-  CHECK(it != result.hashmap.end());
+  auto it = result.terms().find(ordered);
+  CHECK(it != result.terms().end());
   CHECK((it->second) == (Expression::complex_type(-1.0f, 0.0f)));
   CHECK((result.size()) == (1u));
 }
@@ -43,13 +43,13 @@ TEST_CASE("normal_order_non_commuting_pair_contracts") {
   Expression result = orderer.normal_order(term);
 
   Expression::container_type empty{};
-  auto it_empty = result.hashmap.find(empty);
-  CHECK(it_empty != result.hashmap.end());
+  auto it_empty = result.terms().find(empty);
+  CHECK(it_empty != result.terms().end());
   CHECK((it_empty->second) == (Expression::complex_type(1.0f, 0.0f)));
 
   Expression::container_type ordered{create, annihilate};
-  auto it_ordered = result.hashmap.find(ordered);
-  CHECK(it_ordered != result.hashmap.end());
+  auto it_ordered = result.terms().find(ordered);
+  CHECK(it_ordered != result.terms().end());
   CHECK((it_ordered->second) == (Expression::complex_type(-1.0f, 0.0f)));
   CHECK((result.size()) == (2u));
 }

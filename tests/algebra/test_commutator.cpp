@@ -11,8 +11,8 @@ TEST_CASE("commutator_commuting_creations_doubles_ordered_term") {
   Expression result = commutator(left, right);
 
   Expression::container_type ordered{a, b};
-  auto it = result.hashmap.find(ordered);
-  CHECK(it != result.hashmap.end());
+  auto it = result.terms().find(ordered);
+  CHECK(it != result.terms().end());
   CHECK((it->second) == (Expression::complex_type(2.0f, 0.0f)));
   CHECK((result.size()) == (1u));
 }
@@ -36,13 +36,13 @@ TEST_CASE("commutator_creation_annihilation_same_orbital") {
   Expression result = commutator(left, right);
 
   Expression::container_type empty{};
-  auto it_empty = result.hashmap.find(empty);
-  CHECK(it_empty != result.hashmap.end());
+  auto it_empty = result.terms().find(empty);
+  CHECK(it_empty != result.terms().end());
   CHECK((it_empty->second) == (Expression::complex_type(-1.0f, 0.0f)));
 
   Expression::container_type ordered{create, annihilate};
-  auto it_ordered = result.hashmap.find(ordered);
-  CHECK(it_ordered != result.hashmap.end());
+  auto it_ordered = result.terms().find(ordered);
+  CHECK(it_ordered != result.terms().end());
   CHECK((it_ordered->second) == (Expression::complex_type(2.0f, 0.0f)));
   CHECK((result.size()) == (2u));
 }
@@ -56,8 +56,8 @@ TEST_CASE("anticommutator_creation_annihilation_same_orbital_is_identity") {
   Expression result = anticommutator(left, right);
 
   Expression::container_type empty{};
-  auto it_empty = result.hashmap.find(empty);
-  CHECK(it_empty != result.hashmap.end());
+  auto it_empty = result.terms().find(empty);
+  CHECK(it_empty != result.terms().end());
   CHECK((it_empty->second) == (Expression::complex_type(1.0f, 0.0f)));
   CHECK((result.size()) == (1u));
 }
@@ -78,9 +78,9 @@ TEST_CASE("commutator_expression_distributes_over_terms") {
   expected += commutator(term_b, term_c);
 
   CHECK((result.size()) == (expected.size()));
-  for (const auto& [ops, coeff] : expected.hashmap) {
-    auto it = result.hashmap.find(ops);
-    CHECK(it != result.hashmap.end());
+  for (const auto& [ops, coeff] : expected.terms()) {
+    auto it = result.terms().find(ops);
+    CHECK(it != result.terms().end());
     CHECK((it->second) == (coeff));
   }
 }
@@ -96,9 +96,9 @@ TEST_CASE("bch_order_one_matches_first_commutator_term") {
 
   Expression expected = B + (commutator(A, B) * lambda);
   CHECK((result.size()) == (expected.size()));
-  for (const auto& [ops, coeff] : expected.hashmap) {
-    auto it = result.hashmap.find(ops);
-    CHECK(it != result.hashmap.end());
+  for (const auto& [ops, coeff] : expected.terms()) {
+    auto it = result.terms().find(ops);
+    CHECK(it != result.terms().end());
     CHECK((it->second) == (coeff));
   }
 }
@@ -112,9 +112,9 @@ TEST_CASE("bch_zero_lambda_returns_b") {
   Expression result = BCH(A, B, 0.0, 5);
 
   CHECK((result.size()) == (B.size()));
-  for (const auto& [ops, coeff] : B.hashmap) {
-    auto it = result.hashmap.find(ops);
-    CHECK(it != result.hashmap.end());
+  for (const auto& [ops, coeff] : B.terms()) {
+    auto it = result.terms().find(ops);
+    CHECK(it != result.terms().end());
     CHECK((it->second) == (coeff));
   }
 }
@@ -127,9 +127,9 @@ TEST_CASE("bch_identity_generator_leaves_b") {
   Expression result = BCH(A, B, 0.75, 4);
 
   CHECK((result.size()) == (B.size()));
-  for (const auto& [ops, coeff] : B.hashmap) {
-    auto it = result.hashmap.find(ops);
-    CHECK(it != result.hashmap.end());
+  for (const auto& [ops, coeff] : B.terms()) {
+    auto it = result.terms().find(ops);
+    CHECK(it != result.terms().end());
     CHECK((it->second) == (coeff));
   }
 }

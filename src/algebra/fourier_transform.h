@@ -36,7 +36,7 @@ template <typename F, typename... Args>
 auto transform_expression(F&& f, const Expression& expr, Args&&... args)
     -> std::enable_if_t<is_operator_callable<F, Args...>::value, Expression> {
   Expression result;
-  for (const auto& [ops, coeff] : expr.hashmap) {
+  for (const auto& [ops, coeff] : expr.terms()) {
     result += transform_term(std::forward<F>(f), Term(coeff, ops), std::forward<Args>(args)...);
   }
   return result;

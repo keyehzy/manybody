@@ -20,7 +20,7 @@ Expression NormalOrderer::normal_order(const Term& term) {
 
 Expression NormalOrderer::normal_order(const Expression& expr) {
   Expression result;
-  for (const auto& [ops, c] : expr.hashmap) {
+  for (const auto& [ops, c] : expr.terms()) {
     result += normal_order(c, ops);
   }
   return result;

@@ -55,10 +55,10 @@ TEST_CASE("fourier_transform_operator_multidimensional_coefficients") {
       Operator::annihilation(Operator::Spin::Up, momentum_orbital)};
   Expression::container_type creation_ops{Operator::creation(Operator::Spin::Up, momentum_orbital)};
 
-  auto annihilation_it = annihilation_expr.hashmap.find(annihilation_ops);
-  auto creation_it = creation_expr.hashmap.find(creation_ops);
-  CHECK(annihilation_it != annihilation_expr.hashmap.end());
-  CHECK(creation_it != creation_expr.hashmap.end());
+  auto annihilation_it = annihilation_expr.terms().find(annihilation_ops);
+  auto creation_it = creation_expr.terms().find(creation_ops);
+  CHECK(annihilation_it != annihilation_expr.terms().end());
+  CHECK(creation_it != creation_expr.terms().end());
 
   const auto expected_annihilation =
       expected_coefficient(annihilation, index, momentum, FourierMode::Direct);
@@ -85,10 +85,10 @@ TEST_CASE("fourier_transform_operator_inverse_multidimensional_coefficients") {
   Expression::container_type annihilation_ops{Operator::annihilation(Operator::Spin::Up, orbital)};
   Expression::container_type creation_ops{Operator::creation(Operator::Spin::Up, orbital)};
 
-  auto annihilation_it = annihilation_expr.hashmap.find(annihilation_ops);
-  auto creation_it = creation_expr.hashmap.find(creation_ops);
-  CHECK(annihilation_it != annihilation_expr.hashmap.end());
-  CHECK(creation_it != creation_expr.hashmap.end());
+  auto annihilation_it = annihilation_expr.terms().find(annihilation_ops);
+  auto creation_it = creation_expr.terms().find(creation_ops);
+  CHECK(annihilation_it != annihilation_expr.terms().end());
+  CHECK(creation_it != creation_expr.terms().end());
 
   const auto expected_annihilation =
       expected_coefficient(annihilation, index, orbital_coords, FourierMode::Inverse);
@@ -111,10 +111,10 @@ TEST_CASE("fourier_transform_operator_round_trip_recovers_operator") {
       transform_expression(fourier_transform_operator, momentum, index, FourierMode::Inverse);
 
   Expression::container_type ops{annihilation};
-  auto it = restored.hashmap.find(ops);
-  REQUIRE(it != restored.hashmap.end());
+  auto it = restored.terms().find(ops);
+  REQUIRE(it != restored.terms().end());
   CHECK(complex_near(it->second, Term::complex_type{1.0f, 0.0f}, kTolerance));
-  CHECK(restored.hashmap.size() == 1);
+  CHECK(restored.terms().size() == 1);
 }
 
 TEST_CASE("fourier_transform_hubbard_1d_gives_momentum_space") {
@@ -141,10 +141,10 @@ TEST_CASE("fourier_transform_hubbard_1d_gives_momentum_space") {
   H_momentum = orderer.normal_order(H_momentum);
 
   // Compare expressions term by term
-  CHECK(H_transformed.hashmap.size() == H_momentum.hashmap.size());
-  for (const auto& [ops, coeff] : H_momentum.hashmap) {
-    auto it = H_transformed.hashmap.find(ops);
-    REQUIRE(it != H_transformed.hashmap.end());
+  CHECK(H_transformed.terms().size() == H_momentum.terms().size());
+  for (const auto& [ops, coeff] : H_momentum.terms()) {
+    auto it = H_transformed.terms().find(ops);
+    REQUIRE(it != H_transformed.terms().end());
     CHECK(complex_near(it->second, coeff, kTolerance));
   }
 }
@@ -170,10 +170,10 @@ TEST_CASE("fourier_transform_hubbard_2d_gives_momentum_space") {
   H_transformed = orderer.normal_order(H_transformed);
   H_momentum = orderer.normal_order(H_momentum);
 
-  CHECK(H_transformed.hashmap.size() == H_momentum.hashmap.size());
-  for (const auto& [ops, coeff] : H_momentum.hashmap) {
-    auto it = H_transformed.hashmap.find(ops);
-    REQUIRE(it != H_transformed.hashmap.end());
+  CHECK(H_transformed.terms().size() == H_momentum.terms().size());
+  for (const auto& [ops, coeff] : H_momentum.terms()) {
+    auto it = H_transformed.terms().find(ops);
+    REQUIRE(it != H_transformed.terms().end());
     CHECK(complex_near(it->second, coeff, kTolerance));
   }
 }
@@ -200,10 +200,10 @@ TEST_CASE("fourier_transform_hubbard_3d_gives_momentum_space") {
   H_transformed = orderer.normal_order(H_transformed);
   H_momentum = orderer.normal_order(H_momentum);
 
-  CHECK(H_transformed.hashmap.size() == H_momentum.hashmap.size());
-  for (const auto& [ops, coeff] : H_momentum.hashmap) {
-    auto it = H_transformed.hashmap.find(ops);
-    REQUIRE(it != H_transformed.hashmap.end());
+  CHECK(H_transformed.terms().size() == H_momentum.terms().size());
+  for (const auto& [ops, coeff] : H_momentum.terms()) {
+    auto it = H_transformed.terms().find(ops);
+    REQUIRE(it != H_transformed.terms().end());
     CHECK(complex_near(it->second, coeff, kTolerance));
   }
 }

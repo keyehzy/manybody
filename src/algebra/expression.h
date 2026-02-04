@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "algebra/expression_map.h"
 #include "algebra/term.h"
 #include "robin_hood.h"
 
@@ -13,7 +14,10 @@ struct Expression {
   using container_type = Term::container_type;
   using map_type = robin_hood::unordered_map<container_type, complex_type>;
 
-  map_type hashmap{};
+  ExpressionMap<container_type> map{};
+
+  const map_type& terms() const { return map.data; }
+  map_type& terms() { return map.data; }
 
   Expression() = default;
   ~Expression() = default;
@@ -33,7 +37,7 @@ struct Expression {
 
   template <typename Container>
   Expression(complex_type c, Container&& ops) {
-    hashmap.emplace(std::forward<Container>(ops), c);
+    map.data.emplace(std::forward<Container>(ops), c);
   }
 
   Expression adjoint() const;
@@ -62,10 +66,6 @@ struct Expression {
   Expression& operator*=(const Term& value);
 
  private:
-  static bool is_zero(const complex_type& value);
-
-  static bool less_ops(const container_type& left, const container_type& right);
-
   static void add_to_map(map_type& target, const container_type& ops, const complex_type& coeff);
 
   static void add_to_map(map_type& target, container_type&& ops, const complex_type& coeff);

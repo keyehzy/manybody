@@ -17,7 +17,10 @@ VectorType compute_vector_elements_serial(const Basis& basis, const Expression& 
   for (size_t i = 0; i < set.size(); ++i) {
     Expression left(set[i]);
     Expression product = orderer.normal_order(left.adjoint() * A);
-    result(i) = product.hashmap[{}];
+    {
+      auto it = product.terms().find({});
+      result(i) = (it != product.terms().end()) ? it->second : Expression::complex_type{};
+    }
   }
   return result;
 }
@@ -34,7 +37,10 @@ VectorType compute_vector_elements(const Basis& basis, const Expression& A) {
     for (size_t i = 0; i < set.size(); ++i) {
       Expression left(set[i]);
       Expression product = orderer.normal_order(left.adjoint() * A);
-      result(i) = product.hashmap[{}];
+      {
+        auto it = product.terms().find({});
+        result(i) = (it != product.terms().end()) ? it->second : Expression::complex_type{};
+      }
     }
   }
   return result;
@@ -49,7 +55,7 @@ MatrixType compute_matrix_elements_serial(const Basis& basis, const Expression& 
   for (size_t j = 0; j < set.size(); ++j) {
     Expression right(set[j]);
     Expression product = orderer.normal_order(A * right);
-    for (const auto& term : product.hashmap) {
+    for (const auto& term : product.terms()) {
       if (set.contains(term.first)) {
         size_t i = set.index_of(term.first);
         result(i, j) = term.second;
@@ -72,8 +78,8 @@ MatrixType compute_matrix_elements(const Basis& basis, const Expression& A) {
       Expression right(set[j]);
       Expression product = orderer.normal_order(A * right);
       std::vector<std::pair<size_t, Expression::complex_type>> coefficients;
-      coefficients.reserve(product.hashmap.size());
-      for (const auto& term : product.hashmap) {
+      coefficients.reserve(product.terms().size());
+      for (const auto& term : product.terms()) {
         if (set.contains(term.first)) {
           size_t i = set.index_of(term.first);
           coefficients.emplace_back(i, term.second);
@@ -104,7 +110,7 @@ MatrixType compute_rectangular_matrix_elements_serial(const BasisRow& row_basis,
   for (size_t j = 0; j < col_set.size(); ++j) {
     Expression right(col_set[j]);
     Expression product = orderer.normal_order(A * right);
-    for (const auto& term : product.hashmap) {
+    for (const auto& term : product.terms()) {
       if (row_set.contains(term.first)) {
         size_t i = row_set.index_of(term.first);
         result(i, j) = term.second;
@@ -129,8 +135,8 @@ MatrixType compute_rectangular_matrix_elements(const BasisRow& row_basis, const 
       Expression right(col_set[j]);
       Expression product = orderer.normal_order(A * right);
       std::vector<std::pair<size_t, Expression::complex_type>> coefficients;
-      coefficients.reserve(product.hashmap.size());
-      for (const auto& term : product.hashmap) {
+      coefficients.reserve(product.terms().size());
+      for (const auto& term : product.terms()) {
         if (row_set.contains(term.first)) {
           size_t i = row_set.index_of(term.first);
           coefficients.emplace_back(i, term.second);

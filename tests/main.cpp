@@ -8,6 +8,7 @@
 #include "algebra/test_basis.cpp"
 #include "algebra/test_commutator.cpp"
 #include "algebra/test_expression.cpp"
+#include "algebra/test_expression_map.cpp"
 #include "algebra/test_fourier_transform.cpp"
 #include "algebra/test_model.cpp"
 #include "algebra/test_normal_order.cpp"

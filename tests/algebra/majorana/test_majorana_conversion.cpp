@@ -27,9 +27,9 @@ static MajoranaOperator odd(size_t orbital, Operator::Spin spin) {
 /// Helper: compare two Expressions term-by-term within tolerance.
 static bool expressions_equal(const Expression& a, const Expression& b) {
   if (a.size() != b.size()) return false;
-  for (const auto& [ops, coeff] : a.hashmap) {
-    auto it = b.hashmap.find(ops);
-    if (it == b.hashmap.end()) return false;
+  for (const auto& [ops, coeff] : a.terms()) {
+    auto it = b.terms().find(ops);
+    if (it == b.terms().end()) return false;
     if (std::abs(coeff - it->second) > tol) return false;
   }
   return true;

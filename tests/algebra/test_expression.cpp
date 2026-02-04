@@ -7,8 +7,8 @@ TEST_CASE("expression_construct_from_complex_identity") {
   Expression expr(Expression::complex_type(2.0f, -1.0f));
   CHECK((expr.size()) == (1u));
   Expression::container_type empty{};
-  auto it = expr.hashmap.find(empty);
-  CHECK(it != expr.hashmap.end());
+  auto it = expr.terms().find(empty);
+  CHECK(it != expr.terms().end());
   CHECK((it->second) == (Expression::complex_type(2.0f, -1.0f)));
 }
 
@@ -16,8 +16,8 @@ TEST_CASE("expression_construct_from_operator") {
   Operator op = Operator::creation(Operator::Spin::Up, 3);
   Expression expr(op);
   Expression::container_type ops{op};
-  auto it = expr.hashmap.find(ops);
-  CHECK(it != expr.hashmap.end());
+  auto it = expr.terms().find(ops);
+  CHECK(it != expr.terms().end());
   CHECK((it->second) == (Expression::complex_type(1.0f, 0.0f)));
 }
 
@@ -37,8 +37,8 @@ TEST_CASE("expression_adjoint_conjugates_and_reverses") {
 
   Expression adj = expr.adjoint();
   Expression::container_type ops{b.adjoint(), a.adjoint()};
-  auto it = adj.hashmap.find(ops);
-  CHECK(it != adj.hashmap.end());
+  auto it = adj.terms().find(ops);
+  CHECK(it != adj.terms().end());
   CHECK((it->second) == (Expression::complex_type(1.0f, -2.0f)));
 }
 
@@ -50,8 +50,8 @@ TEST_CASE("expression_add_expression_combines_coefficients") {
   expr += add;
 
   Expression::container_type ops{op};
-  auto it = expr.hashmap.find(ops);
-  CHECK(it != expr.hashmap.end());
+  auto it = expr.terms().find(ops);
+  CHECK(it != expr.terms().end());
   CHECK((it->second) == (Expression::complex_type(3.5f, 0.0f)));
 }
 
@@ -64,8 +64,8 @@ TEST_CASE("expression_multiply_expression_distributes") {
   left *= right;
 
   Expression::container_type ops{a, b};
-  auto it = left.hashmap.find(ops);
-  CHECK(it != left.hashmap.end());
+  auto it = left.terms().find(ops);
+  CHECK(it != left.terms().end());
   CHECK((it->second) == (Expression::complex_type(6.0f, 0.0f)));
 }
 
@@ -78,8 +78,8 @@ TEST_CASE("expression_multiply_term_appends_ops") {
   expr *= term;
 
   Expression::container_type ops{a, b};
-  auto it = expr.hashmap.find(ops);
-  CHECK(it != expr.hashmap.end());
+  auto it = expr.terms().find(ops);
+  CHECK(it != expr.terms().end());
   CHECK((it->second) == (Expression::complex_type(1.0f, 0.0f)));
 }
 
@@ -110,9 +110,9 @@ TEST_CASE("expression_truncate_by_size_drops_longer_terms") {
   expr.truncate_by_size(2);
 
   CHECK((expr.size()) == (2u));
-  CHECK(expr.hashmap.find(Expression::container_type{a}) != expr.hashmap.end());
-  CHECK(expr.hashmap.find(Expression::container_type{a, b}) != expr.hashmap.end());
-  CHECK(expr.hashmap.find(Expression::container_type{a, b, c}) == expr.hashmap.end());
+  CHECK(expr.terms().find(Expression::container_type{a}) != expr.terms().end());
+  CHECK(expr.terms().find(Expression::container_type{a, b}) != expr.terms().end());
+  CHECK(expr.terms().find(Expression::container_type{a, b, c}) == expr.terms().end());
 }
 
 TEST_CASE("expression_truncate_by_norm_drops_small_terms") {
@@ -127,9 +127,9 @@ TEST_CASE("expression_truncate_by_norm_drops_small_terms") {
   expr.truncate_by_norm(0.75f);
 
   CHECK((expr.size()) == (1u));
-  CHECK(expr.hashmap.find(Expression::container_type{c}) != expr.hashmap.end());
-  CHECK(expr.hashmap.find(Expression::container_type{a}) == expr.hashmap.end());
-  CHECK(expr.hashmap.find(Expression::container_type{b}) == expr.hashmap.end());
+  CHECK(expr.terms().find(Expression::container_type{c}) != expr.terms().end());
+  CHECK(expr.terms().find(Expression::container_type{a}) == expr.terms().end());
+  CHECK(expr.terms().find(Expression::container_type{b}) == expr.terms().end());
 }
 
 TEST_CASE("expression_filter_by_size_keeps_exact_matches") {
@@ -144,9 +144,9 @@ TEST_CASE("expression_filter_by_size_keeps_exact_matches") {
   expr.filter_by_size(2);
 
   CHECK((expr.size()) == (1u));
-  CHECK(expr.hashmap.find(Expression::container_type{a, b}) != expr.hashmap.end());
-  CHECK(expr.hashmap.find(Expression::container_type{a}) == expr.hashmap.end());
-  CHECK(expr.hashmap.find(Expression::container_type{a, b, c}) == expr.hashmap.end());
+  CHECK(expr.terms().find(Expression::container_type{a, b}) != expr.terms().end());
+  CHECK(expr.terms().find(Expression::container_type{a}) == expr.terms().end());
+  CHECK(expr.terms().find(Expression::container_type{a, b, c}) == expr.terms().end());
 }
 
 TEST_CASE("expression_filter_by_size_zero_clears_expression") {

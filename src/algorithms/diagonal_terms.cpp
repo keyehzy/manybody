@@ -61,7 +61,7 @@ bool is_term_contained(const Term::container_type& small, const Term::container_
 
 std::vector<Term> find_matching_terms(const Term& term, const Expression& expr) {
   std::vector<Term> matches;
-  for (const auto& [ops, coeff] : expr.hashmap) {
+  for (const auto& [ops, coeff] : expr.terms()) {
     Term candidate(coeff, ops);
     if (is_term_contained(term.operators, candidate.operators)) {
       matches.push_back(candidate);
@@ -73,7 +73,7 @@ std::vector<Term> find_matching_terms(const Term& term, const Expression& expr) 
 DiagonalChildrenResult group_diagonal_children(const Expression& expr) {
   DiagonalChildrenResult result;
   std::vector<Term> off_diagonals;
-  for (const auto& [ops, coeff] : expr.hashmap) {
+  for (const auto& [ops, coeff] : expr.terms()) {
     Term term(coeff, ops);
     if (term.is_diagonal()) {
       result.diagonals.push_back(term);

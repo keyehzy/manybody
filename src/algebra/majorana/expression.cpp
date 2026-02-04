@@ -1,132 +1,59 @@
 #include "algebra/majorana/expression.h"
 
-#include <algorithm>
 #include <sstream>
 #include <utility>
-#include <vector>
-
-#include "utils/tolerances.h"
 
 namespace majorana {
 
-constexpr auto tolerance = tolerances::tolerance<MajoranaExpression::complex_type::value_type>();
-
-bool MajoranaExpression::is_zero(const complex_type& value) {
-  return std::norm(value) < tolerance * tolerance;
-}
-
-void MajoranaExpression::add_to_map(map_type& target, const MajoranaString& str,
-                                    const complex_type& coeff) {
-  if (is_zero(coeff)) {
-    return;
-  }
-  auto [it, inserted] = target.try_emplace(str, coeff);
-  if (!inserted) {
-    it->second += coeff;
-    if (is_zero(it->second)) {
-      target.erase(it);
-    }
-  }
-}
-
-void MajoranaExpression::add_to_map(map_type& target, MajoranaString&& str,
-                                    const complex_type& coeff) {
-  if (is_zero(coeff)) {
-    return;
-  }
-  auto [it, inserted] = target.try_emplace(std::move(str), coeff);
-  if (!inserted) {
-    it->second += coeff;
-    if (is_zero(it->second)) {
-      target.erase(it);
-    }
-  }
-}
-
 MajoranaExpression::MajoranaExpression(complex_type c) {
-  if (!is_zero(c)) {
-    hashmap.emplace(MajoranaString{}, c);
+  if (!ExpressionMap<MajoranaString>::is_zero(c)) {
+    map.data.emplace(MajoranaString{}, c);
   }
 }
 
 MajoranaExpression::MajoranaExpression(int sign, const MajoranaString& str) {
   auto canonical = canonicalize(str);
   auto coeff = complex_type{static_cast<double>(sign * canonical.sign), 0.0};
-  if (!is_zero(coeff)) {
-    hashmap.emplace(std::move(canonical.string), coeff);
+  if (!ExpressionMap<MajoranaString>::is_zero(coeff)) {
+    map.data.emplace(std::move(canonical.string), coeff);
   }
 }
 
 MajoranaExpression::MajoranaExpression(complex_type c, const MajoranaString& str) {
-  if (is_zero(c)) {
+  if (ExpressionMap<MajoranaString>::is_zero(c)) {
     return;
   }
   auto canonical = canonicalize(str);
   auto coeff = c * static_cast<double>(canonical.sign);
-  if (!is_zero(coeff)) {
-    hashmap.emplace(std::move(canonical.string), coeff);
+  if (!ExpressionMap<MajoranaString>::is_zero(coeff)) {
+    map.data.emplace(std::move(canonical.string), coeff);
   }
 }
 
-size_t MajoranaExpression::size() const { return hashmap.size(); }
+size_t MajoranaExpression::size() const { return map.size(); }
 
 double MajoranaExpression::norm_squared() const {
   double result = 0.0;
-  for (const auto& [str, coeff] : hashmap) {
+  for (const auto& [str, coeff] : map.data) {
     result += std::norm(coeff);
   }
   return result;
 }
 
 MajoranaExpression& MajoranaExpression::truncate_by_norm(double min_norm) {
-  if (min_norm <= 0.0) {
-    return *this;
-  }
-  const auto cutoff_norm = min_norm * min_norm;
-  for (auto it = hashmap.begin(); it != hashmap.end();) {
-    if (std::norm(it->second) < cutoff_norm) {
-      it = hashmap.erase(it);
-    } else {
-      ++it;
-    }
-  }
+  map.truncate_by_norm(min_norm);
   return *this;
 }
 
 void MajoranaExpression::to_string(std::ostringstream& oss) const {
-  if (hashmap.empty()) {
-    oss << "0";
-    return;
-  }
-  std::vector<const map_type::value_type*> ordered;
-  ordered.reserve(hashmap.size());
-  for (const auto& entry : hashmap) {
-    ordered.push_back(&entry);
-  }
-  std::sort(ordered.begin(), ordered.end(),
-            [](const map_type::value_type* left, const map_type::value_type* right) {
-              const auto left_size = left->first.size();
-              const auto right_size = right->first.size();
-              if (left_size != right_size) {
-                return left_size < right_size;
-              }
-              return std::norm(left->second) > std::norm(right->second);
-            });
-
-  bool first = true;
-  for (const auto* entry : ordered) {
-    if (!first) {
-      oss << "\n";
-    }
-    const auto& coeff = entry->second;
-    oss << coeff;
-    const auto& string_data = entry->first;
+  map.format_sorted(oss, [](std::ostringstream& os, const MajoranaString& string_data,
+                            const complex_type& coeff) {
+    os << coeff;
     if (!string_data.empty()) {
-      oss << " ";
-      ::majorana::to_string(oss, string_data);
+      os << " ";
+      ::majorana::to_string(os, string_data);
     }
-    first = false;
-  }
+  });
 }
 
 std::string MajoranaExpression::to_string() const {
@@ -136,62 +63,53 @@ std::string MajoranaExpression::to_string() const {
 }
 
 MajoranaExpression& MajoranaExpression::operator+=(const complex_type& value) {
-  add_to_map(hashmap, MajoranaString{}, value);
+  map.add_scalar(value);
   return *this;
 }
 
 MajoranaExpression& MajoranaExpression::operator-=(const complex_type& value) {
-  add_to_map(hashmap, MajoranaString{}, -value);
+  map.subtract_scalar(value);
   return *this;
 }
 
 MajoranaExpression& MajoranaExpression::operator*=(const complex_type& value) {
-  if (is_zero(value)) {
-    hashmap.clear();
-    return *this;
-  }
-  for (auto& [str, coeff] : hashmap) {
-    coeff *= value;
-  }
+  map.scale(value);
   return *this;
 }
 
 MajoranaExpression& MajoranaExpression::operator/=(const complex_type& value) {
-  for (auto& [str, coeff] : hashmap) {
-    coeff /= value;
-  }
+  map.divide(value);
   return *this;
 }
 
 MajoranaExpression& MajoranaExpression::operator+=(const MajoranaExpression& value) {
-  for (const auto& [str, coeff] : value.hashmap) {
-    add_to_map(hashmap, str, coeff);
-  }
+  map.add_all(value.map);
   return *this;
 }
 
 MajoranaExpression& MajoranaExpression::operator-=(const MajoranaExpression& value) {
-  for (const auto& [str, coeff] : value.hashmap) {
-    add_to_map(hashmap, str, -coeff);
-  }
+  map.subtract_all(value.map);
   return *this;
 }
 
 MajoranaExpression& MajoranaExpression::operator*=(const MajoranaExpression& value) {
-  if (hashmap.empty() || value.hashmap.empty()) {
-    hashmap.clear();
+  if (map.empty() || value.map.empty()) {
+    map.clear();
     return *this;
   }
   map_type result;
-  result.reserve(hashmap.size() * value.hashmap.size());
-  for (const auto& [lhs_str, lhs_coeff] : hashmap) {
-    for (const auto& [rhs_str, rhs_coeff] : value.hashmap) {
+  result.reserve(map.size() * value.map.size());
+  for (const auto& [lhs_str, lhs_coeff] : map.data) {
+    for (const auto& [rhs_str, rhs_coeff] : value.map.data) {
       auto product = multiply_strings(lhs_str, rhs_str);
       auto coeff = lhs_coeff * rhs_coeff * static_cast<double>(product.sign);
-      add_to_map(result, std::move(product.string), coeff);
+      ExpressionMap<MajoranaString> tmp;
+      tmp.data = std::move(result);
+      tmp.add(std::move(product.string), coeff);
+      result = std::move(tmp.data);
     }
   }
-  hashmap = std::move(result);
+  map.data = std::move(result);
   return *this;
 }
 

@@ -85,10 +85,10 @@ TEST_CASE("model_hubbard_relative_hamiltonian_coefficients") {
       Operator::annihilation(Operator::Spin::Up, q_diff),
   };
 
-  const auto diag_it = hamiltonian.hashmap.find(diag_ops);
-  const auto off_diag_it = hamiltonian.hashmap.find(off_diag_ops);
-  CHECK(diag_it != hamiltonian.hashmap.end());
-  CHECK(off_diag_it != hamiltonian.hashmap.end());
+  const auto diag_it = hamiltonian.terms().find(diag_ops);
+  const auto off_diag_it = hamiltonian.terms().find(off_diag_ops);
+  CHECK(diag_it != hamiltonian.terms().end());
+  CHECK(off_diag_it != hamiltonian.terms().end());
 
   const double k_phase =
       2.0 * std::numbers::pi_v<double> * static_cast<double>(p_same) / static_cast<double>(size);
@@ -236,7 +236,7 @@ TEST_CASE("model_hubbard_opposite_spin_correlation_1d_coefficients") {
   const Expression g0 = hubbard.opposite_spin_correlation(0);
 
   // Each term should have coefficient 1/N = 1/4 = 0.25
-  for (const auto& [ops, coeff] : g0.hashmap) {
+  for (const auto& [ops, coeff] : g0.terms()) {
     CHECK(complex_near_model(coeff, Term::complex_type(0.25, 0.0), kModelTolerance));
   }
 }
@@ -273,7 +273,7 @@ TEST_CASE("model_hubbard_2d_opposite_spin_correlation_coefficients") {
   const Expression g00 = hubbard.opposite_spin_correlation(0, 0);
 
   // Each term should have coefficient 1/N = 1/4 = 0.25
-  for (const auto& [ops, coeff] : g00.hashmap) {
+  for (const auto& [ops, coeff] : g00.terms()) {
     CHECK(complex_near_model(coeff, Term::complex_type(0.25, 0.0), kModelTolerance));
   }
 }
@@ -300,7 +300,7 @@ TEST_CASE("model_hubbard_3d_opposite_spin_correlation_coefficients") {
   const Expression g000 = hubbard.opposite_spin_correlation(0, 0, 0);
 
   // Each term should have coefficient 1/N = 1/8 = 0.125
-  for (const auto& [ops, coeff] : g000.hashmap) {
+  for (const auto& [ops, coeff] : g000.terms()) {
     CHECK(complex_near_model(coeff, Term::complex_type(0.125, 0.0), kModelTolerance));
   }
 }
@@ -347,7 +347,7 @@ TEST_CASE("model_hubbard_momentum_opposite_spin_correlation_onsite_is_real") {
   HubbardModelMomentum hubbard(1.0, 2.0, {3});
   const Expression g0 = hubbard.opposite_spin_correlation({0});
 
-  for (const auto& [ops, coeff] : g0.hashmap) {
+  for (const auto& [ops, coeff] : g0.terms()) {
     CHECK(std::abs(coeff.imag()) < kModelTolerance);
   }
 }

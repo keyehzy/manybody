@@ -23,11 +23,11 @@ Expression::complex_type to_expression_complex(const std::complex<double>& value
 
 Expression vector_to_expression(const arma::cx_vec& v, const Basis& basis) {
   Expression state;
-  state.hashmap.reserve(basis.set.size());
+  state.terms().reserve(basis.set.size());
   for (size_t i = 0; i < basis.set.size(); ++i) {
     const std::complex<double> coeff = v(i);
     if (coeff != std::complex<double>{}) {
-      state.hashmap.emplace(basis.set[i], to_expression_complex(coeff));
+      state.terms().emplace(basis.set[i], to_expression_complex(coeff));
     }
   }
   return state;
@@ -35,14 +35,14 @@ Expression vector_to_expression(const arma::cx_vec& v, const Basis& basis) {
 
 double max_expression_delta_norm(const Expression& lhs, const Expression& rhs) {
   double max_norm = 0.0;
-  for (const auto& [ops, coeff] : lhs.hashmap) {
-    auto it = rhs.hashmap.find(ops);
-    const auto rhs_coeff = (it == rhs.hashmap.end()) ? Expression::complex_type{} : it->second;
+  for (const auto& [ops, coeff] : lhs.terms()) {
+    auto it = rhs.terms().find(ops);
+    const auto rhs_coeff = (it == rhs.terms().end()) ? Expression::complex_type{} : it->second;
     const auto delta = coeff - rhs_coeff;
     max_norm = std::max(max_norm, std::norm(delta));
   }
-  for (const auto& [ops, coeff] : rhs.hashmap) {
-    if (lhs.hashmap.find(ops) == lhs.hashmap.end()) {
+  for (const auto& [ops, coeff] : rhs.terms()) {
+    if (lhs.terms().find(ops) == lhs.terms().end()) {
       max_norm = std::max(max_norm, std::norm(coeff));
     }
   }

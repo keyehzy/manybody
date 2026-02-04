@@ -17,7 +17,7 @@ MajoranaExpression to_majorana(const Expression& expr) {
 
   MajoranaExpression result;
 
-  for (const auto& [ops, coeff] : expr.hashmap) {
+  for (const auto& [ops, coeff] : expr.terms()) {
     // Start with the scalar coefficient as a MajoranaExpression
     MajoranaExpression term_expr(coeff);
 

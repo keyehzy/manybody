@@ -119,11 +119,11 @@ struct HubbardMomentumOperator final : LinearOperator<arma::cx_vec> {
  private:
   Expression vector_to_expression(const VectorType& v) const {
     Expression state;
-    state.hashmap.reserve(basis_.set.size());
+    state.terms().reserve(basis_.set.size());
     for (size_t i = 0; i < basis_.set.size(); ++i) {
       const ScalarType coeff = v(i);
       if (coeff != ScalarType{}) {
-        state.hashmap.emplace(basis_.set[i], to_expression_complex(coeff));
+        state.terms().emplace(basis_.set[i], to_expression_complex(coeff));
       }
     }
     return state;
@@ -131,7 +131,7 @@ struct HubbardMomentumOperator final : LinearOperator<arma::cx_vec> {
 
   VectorType expression_to_vector(const Expression& expr) const {
     VectorType result(dimension(), arma::fill::zeros);
-    for (const auto& term : expr.hashmap) {
+    for (const auto& term : expr.terms()) {
       if (basis_.set.contains(term.first)) {
         const size_t i = basis_.set.index_of(term.first);
         result(i) += to_arma_complex(term.second);

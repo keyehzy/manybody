@@ -4,6 +4,7 @@
 #include <sstream>
 #include <string>
 
+#include "algebra/expression_map.h"
 #include "algebra/majorana/string.h"
 #include "robin_hood.h"
 
@@ -12,6 +13,8 @@ namespace majorana {
 struct MajoranaExpression {
   using complex_type = std::complex<double>;
   using map_type = robin_hood::unordered_map<MajoranaString, complex_type>;
+
+  ExpressionMap<MajoranaString> map{};
 
   MajoranaExpression() = default;
   ~MajoranaExpression() = default;
@@ -34,7 +37,7 @@ struct MajoranaExpression {
   void to_string(std::ostringstream& oss) const;
   std::string to_string() const;
 
-  const map_type& terms() const noexcept { return hashmap; }
+  const map_type& terms() const noexcept { return map.data; }
 
   MajoranaExpression& operator+=(const complex_type& value);
   MajoranaExpression& operator-=(const complex_type& value);
@@ -44,18 +47,6 @@ struct MajoranaExpression {
   MajoranaExpression& operator+=(const MajoranaExpression& value);
   MajoranaExpression& operator-=(const MajoranaExpression& value);
   MajoranaExpression& operator*=(const MajoranaExpression& value);
-
-  friend MajoranaExpression commutator(const MajoranaExpression& A, const MajoranaExpression& B);
-  friend MajoranaExpression anticommutator(const MajoranaExpression& A,
-                                           const MajoranaExpression& B);
-
-  static bool is_zero(const complex_type& value);
-
- private:
-  map_type hashmap{};
-
-  static void add_to_map(map_type& target, const MajoranaString& str, const complex_type& coeff);
-  static void add_to_map(map_type& target, MajoranaString&& str, const complex_type& coeff);
 };
 
 inline MajoranaExpression operator+(MajoranaExpression lhs, const MajoranaExpression& rhs) {
