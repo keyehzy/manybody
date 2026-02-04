@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <complex>
+#include <initializer_list>
 #include <sstream>
 #include <utility>
 #include <vector>
@@ -13,6 +14,7 @@ template <typename Derived, typename MonomialType>
 struct ExpressionBase {
   using complex_type = typename MonomialType::complex_type;
   using container_type = typename MonomialType::container_type;
+  using operator_type = typename MonomialType::operator_type;
   using map_type = robin_hood::unordered_map<container_type, complex_type>;
 
   map_type data{};
@@ -47,6 +49,25 @@ struct ExpressionBase {
     data.emplace(std::forward<Container>(ops), c);
   }
 
+  explicit ExpressionBase(const MonomialType& term) {
+    static_cast<Derived*>(this)->add_to_map(term.operators, term.c);
+  }
+
+  explicit ExpressionBase(MonomialType&& term) {
+    static_cast<Derived*>(this)->add_to_map(std::move(term.operators), term.c);
+  }
+
+  explicit ExpressionBase(operator_type op) {
+    container_type ops{op};
+    data.emplace(std::move(ops), complex_type{1.0, 0.0});
+  }
+
+  explicit ExpressionBase(std::initializer_list<MonomialType> lst) {
+    for (const auto& term : lst) {
+      static_cast<Derived*>(this)->add_to_map(term.operators, term.c);
+    }
+  }
+
   size_t size() const { return data.size(); }
   bool empty() const { return data.empty(); }
   void clear() { data.clear(); }
@@ -75,6 +96,14 @@ struct ExpressionBase {
   template <typename Key>
   void add(Key&& key, const complex_type& coeff) {
     add_to(data, std::forward<Key>(key), coeff);
+  }
+
+  template <typename Key>
+  void add_to_map(Key&& ops, const complex_type& coeff) {
+    if (ops.size() > MonomialType::container_type::max_size()) {
+      return;
+    }
+    this->add(std::forward<Key>(ops), coeff);
   }
 
   void add_scalar(const complex_type& value) { add(container_type{}, value); }
@@ -181,6 +210,36 @@ struct ExpressionBase {
     }
   }
 
+  Derived& truncate_by_size(size_t max_size) {
+    if (max_size == 0) {
+      clear();
+      return static_cast<Derived&>(*this);
+    }
+    for (auto it = data.begin(); it != data.end();) {
+      if (it->first.size() > max_size) {
+        it = data.erase(it);
+      } else {
+        ++it;
+      }
+    }
+    return static_cast<Derived&>(*this);
+  }
+
+  Derived& filter_by_size(size_t size) {
+    if (size == 0) {
+      clear();
+      return static_cast<Derived&>(*this);
+    }
+    for (auto it = data.begin(); it != data.end();) {
+      if (it->first.size() != size) {
+        it = data.erase(it);
+      } else {
+        ++it;
+      }
+    }
+    return static_cast<Derived&>(*this);
+  }
+
   Derived& operator+=(const MonomialType& value) {
     static_cast<Derived*>(this)->add_to_map(value.operators, value.c);
     return static_cast<Derived&>(*this);
@@ -189,5 +248,30 @@ struct ExpressionBase {
   Derived& operator-=(const MonomialType& value) {
     static_cast<Derived*>(this)->add_to_map(value.operators, -value.c);
     return static_cast<Derived&>(*this);
+  }
+
+  friend Derived operator+(Derived lhs, const Derived& rhs) {
+    lhs += rhs;
+    return lhs;
+  }
+
+  friend Derived operator-(Derived lhs, const Derived& rhs) {
+    lhs -= rhs;
+    return lhs;
+  }
+
+  friend Derived operator*(Derived lhs, const Derived& rhs) {
+    lhs *= rhs;
+    return lhs;
+  }
+
+  friend Derived operator*(Derived lhs, const complex_type& rhs) {
+    lhs *= rhs;
+    return lhs;
+  }
+
+  friend Derived operator*(const complex_type& lhs, Derived rhs) {
+    rhs *= lhs;
+    return rhs;
   }
 };

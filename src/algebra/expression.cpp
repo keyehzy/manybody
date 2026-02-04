@@ -14,36 +14,6 @@ FermionExpression FermionExpression::adjoint() const {
   return result;
 }
 
-FermionExpression& FermionExpression::truncate_by_size(size_t max_size) {
-  if (max_size == 0) {
-    this->clear();
-    return *this;
-  }
-  for (auto it = this->data.begin(); it != this->data.end();) {
-    if (it->first.size() > max_size) {
-      it = this->data.erase(it);
-    } else {
-      ++it;
-    }
-  }
-  return *this;
-}
-
-FermionExpression& FermionExpression::filter_by_size(size_t size) {
-  if (size == 0) {
-    this->clear();
-    return *this;
-  }
-  for (auto it = this->data.begin(); it != this->data.end();) {
-    if (it->first.size() != size) {
-      it = this->data.erase(it);
-    } else {
-      ++it;
-    }
-  }
-  return *this;
-}
-
 void FermionExpression::format_to(std::ostringstream& oss) const {
   this->format_sorted(
       oss, [](std::ostringstream& os, const container_type& ops, const complex_type& coeff) {

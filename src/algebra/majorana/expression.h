@@ -54,31 +54,4 @@ struct MajoranaExpression : ExpressionBase<MajoranaExpression, MajoranaMonomial>
   std::string to_string() const;
 };
 
-inline MajoranaExpression operator+(MajoranaExpression lhs, const MajoranaExpression& rhs) {
-  lhs += rhs;
-  return lhs;
-}
-
-inline MajoranaExpression operator-(MajoranaExpression lhs, const MajoranaExpression& rhs) {
-  lhs -= rhs;
-  return lhs;
-}
-
-inline MajoranaExpression operator*(MajoranaExpression lhs, const MajoranaExpression& rhs) {
-  lhs *= rhs;
-  return lhs;
-}
-
-inline MajoranaExpression operator*(MajoranaExpression lhs,
-                                    const MajoranaExpression::complex_type& rhs) {
-  lhs *= rhs;
-  return lhs;
-}
-
-inline MajoranaExpression operator*(const MajoranaExpression::complex_type& lhs,
-                                    MajoranaExpression rhs) {
-  rhs *= lhs;
-  return rhs;
-}
-
 }  // namespace majorana
