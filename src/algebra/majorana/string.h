@@ -14,7 +14,21 @@ namespace majorana {
 
 using MajoranaString = static_vector<MajoranaOperator, 24, std::uint8_t>;
 
-using MajoranaTerm = Monomial<MajoranaOperator, 24, std::uint8_t, std::complex<double>>;
+struct MajoranaTerm
+    : MonomialBase<MajoranaTerm, MajoranaOperator, 24, std::uint8_t, std::complex<double>> {
+  using Base = MonomialBase<MajoranaTerm, MajoranaOperator, 24, std::uint8_t, std::complex<double>>;
+  using complex_type = std::complex<double>;
+
+  constexpr MajoranaTerm() noexcept = default;
+  constexpr ~MajoranaTerm() noexcept = default;
+
+  constexpr MajoranaTerm(const MajoranaTerm& other) noexcept = default;
+  constexpr MajoranaTerm& operator=(const MajoranaTerm& other) noexcept = default;
+  constexpr MajoranaTerm(MajoranaTerm&& other) noexcept = default;
+  constexpr MajoranaTerm& operator=(MajoranaTerm&& other) noexcept = default;
+
+  using Base::Base;
+};
 
 void to_string(std::ostringstream& oss, const MajoranaString& str);
 

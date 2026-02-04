@@ -16,13 +16,11 @@ using TermScalar = std::complex<double>;
 
 constexpr size_t term_static_vector_size = (term_size - sizeof(TermScalar)) / sizeof(Operator) - 1;
 
-using TermBase = Monomial<Operator, term_static_vector_size, Operator::ubyte, TermScalar>;
+using FermionString = static_vector<Operator, term_static_vector_size, Operator::ubyte>;
 
-using FermionString = TermBase::container_type;
-
-struct Term : TermBase {
+struct Term : MonomialBase<Term, Operator, term_static_vector_size, Operator::ubyte, TermScalar> {
   using complex_type = TermScalar;
-  using container_type = TermBase::container_type;
+  using container_type = MonomialBase::container_type;
 
   static constexpr size_t static_vector_size = term_static_vector_size;
 
@@ -34,30 +32,10 @@ struct Term : TermBase {
   constexpr Term(Term&& other) noexcept = default;
   constexpr Term& operator=(Term&& other) noexcept = default;
 
-  using TermBase::TermBase;
+  using MonomialBase::MonomialBase;
 
   constexpr bool operator==(const Term& other) const noexcept {
     return c == other.c && operators == other.operators;
-  }
-
-  constexpr Term& operator*=(const Term& value) noexcept {
-    TermBase::operator*=(value);
-    return *this;
-  }
-
-  constexpr Term& operator*=(Operator value) noexcept {
-    TermBase::operator*=(value);
-    return *this;
-  }
-
-  constexpr Term& operator*=(complex_type value) noexcept {
-    TermBase::operator*=(value);
-    return *this;
-  }
-
-  constexpr Term& operator/=(complex_type value) noexcept {
-    TermBase::operator/=(value);
-    return *this;
   }
 };
 

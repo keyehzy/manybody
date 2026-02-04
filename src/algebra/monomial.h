@@ -6,8 +6,9 @@
 
 #include "utils/static_vector.h"
 
-template <typename OperatorType, size_t MaxOps, typename SizeType, typename Scalar>
-struct Monomial {
+template <typename Derived, typename OperatorType, size_t MaxOps, typename SizeType,
+          typename Scalar>
+struct MonomialBase {
   using operator_type = OperatorType;
   using scalar_type = Scalar;
   using container_type = static_vector<OperatorType, MaxOps, SizeType>;
@@ -15,47 +16,47 @@ struct Monomial {
   scalar_type c{1.0};
   container_type operators{};
 
-  constexpr Monomial() noexcept = default;
-  constexpr ~Monomial() noexcept = default;
+  constexpr MonomialBase() noexcept = default;
+  constexpr ~MonomialBase() noexcept = default;
 
-  constexpr Monomial(const Monomial&) noexcept = default;
-  constexpr Monomial& operator=(const Monomial&) noexcept = default;
-  constexpr Monomial(Monomial&&) noexcept = default;
-  constexpr Monomial& operator=(Monomial&&) noexcept = default;
+  constexpr MonomialBase(const MonomialBase&) noexcept = default;
+  constexpr MonomialBase& operator=(const MonomialBase&) noexcept = default;
+  constexpr MonomialBase(MonomialBase&&) noexcept = default;
+  constexpr MonomialBase& operator=(MonomialBase&&) noexcept = default;
 
-  explicit constexpr Monomial(operator_type op) noexcept : operators({op}) {}
-  explicit constexpr Monomial(scalar_type x) noexcept : c(x) {}
-  explicit constexpr Monomial(const container_type& ops) noexcept : operators(ops) {}
-  explicit constexpr Monomial(container_type&& ops) noexcept : operators(std::move(ops)) {}
-  explicit constexpr Monomial(scalar_type x, const container_type& ops) noexcept
+  explicit constexpr MonomialBase(operator_type op) noexcept : operators({op}) {}
+  explicit constexpr MonomialBase(scalar_type x) noexcept : c(x) {}
+  explicit constexpr MonomialBase(const container_type& ops) noexcept : operators(ops) {}
+  explicit constexpr MonomialBase(container_type&& ops) noexcept : operators(std::move(ops)) {}
+  explicit constexpr MonomialBase(scalar_type x, const container_type& ops) noexcept
       : c(x), operators(ops) {}
-  explicit constexpr Monomial(scalar_type x, container_type&& ops) noexcept
+  explicit constexpr MonomialBase(scalar_type x, container_type&& ops) noexcept
       : c(x), operators(std::move(ops)) {}
-  explicit constexpr Monomial(std::initializer_list<operator_type> init) noexcept
+  explicit constexpr MonomialBase(std::initializer_list<operator_type> init) noexcept
       : operators(init) {}
-  explicit constexpr Monomial(scalar_type x, std::initializer_list<operator_type> init) noexcept
+  explicit constexpr MonomialBase(scalar_type x, std::initializer_list<operator_type> init) noexcept
       : c(x), operators(init) {}
 
   constexpr size_t size() const noexcept { return operators.size(); }
 
-  constexpr Monomial& operator*=(const Monomial& value) noexcept {
+  constexpr Derived& operator*=(const Derived& value) noexcept {
     c *= value.c;
     operators.append_range(value.operators.begin(), value.operators.end());
-    return *this;
+    return static_cast<Derived&>(*this);
   }
 
-  constexpr Monomial& operator*=(operator_type value) noexcept {
+  constexpr Derived& operator*=(operator_type value) noexcept {
     operators.push_back(value);
-    return *this;
+    return static_cast<Derived&>(*this);
   }
 
-  constexpr Monomial& operator*=(scalar_type value) noexcept {
+  constexpr Derived& operator*=(scalar_type value) noexcept {
     c *= value;
-    return *this;
+    return static_cast<Derived&>(*this);
   }
 
-  constexpr Monomial& operator/=(scalar_type value) noexcept {
+  constexpr Derived& operator/=(scalar_type value) noexcept {
     c /= value;
-    return *this;
+    return static_cast<Derived&>(*this);
   }
 };
