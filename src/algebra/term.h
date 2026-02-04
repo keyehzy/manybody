@@ -32,10 +32,6 @@ struct FermionMonomial : MonomialBase<FermionMonomial, Operator, term_static_vec
   constexpr FermionMonomial& operator=(FermionMonomial&& other) noexcept = default;
 
   using MonomialBase::MonomialBase;
-
-  constexpr bool operator==(const FermionMonomial& other) const noexcept {
-    return c == other.c && operators == other.operators;
-  }
 };
 
 constexpr bool is_diagonal(const FermionMonomial::container_type& operators) noexcept {

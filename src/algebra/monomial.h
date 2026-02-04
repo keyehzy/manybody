@@ -59,4 +59,8 @@ struct MonomialBase {
     c /= value;
     return static_cast<Derived&>(*this);
   }
+
+  constexpr bool operator==(const Derived& other) const noexcept {
+    return c == other.c && operators == other.operators;
+  }
 };
