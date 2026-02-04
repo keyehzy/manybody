@@ -4,25 +4,20 @@
 #include <sstream>
 #include <utility>
 
-void Expression::add_to_map(map_type& target, const container_type& ops,
+void Expression::add_to_map(ExpressionMap<container_type>& target, const container_type& ops,
                             const complex_type& coeff) {
   if (ops.size() > 12) {
     return;
   }
-  ExpressionMap<container_type> tmp;
-  tmp.data = std::move(target);
-  tmp.add(ops, coeff);
-  target = std::move(tmp.data);
+  target.add(ops, coeff);
 }
 
-void Expression::add_to_map(map_type& target, container_type&& ops, const complex_type& coeff) {
+void Expression::add_to_map(ExpressionMap<container_type>& target, container_type&& ops,
+                            const complex_type& coeff) {
   if (ops.size() > 12) {
     return;
   }
-  ExpressionMap<container_type> tmp;
-  tmp.data = std::move(target);
-  tmp.add(std::move(ops), coeff);
-  target = std::move(tmp.data);
+  target.add(std::move(ops), coeff);
 }
 
 Expression::Expression(complex_type c) {
@@ -58,7 +53,7 @@ Expression::Expression(container_type&& container) {
 
 Expression::Expression(std::initializer_list<Term> lst) {
   for (const auto& term : lst) {
-    add_to_map(map.data, term.operators, term.c);
+    add_to_map(map, term.operators, term.c);
   }
 }
 
@@ -67,7 +62,7 @@ Expression Expression::adjoint() const {
   for (const auto& [ops, coeff] : map.data) {
     Term term(coeff, ops);
     Term adj = term.adjoint();
-    add_to_map(result.map.data, std::move(adj.operators), adj.c);
+    add_to_map(result.map, std::move(adj.operators), adj.c);
   }
   return result;
 }
@@ -120,7 +115,7 @@ Expression& Expression::operator*=(const Expression& value) {
     map.clear();
     return *this;
   }
-  map_type result;
+  ExpressionMap<container_type> result;
   result.reserve(map.size() * value.map.size());
   for (const auto& [lhs_ops, lhs_coeff] : map.data) {
     for (const auto& [rhs_ops, rhs_coeff] : value.map.data) {
@@ -132,17 +127,17 @@ Expression& Expression::operator*=(const Expression& value) {
       add_to_map(result, std::move(combined), lhs_coeff * rhs_coeff);
     }
   }
-  map.data = std::move(result);
+  map.data = std::move(result.data);
   return *this;
 }
 
 Expression& Expression::operator+=(const Term& value) {
-  add_to_map(map.data, value.operators, value.c);
+  add_to_map(map, value.operators, value.c);
   return *this;
 }
 
 Expression& Expression::operator-=(const Term& value) {
-  add_to_map(map.data, value.operators, -value.c);
+  add_to_map(map, value.operators, -value.c);
   return *this;
 }
 
@@ -161,7 +156,7 @@ Expression& Expression::operator*=(const Term& value) {
     }
     return *this;
   }
-  map_type result;
+  ExpressionMap<container_type> result;
   result.reserve(map.size());
   for (const auto& [ops, coeff] : map.data) {
     if (ops.size() + value.operators.size() > 12) {
@@ -171,6 +166,6 @@ Expression& Expression::operator*=(const Term& value) {
     combined.append_range(value.operators.begin(), value.operators.end());
     add_to_map(result, std::move(combined), coeff * value.c);
   }
-  map.data = std::move(result);
+  map.data = std::move(result.data);
   return *this;
 }

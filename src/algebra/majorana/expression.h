@@ -48,13 +48,31 @@ struct MajoranaExpression {
 
   const map_type& terms() const noexcept { return map.data; }
 
-  MajoranaExpression& operator+=(const complex_type& value) { map += value; return *this; }
-  MajoranaExpression& operator-=(const complex_type& value) { map -= value; return *this; }
-  MajoranaExpression& operator*=(const complex_type& value) { map *= value; return *this; }
-  MajoranaExpression& operator/=(const complex_type& value) { map /= value; return *this; }
+  MajoranaExpression& operator+=(const complex_type& value) {
+    map += value;
+    return *this;
+  }
+  MajoranaExpression& operator-=(const complex_type& value) {
+    map -= value;
+    return *this;
+  }
+  MajoranaExpression& operator*=(const complex_type& value) {
+    map *= value;
+    return *this;
+  }
+  MajoranaExpression& operator/=(const complex_type& value) {
+    map /= value;
+    return *this;
+  }
 
-  MajoranaExpression& operator+=(const MajoranaExpression& value) { map += value.map; return *this; }
-  MajoranaExpression& operator-=(const MajoranaExpression& value) { map -= value.map; return *this; }
+  MajoranaExpression& operator+=(const MajoranaExpression& value) {
+    map += value.map;
+    return *this;
+  }
+  MajoranaExpression& operator-=(const MajoranaExpression& value) {
+    map -= value.map;
+    return *this;
+  }
   MajoranaExpression& operator*=(const MajoranaExpression& value);
 };
 

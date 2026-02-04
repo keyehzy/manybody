@@ -85,12 +85,30 @@ struct ExpressionMap {
     }
   }
 
-  ExpressionMap& operator+=(const complex_type& v) { add_scalar(v); return *this; }
-  ExpressionMap& operator-=(const complex_type& v) { subtract_scalar(v); return *this; }
-  ExpressionMap& operator*=(const complex_type& v) { scale(v); return *this; }
-  ExpressionMap& operator/=(const complex_type& v) { divide(v); return *this; }
-  ExpressionMap& operator+=(const ExpressionMap& o) { add_all(o); return *this; }
-  ExpressionMap& operator-=(const ExpressionMap& o) { subtract_all(o); return *this; }
+  ExpressionMap& operator+=(const complex_type& v) {
+    add_scalar(v);
+    return *this;
+  }
+  ExpressionMap& operator-=(const complex_type& v) {
+    subtract_scalar(v);
+    return *this;
+  }
+  ExpressionMap& operator*=(const complex_type& v) {
+    scale(v);
+    return *this;
+  }
+  ExpressionMap& operator/=(const complex_type& v) {
+    divide(v);
+    return *this;
+  }
+  ExpressionMap& operator+=(const ExpressionMap& o) {
+    add_all(o);
+    return *this;
+  }
+  ExpressionMap& operator-=(const ExpressionMap& o) {
+    subtract_all(o);
+    return *this;
+  }
 
   void truncate_by_norm(double min_norm) {
     if (min_norm <= 0.0) {

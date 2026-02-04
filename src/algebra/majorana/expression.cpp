@@ -59,19 +59,16 @@ MajoranaExpression& MajoranaExpression::operator*=(const MajoranaExpression& val
     map.clear();
     return *this;
   }
-  map_type result;
+  ExpressionMap<MajoranaString> result;
   result.reserve(map.size() * value.map.size());
   for (const auto& [lhs_str, lhs_coeff] : map.data) {
     for (const auto& [rhs_str, rhs_coeff] : value.map.data) {
       auto product = multiply_strings(lhs_str, rhs_str);
       auto coeff = lhs_coeff * rhs_coeff * static_cast<double>(product.sign);
-      ExpressionMap<MajoranaString> tmp;
-      tmp.data = std::move(result);
-      tmp.add(std::move(product.string), coeff);
-      result = std::move(tmp.data);
+      result.add(std::move(product.string), coeff);
     }
   }
-  map.data = std::move(result);
+  map.data = std::move(result.data);
   return *this;
 }
 

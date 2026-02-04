@@ -58,13 +58,31 @@ struct Expression {
         });
   }
 
-  Expression& operator+=(const complex_type& value) { map += value; return *this; }
-  Expression& operator-=(const complex_type& value) { map -= value; return *this; }
-  Expression& operator*=(const complex_type& value) { map *= value; return *this; }
-  Expression& operator/=(const complex_type& value) { map /= value; return *this; }
+  Expression& operator+=(const complex_type& value) {
+    map += value;
+    return *this;
+  }
+  Expression& operator-=(const complex_type& value) {
+    map -= value;
+    return *this;
+  }
+  Expression& operator*=(const complex_type& value) {
+    map *= value;
+    return *this;
+  }
+  Expression& operator/=(const complex_type& value) {
+    map /= value;
+    return *this;
+  }
 
-  Expression& operator+=(const Expression& value) { map += value.map; return *this; }
-  Expression& operator-=(const Expression& value) { map -= value.map; return *this; }
+  Expression& operator+=(const Expression& value) {
+    map += value.map;
+    return *this;
+  }
+  Expression& operator-=(const Expression& value) {
+    map -= value.map;
+    return *this;
+  }
   Expression& operator*=(const Expression& value);
 
   Expression& operator+=(const Term& value);
@@ -72,9 +90,11 @@ struct Expression {
   Expression& operator*=(const Term& value);
 
  private:
-  static void add_to_map(map_type& target, const container_type& ops, const complex_type& coeff);
+  static void add_to_map(ExpressionMap<container_type>& target, const container_type& ops,
+                         const complex_type& coeff);
 
-  static void add_to_map(map_type& target, container_type&& ops, const complex_type& coeff);
+  static void add_to_map(ExpressionMap<container_type>& target, container_type&& ops,
+                         const complex_type& coeff);
 };
 
 inline Expression operator+(Expression lhs, const Expression& rhs) {
