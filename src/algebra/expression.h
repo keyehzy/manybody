@@ -11,7 +11,7 @@
 
 struct Expression {
   using complex_type = Term::complex_type;
-  using container_type = Term::container_type;
+  using container_type = FermionString;
   using map_type = robin_hood::unordered_map<container_type, complex_type>;
 
   ExpressionMap<container_type> map{};
@@ -54,7 +54,7 @@ struct Expression {
     return map.to_string(
         [](std::ostringstream& os, const container_type& ops, const complex_type& coeff) {
           Term term(coeff, ops);
-          term.to_string(os);
+          ::to_string(os, term);
         });
   }
 

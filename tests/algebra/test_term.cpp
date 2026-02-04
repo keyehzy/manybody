@@ -35,7 +35,7 @@ TEST_CASE("term_adjoint_conjugates_and_reverses") {
   Operator a = Operator::creation(Operator::Spin::Up, 4);
   Operator b = Operator::annihilation(Operator::Spin::Down, 5);
   Term term(Term::complex_type(1.0, 2.0), {a, b});
-  Term adj = term.adjoint();
+  Term adj = adjoint(term);
 
   CHECK((adj.c) == (Term::complex_type(1.0, -2.0)));
   CHECK((adj.size()) == (2u));
@@ -207,25 +207,25 @@ TEST_CASE("term_density_density_helper") {
 
 TEST_CASE("term_is_diagonal_empty_is_true") {
   Term term;
-  CHECK(term.is_diagonal());
+  CHECK(is_diagonal(term));
 }
 
 TEST_CASE("term_is_diagonal_single_operator_is_false") {
   Term term = creation(Operator::Spin::Up, 0);
-  CHECK(!term.is_diagonal());
+  CHECK(!is_diagonal(term));
 }
 
 TEST_CASE("term_is_diagonal_matching_pair_is_true") {
   Term term = density(Operator::Spin::Down, 3);
-  CHECK(term.is_diagonal());
+  CHECK(is_diagonal(term));
 }
 
 TEST_CASE("term_is_diagonal_mismatched_pair_is_false") {
   Term term = one_body(Operator::Spin::Up, 1, Operator::Spin::Up, 2);
-  CHECK(!term.is_diagonal());
+  CHECK(!is_diagonal(term));
 }
 
 TEST_CASE("term_is_diagonal_multiple_pairs_is_true") {
   Term term = density_density(Operator::Spin::Up, 1, Operator::Spin::Down, 2);
-  CHECK(term.is_diagonal());
+  CHECK(is_diagonal(term));
 }

@@ -89,7 +89,7 @@ Expression schriffer_wolff(const Expression& kinetic, const Expression& interact
       }
       Term a = Term(basis.set.at(i));
       Term b = Term(basis.set.at(j));
-      Aop += coeff * a * b.adjoint();
+      Aop += coeff * a * adjoint(b);
     }
   }
 

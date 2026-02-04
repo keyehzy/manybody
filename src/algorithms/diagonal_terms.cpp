@@ -4,8 +4,8 @@
 
 namespace {
 
-bool has_matching_substring(const Term::container_type& diagonal_ops,
-                            const Term::container_type& off_diagonal_ops) {
+bool has_matching_substring(const FermionString& diagonal_ops,
+                            const FermionString& off_diagonal_ops) {
   if (diagonal_ops.empty() || off_diagonal_ops.empty()) {
     return false;
   }
@@ -31,7 +31,7 @@ bool has_matching_substring(const Term::container_type& diagonal_ops,
   return false;
 }
 
-bool is_term_contained(const Term::container_type& small, const Term::container_type& large) {
+bool is_term_contained(const FermionString& small, const FermionString& large) {
   if (small.empty()) {
     return false;
   }
@@ -75,7 +75,7 @@ DiagonalChildrenResult group_diagonal_children(const Expression& expr) {
   std::vector<Term> off_diagonals;
   for (const auto& [ops, coeff] : expr.terms()) {
     Term term(coeff, ops);
-    if (term.is_diagonal()) {
+    if (is_diagonal(term)) {
       result.diagonals.push_back(term);
       result.children.emplace(ops, std::vector<Term>{});
     } else {

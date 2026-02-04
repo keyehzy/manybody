@@ -61,7 +61,7 @@ Expression Expression::adjoint() const {
   Expression result;
   for (const auto& [ops, coeff] : map.data) {
     Term term(coeff, ops);
-    Term adj = term.adjoint();
+    Term adj = ::adjoint(term);
     add_to_map(result.map, std::move(adj.operators), adj.c);
   }
   return result;
@@ -106,7 +106,7 @@ void Expression::to_string(std::ostringstream& oss) const {
   map.format_sorted(
       oss, [](std::ostringstream& os, const container_type& ops, const complex_type& coeff) {
         Term term(coeff, ops);
-        term.to_string(os);
+        ::to_string(os, term);
       });
 }
 

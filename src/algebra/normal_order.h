@@ -5,7 +5,7 @@
 
 struct NormalOrderer {
   using complex_type = Term::complex_type;
-  using container_type = Term::container_type;
+  using container_type = FermionString;
 
   NormalOrderer() = default;
 

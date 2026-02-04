@@ -5,7 +5,7 @@
 #include "utils/indexed_hash_set.h"
 
 struct Basis {
-  using key_type = Term::container_type;
+  using key_type = FermionString;
   using set_type = IndexedHashSet<key_type>;
 
   Basis() = default;

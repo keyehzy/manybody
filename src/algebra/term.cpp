@@ -1,25 +1,25 @@
 #include "algebra/term.h"
 
-void Term::to_string(std::ostringstream& oss) const {
-  if (c == complex_type{}) {
+void to_string(std::ostringstream& oss, const Term& term) {
+  if (term.c == Term::complex_type{}) {
     oss << "0";
     return;
   }
-  oss << c;
-  if (operators.size() == 0) {
+  oss << term.c;
+  if (term.operators.size() == 0) {
     return;
   }
   oss << " ";
-  for (const auto& op : operators) {
+  for (const auto& op : term.operators) {
     op.to_string(oss);
   }
-  if (is_diagonal()) {
+  if (is_diagonal(term)) {
     oss << "*";
   }
 }
 
-std::string Term::to_string() const {
+std::string to_string(const Term& term) {
   std::ostringstream oss;
-  to_string(oss);
+  to_string(oss, term);
   return oss.str();
 }

@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <sstream>
+#include <string>
 
 #include "algebra/monomial.h"
 #include "algebra/operator.h"
@@ -16,6 +17,8 @@ using TermScalar = std::complex<double>;
 constexpr size_t term_static_vector_size = (term_size - sizeof(TermScalar)) / sizeof(Operator) - 1;
 
 using TermBase = Monomial<Operator, term_static_vector_size, Operator::ubyte, TermScalar>;
+
+using FermionString = TermBase::container_type;
 
 struct Term : TermBase {
   using complex_type = TermScalar;
@@ -33,38 +36,8 @@ struct Term : TermBase {
 
   using TermBase::TermBase;
 
-  constexpr bool is_diagonal() const noexcept {
-    constexpr size_t stride = Operator::kValueMask + 1;
-    std::array<int, stride * 2> balance{};
-    for (const auto& op : operators) {
-      const size_t idx = static_cast<size_t>(op.data & ~Operator::kTypeBit);
-      if (op.type() == Operator::Type::Creation) {
-        ++balance[idx];
-      } else {
-        --balance[idx];
-      }
-    }
-    for (int count : balance) {
-      if (count != 0) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  void to_string(std::ostringstream& oss) const;
-  std::string to_string() const;
-
   constexpr bool operator==(const Term& other) const noexcept {
     return c == other.c && operators == other.operators;
-  }
-
-  constexpr Term adjoint() const noexcept {
-    Term result(std::conj(c));
-    for (auto it = operators.rbegin(); it != operators.rend(); ++it) {
-      result.operators.push_back(it->adjoint());
-    }
-    return result;
   }
 
   constexpr Term& operator*=(const Term& value) noexcept {
@@ -87,6 +60,38 @@ struct Term : TermBase {
     return *this;
   }
 };
+
+constexpr bool is_diagonal(const FermionString& operators) noexcept {
+  constexpr size_t stride = Operator::kValueMask + 1;
+  std::array<int, stride * 2> balance{};
+  for (const auto& op : operators) {
+    const size_t idx = static_cast<size_t>(op.data & ~Operator::kTypeBit);
+    if (op.type() == Operator::Type::Creation) {
+      ++balance[idx];
+    } else {
+      --balance[idx];
+    }
+  }
+  for (int count : balance) {
+    if (count != 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
+constexpr bool is_diagonal(const Term& term) noexcept { return is_diagonal(term.operators); }
+
+constexpr Term adjoint(const Term& term) noexcept {
+  Term result(std::conj(term.c));
+  for (auto it = term.operators.rbegin(); it != term.operators.rend(); ++it) {
+    result.operators.push_back(it->adjoint());
+  }
+  return result;
+}
+
+void to_string(std::ostringstream& oss, const Term& term);
+std::string to_string(const Term& term);
 
 inline constexpr Term operator*(const Term& a, const Term& b) noexcept {
   Term result(a);

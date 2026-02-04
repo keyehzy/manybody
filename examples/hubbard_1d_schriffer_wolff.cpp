@@ -31,9 +31,9 @@ int main() {
   std::cout << "Effective Hamiltonian (BCH):\n";
 
   for (const auto& term : diagonal_terms.diagonals) {
-    std::cout << term.to_string() << "\n";
+    std::cout << to_string(term) << "\n";
     for (const auto& child : diagonal_terms.children[term.operators]) {
-      std::cout << "  " << child.to_string() << "\n";
+      std::cout << "  " << to_string(child) << "\n";
     }
     std::cout << "\n";
   }
