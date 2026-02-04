@@ -1,3 +1,4 @@
+#include <armadillo>
 #include <catch2/catch.hpp>
 
 #include "algebra/basis.h"

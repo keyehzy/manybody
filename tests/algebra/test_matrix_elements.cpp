@@ -10,7 +10,7 @@
 #include "utils/index.h"
 
 TEST_CASE("matrix_elements_vector_serial_creation") {
-  Basis basis(1, 1, Basis::Strategy::Restrict);
+  Basis basis = Basis::with_fixed_particle_number(1, 1);
   Expression A(Operator::creation(Operator::Spin::Up, 0));
   NormalOrderer orderer;
 
@@ -22,7 +22,7 @@ TEST_CASE("matrix_elements_vector_serial_creation") {
 }
 
 TEST_CASE("matrix_elements_vector_parallel_matches_serial") {
-  Basis basis(1, 1, Basis::Strategy::Restrict);
+  Basis basis = Basis::with_fixed_particle_number(1, 1);
   Expression A(Operator::creation(Operator::Spin::Up, 0));
   NormalOrderer orderer;
 
@@ -35,7 +35,7 @@ TEST_CASE("matrix_elements_vector_parallel_matches_serial") {
 }
 
 TEST_CASE("matrix_elements_matrix_serial_density") {
-  Basis basis(1, 1, Basis::Strategy::Restrict);
+  Basis basis = Basis::with_fixed_particle_number(1, 1);
   Expression A(Term(
       {Operator::creation(Operator::Spin::Up, 0), Operator::annihilation(Operator::Spin::Up, 0)}));
   NormalOrderer orderer;
@@ -51,7 +51,7 @@ TEST_CASE("matrix_elements_matrix_serial_density") {
 }
 
 TEST_CASE("matrix_elements_matrix_parallel_matches_serial") {
-  Basis basis(1, 1, Basis::Strategy::Restrict);
+  Basis basis = Basis::with_fixed_particle_number(1, 1);
   Expression A(Term(
       {Operator::creation(Operator::Spin::Up, 0), Operator::annihilation(Operator::Spin::Up, 0)}));
   NormalOrderer orderer;
