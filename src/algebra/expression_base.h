@@ -58,11 +58,12 @@ struct ExpressionBase {
     return std::norm(value) < tolerance * tolerance;
   }
 
-  static void add_to(map_type& target, const container_type& key, const complex_type& coeff) {
+  template <typename Key>
+  static void add_to(map_type& target, Key&& key, const complex_type& coeff) {
     if (is_zero(coeff)) {
       return;
     }
-    auto [it, inserted] = target.try_emplace(key, coeff);
+    auto [it, inserted] = target.try_emplace(std::forward<Key>(key), coeff);
     if (!inserted) {
       it->second += coeff;
       if (is_zero(it->second)) {
@@ -71,23 +72,9 @@ struct ExpressionBase {
     }
   }
 
-  static void add_to(map_type& target, container_type&& key, const complex_type& coeff) {
-    if (is_zero(coeff)) {
-      return;
-    }
-    auto [it, inserted] = target.try_emplace(std::move(key), coeff);
-    if (!inserted) {
-      it->second += coeff;
-      if (is_zero(it->second)) {
-        target.erase(it);
-      }
-    }
-  }
-
-  void add(const container_type& key, const complex_type& coeff) { add_to(data, key, coeff); }
-
-  void add(container_type&& key, const complex_type& coeff) {
-    add_to(data, std::move(key), coeff);
+  template <typename Key>
+  void add(Key&& key, const complex_type& coeff) {
+    add_to(data, std::forward<Key>(key), coeff);
   }
 
   void add_scalar(const complex_type& value) { add(container_type{}, value); }
