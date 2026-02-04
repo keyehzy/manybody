@@ -163,29 +163,21 @@ struct ExpressionBase {
       oss << "0";
       return;
     }
-    std::vector<const typename map_type::value_type*> ordered;
+    using entry_ptr = const typename map_type::value_type*;
+    std::vector<entry_ptr> ordered;
     ordered.reserve(data.size());
     for (const auto& entry : data) {
       ordered.push_back(&entry);
     }
-    std::sort(
-        ordered.begin(), ordered.end(),
-        [](const typename map_type::value_type* left, const typename map_type::value_type* right) {
-          const auto left_size = left->first.size();
-          const auto right_size = right->first.size();
-          if (left_size != right_size) {
-            return left_size < right_size;
-          }
-          return std::norm(left->second) > std::norm(right->second);
-        });
+    std::sort(ordered.begin(), ordered.end(), [](entry_ptr a, entry_ptr b) {
+      if (a->first.size() != b->first.size()) return a->first.size() < b->first.size();
+      return std::norm(a->second) > std::norm(b->second);
+    });
 
-    bool first = true;
-    for (const auto* entry : ordered) {
-      if (!first) {
-        oss << "\n";
-      }
-      fmt(oss, entry->first, entry->second);
-      first = false;
+    fmt(oss, ordered.front()->first, ordered.front()->second);
+    for (size_t i = 1; i < ordered.size(); ++i) {
+      oss << "\n";
+      fmt(oss, ordered[i]->first, ordered[i]->second);
     }
   }
 
