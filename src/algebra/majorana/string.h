@@ -12,21 +12,7 @@
 
 namespace majorana {
 
-struct MajoranaMonomial
-    : MonomialBase<MajoranaMonomial, MajoranaOperator, 24, std::uint8_t, std::complex<double>> {
-  using complex_type = std::complex<double>;
-  using container_type = MonomialBase::container_type;
-
-  constexpr MajoranaMonomial() noexcept = default;
-  constexpr ~MajoranaMonomial() noexcept = default;
-
-  constexpr MajoranaMonomial(const MajoranaMonomial& other) noexcept = default;
-  constexpr MajoranaMonomial& operator=(const MajoranaMonomial& other) noexcept = default;
-  constexpr MajoranaMonomial(MajoranaMonomial&& other) noexcept = default;
-  constexpr MajoranaMonomial& operator=(MajoranaMonomial&& other) noexcept = default;
-
-  using MonomialBase::MonomialBase;
-};
+using MajoranaMonomial = MonomialImpl<MajoranaOperator, 24, std::uint8_t, std::complex<double>>;
 
 void to_string(std::ostringstream& oss, const MajoranaMonomial::container_type& str);
 

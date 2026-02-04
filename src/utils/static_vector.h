@@ -21,6 +21,7 @@ struct static_vector {
     append_range(init.begin(), init.end());
   }
 
+  static constexpr size_t max_size() noexcept { return N; }
   constexpr size_t size() const noexcept { return static_cast<size_t>(size_); }
   constexpr bool empty() const noexcept { return size_ == 0; }
 

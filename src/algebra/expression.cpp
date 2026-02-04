@@ -6,7 +6,7 @@
 
 void Expression::add_to_map(ExpressionMap<container_type>& target, const container_type& ops,
                             const complex_type& coeff) {
-  if (ops.size() > FermionMonomial::static_vector_size) {
+  if (ops.size() > FermionMonomial::container_type::max_size()) {
     return;
   }
   target.add(ops, coeff);
@@ -14,7 +14,7 @@ void Expression::add_to_map(ExpressionMap<container_type>& target, const contain
 
 void Expression::add_to_map(ExpressionMap<container_type>& target, container_type&& ops,
                             const complex_type& coeff) {
-  if (ops.size() > FermionMonomial::static_vector_size) {
+  if (ops.size() > FermionMonomial::container_type::max_size()) {
     return;
   }
   target.add(std::move(ops), coeff);
@@ -119,7 +119,7 @@ Expression& Expression::operator*=(const Expression& value) {
   result.reserve(map.size() * value.map.size());
   for (const auto& [lhs_ops, lhs_coeff] : map.data) {
     for (const auto& [rhs_ops, rhs_coeff] : value.map.data) {
-      if (lhs_ops.size() + rhs_ops.size() > FermionMonomial::static_vector_size) {
+      if (lhs_ops.size() + rhs_ops.size() > FermionMonomial::container_type::max_size()) {
         continue;
       }
       container_type combined = lhs_ops;
@@ -159,7 +159,7 @@ Expression& Expression::operator*=(const FermionMonomial& value) {
   ExpressionMap<container_type> result;
   result.reserve(map.size());
   for (const auto& [ops, coeff] : map.data) {
-    if (ops.size() + value.operators.size() > FermionMonomial::static_vector_size) {
+    if (ops.size() + value.operators.size() > FermionMonomial::container_type::max_size()) {
       continue;
     }
     container_type combined = ops;

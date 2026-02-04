@@ -12,6 +12,7 @@ struct MonomialBase {
   using operator_type = OperatorType;
   using scalar_type = Scalar;
   using container_type = static_vector<OperatorType, MaxOps, SizeType>;
+  using complex_type = Scalar;
 
   scalar_type c{1.0};
   container_type operators{};
@@ -63,4 +64,11 @@ struct MonomialBase {
   constexpr bool operator==(const Derived& other) const noexcept {
     return c == other.c && operators == other.operators;
   }
+};
+
+template <typename OperatorType, size_t MaxOps, typename SizeType, typename Scalar>
+struct MonomialImpl : MonomialBase<MonomialImpl<OperatorType, MaxOps, SizeType, Scalar>,
+                                   OperatorType, MaxOps, SizeType, Scalar> {
+  using Base = MonomialBase<MonomialImpl, OperatorType, MaxOps, SizeType, Scalar>;
+  using Base::Base;
 };

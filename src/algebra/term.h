@@ -16,23 +16,8 @@ using TermScalar = std::complex<double>;
 
 constexpr size_t term_static_vector_size = (term_size - sizeof(TermScalar)) / sizeof(Operator) - 1;
 
-struct FermionMonomial : MonomialBase<FermionMonomial, Operator, term_static_vector_size,
-                                      Operator::ubyte, TermScalar> {
-  using complex_type = TermScalar;
-  using container_type = MonomialBase::container_type;
-
-  static constexpr size_t static_vector_size = term_static_vector_size;
-
-  constexpr FermionMonomial() noexcept = default;
-  constexpr ~FermionMonomial() noexcept = default;
-
-  constexpr FermionMonomial(const FermionMonomial& other) noexcept = default;
-  constexpr FermionMonomial& operator=(const FermionMonomial& other) noexcept = default;
-  constexpr FermionMonomial(FermionMonomial&& other) noexcept = default;
-  constexpr FermionMonomial& operator=(FermionMonomial&& other) noexcept = default;
-
-  using MonomialBase::MonomialBase;
-};
+using FermionMonomial =
+    MonomialImpl<Operator, term_static_vector_size, Operator::ubyte, TermScalar>;
 
 constexpr bool is_diagonal(const FermionMonomial::container_type& operators) noexcept {
   constexpr size_t stride = Operator::kValueMask + 1;
