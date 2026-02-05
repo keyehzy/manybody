@@ -106,13 +106,16 @@ struct BasicOperator {
   }
 };
 
-using Operator = BasicOperator<OperatorStorage>;
+using FermionOperator = BasicOperator<OperatorStorage>;
 
-static_assert(sizeof(Operator) == sizeof(OperatorStorage));
+static_assert(sizeof(FermionOperator) == sizeof(OperatorStorage));
 
 template <>
-struct std::hash<Operator> {
-  [[nodiscard]] constexpr std::size_t operator()(Operator op) const noexcept {
+struct std::hash<FermionOperator> {
+  [[nodiscard]] constexpr std::size_t operator()(FermionOperator op) const noexcept {
     return static_cast<std::size_t>(op.data);
   }
 };
+
+// For backwards compatibility
+using Operator = FermionOperator;
