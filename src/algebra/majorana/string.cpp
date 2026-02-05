@@ -1,5 +1,7 @@
 #include "algebra/majorana/string.h"
 
+#include "utils/stable_sort_with_parity.h"
+
 namespace majorana {
 
 void to_string(std::ostringstream& oss, const MajoranaMonomial::container_type& str) {
@@ -17,13 +19,28 @@ std::string to_string(const MajoranaMonomial::container_type& str) {
 MajoranaProduct canonicalize(const MajoranaMonomial::container_type& str) noexcept {
   MajoranaProduct result;
   result.sign = 1;
+  result.string.clear();
 
-  for (const auto& op : str) {
-    MajoranaMonomial::container_type single;
-    single.push_back(op);
-    auto product = multiply_strings(result.string, single);
-    result.sign *= product.sign;
-    result.string = product.string;
+  if (str.empty()) {
+    return result;
+  }
+
+  MajoranaMonomial::container_type ops = str;
+  MajoranaMonomial::container_type tmp;
+  tmp.resize(ops.size());
+
+  bool odd = false;
+  stable_sort_with_parity(ops, tmp, 0, ops.size(), odd);
+  result.sign = odd ? -1 : 1;
+
+  std::size_t i = 0;
+  while (i < ops.size()) {
+    if (i + 1 < ops.size() && ops[i] == ops[i + 1]) {
+      i += 2;
+      continue;
+    }
+    result.string.push_back(ops[i]);
+    ++i;
   }
 
   return result;
