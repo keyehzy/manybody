@@ -53,40 +53,6 @@ constexpr FermionMonomial adjoint(const FermionMonomial& term) noexcept {
 void to_string(std::ostringstream& oss, const FermionMonomial& term);
 std::string to_string(const FermionMonomial& term);
 
-inline constexpr FermionMonomial operator*(FermionMonomial a, const FermionMonomial& b) noexcept {
-  a *= b;
-  return a;
-}
-
-inline constexpr FermionMonomial operator*(FermionMonomial a, Operator b) noexcept {
-  a *= b;
-  return a;
-}
-
-inline constexpr FermionMonomial operator*(FermionMonomial a,
-                                           FermionMonomial::complex_type b) noexcept {
-  a *= b;
-  return a;
-}
-
-inline constexpr FermionMonomial operator/(FermionMonomial a,
-                                           FermionMonomial::complex_type b) noexcept {
-  a /= b;
-  return a;
-}
-
-inline constexpr FermionMonomial operator*(FermionMonomial::complex_type a,
-                                           FermionMonomial b) noexcept {
-  b.c *= a;
-  return b;
-}
-
-inline constexpr FermionMonomial operator*(Operator a, const FermionMonomial& b) noexcept {
-  FermionMonomial result(a);
-  result *= b;
-  return result;
-}
-
 inline constexpr FermionMonomial creation(Operator::Spin spin, size_t orbital) noexcept {
   return FermionMonomial({Operator::creation(spin, orbital)});
 }

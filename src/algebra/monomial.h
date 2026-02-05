@@ -64,6 +64,37 @@ struct MonomialBase {
   constexpr bool operator==(const Derived& other) const noexcept {
     return c == other.c && operators == other.operators;
   }
+
+  friend constexpr Derived operator*(Derived a, const Derived& b) noexcept {
+    a *= b;
+    return a;
+  }
+
+  friend constexpr Derived operator*(Derived a, operator_type b) noexcept {
+    a *= b;
+    return a;
+  }
+
+  friend constexpr Derived operator*(Derived a, scalar_type b) noexcept {
+    a *= b;
+    return a;
+  }
+
+  friend constexpr Derived operator/(Derived a, scalar_type b) noexcept {
+    a /= b;
+    return a;
+  }
+
+  friend constexpr Derived operator*(scalar_type a, Derived b) noexcept {
+    b *= a;
+    return b;
+  }
+
+  friend constexpr Derived operator*(operator_type a, const Derived& b) noexcept {
+    Derived result(a);
+    result *= b;
+    return result;
+  }
 };
 
 template <typename OperatorType, size_t MaxOps, typename SizeType, typename Scalar>
