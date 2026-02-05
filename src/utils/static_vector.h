@@ -25,6 +25,8 @@ struct static_vector {
   constexpr size_t size() const noexcept { return static_cast<size_t>(size_); }
   constexpr bool empty() const noexcept { return size_ == 0; }
 
+  constexpr void clear() noexcept { size_ = 0; }
+
   constexpr T* begin() noexcept { return data.data(); }
   constexpr const T* begin() const noexcept { return data.data(); }
   constexpr T* end() noexcept { return data.data() + size(); }
@@ -72,6 +74,26 @@ struct static_vector {
   constexpr void push_back(const T& value) noexcept {
     assert(size_ < N);
     data[size_++] = value;
+  }
+
+  constexpr void resize(size_t count) noexcept {
+    assert(count <= N);
+    if (count > size()) {
+      for (size_t i = size(); i < count; ++i) {
+        data[i] = T{};
+      }
+    }
+    size_ = static_cast<SizeType>(count);
+  }
+
+  constexpr void resize(size_t count, const T& value) noexcept {
+    assert(count <= N);
+    if (count > size()) {
+      for (size_t i = size(); i < count; ++i) {
+        data[i] = value;
+      }
+    }
+    size_ = static_cast<SizeType>(count);
   }
 
   constexpr void pop_back() noexcept {

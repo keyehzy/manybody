@@ -32,6 +32,35 @@ TEST_CASE("static_vector_push_back_and_append_range") {
   CHECK((*it++) == (9));
 }
 
+TEST_CASE("static_vector_clear_and_resize") {
+  static_vector<int, 5> vec({1, 2, 3});
+  vec.clear();
+  CHECK((vec.size()) == (0u));
+  CHECK(vec.empty());
+
+  vec.push_back(7);
+  CHECK((vec.size()) == (1u));
+  CHECK((vec[0]) == (7));
+
+  static_vector<int, 6> grow({1, 2});
+  grow.resize(4);
+  CHECK((grow.size()) == (4u));
+  CHECK((grow[0]) == (1));
+  CHECK((grow[1]) == (2));
+  CHECK((grow[2]) == (0));
+  CHECK((grow[3]) == (0));
+
+  grow.resize(5, 9);
+  CHECK((grow.size()) == (5u));
+  CHECK((grow[4]) == (9));
+
+  grow.resize(3);
+  CHECK((grow.size()) == (3u));
+  CHECK((grow[0]) == (1));
+  CHECK((grow[1]) == (2));
+  CHECK((grow[2]) == (0));
+}
+
 TEST_CASE("static_vector_reverse_iterators") {
   static_vector<int, 4> vec({2, 4, 6});
   auto it = vec.rbegin();
