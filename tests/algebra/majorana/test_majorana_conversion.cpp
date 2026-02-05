@@ -112,43 +112,39 @@ TEST_CASE("majorana_conversion_hopping_term") {
   CHECK(maj.size() > 0u);
 
   // Round-trip: convert back and normal-order, should match
-  NormalOrderer orderer;
   Expression roundtrip = from_majorana(maj);
-  Expression original = orderer.normal_order(hop);
+  Expression original = normal_order(hop);
 
   CHECK(expressions_equal(roundtrip, original));
 }
 
 TEST_CASE("majorana_conversion_roundtrip_single_operator") {
-  NormalOrderer orderer;
   auto op = Operator::creation(Operator::Spin::Down, 2);
   Expression original(op);
 
   auto maj = to_majorana(original);
   Expression roundtrip = from_majorana(maj);
-  Expression expected = orderer.normal_order(original);
+  Expression expected = normal_order(original);
 
   CHECK(expressions_equal(roundtrip, expected));
 }
 
 TEST_CASE("majorana_conversion_roundtrip_density") {
-  NormalOrderer orderer;
   Expression original(density(Operator::Spin::Up, 1));
 
   auto maj = to_majorana(original);
   Expression roundtrip = from_majorana(maj);
-  Expression expected = orderer.normal_order(original);
+  Expression expected = normal_order(original);
 
   CHECK(expressions_equal(roundtrip, expected));
 }
 
 TEST_CASE("majorana_conversion_roundtrip_two_body") {
-  NormalOrderer orderer;
   Expression original(density_density(Operator::Spin::Up, 0, Operator::Spin::Down, 0));
 
   auto maj = to_majorana(original);
   Expression roundtrip = from_majorana(maj);
-  Expression expected = orderer.normal_order(original);
+  Expression expected = normal_order(original);
 
   CHECK(expressions_equal(roundtrip, expected));
 }
@@ -168,8 +164,7 @@ TEST_CASE("majorana_conversion_tv_hamiltonian") {
                     density_density(Operator::Spin::Up, i, Operator::Spin::Up, j));
   }
 
-  NormalOrderer orderer;
-  Expression H_normal = orderer.normal_order(H);
+  Expression H_normal = normal_order(H);
 
   auto H_maj = to_majorana(H);
   Expression H_roundtrip = from_majorana(H_maj);

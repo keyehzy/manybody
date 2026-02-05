@@ -29,4 +29,3 @@ std::string FermionExpression::to_string() const {
         ::to_string(os, term);
       });
 }
-

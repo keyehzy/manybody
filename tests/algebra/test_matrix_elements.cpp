@@ -12,9 +12,8 @@
 TEST_CASE("matrix_elements_vector_serial_creation") {
   Basis basis = Basis::with_fixed_particle_number(1, 1);
   Expression A(Operator::creation(Operator::Spin::Up, 0));
-  NormalOrderer orderer;
 
-  arma::cx_vec vec = compute_vector_elements_serial<arma::cx_vec>(basis, A, orderer);
+  arma::cx_vec vec = compute_vector_elements_serial<arma::cx_vec>(basis, A);
 
   CHECK((vec.n_elem) == (2u));
   CHECK((vec(0)) == (arma::cx_double(1.0, 0.0)));
@@ -24,9 +23,8 @@ TEST_CASE("matrix_elements_vector_serial_creation") {
 TEST_CASE("matrix_elements_vector_parallel_matches_serial") {
   Basis basis = Basis::with_fixed_particle_number(1, 1);
   Expression A(Operator::creation(Operator::Spin::Up, 0));
-  NormalOrderer orderer;
 
-  arma::cx_vec serial = compute_vector_elements_serial<arma::cx_vec>(basis, A, orderer);
+  arma::cx_vec serial = compute_vector_elements_serial<arma::cx_vec>(basis, A);
   arma::cx_vec parallel = compute_vector_elements<arma::cx_vec>(basis, A);
 
   CHECK((parallel.n_elem) == (serial.n_elem));
@@ -38,9 +36,8 @@ TEST_CASE("matrix_elements_matrix_serial_density") {
   Basis basis = Basis::with_fixed_particle_number(1, 1);
   Expression A(FermionMonomial(
       {Operator::creation(Operator::Spin::Up, 0), Operator::annihilation(Operator::Spin::Up, 0)}));
-  NormalOrderer orderer;
 
-  arma::cx_mat mat = compute_matrix_elements_serial<arma::cx_mat>(basis, A, orderer);
+  arma::cx_mat mat = compute_matrix_elements_serial<arma::cx_mat>(basis, A);
 
   CHECK((mat.n_rows) == (2u));
   CHECK((mat.n_cols) == (2u));
@@ -54,9 +51,8 @@ TEST_CASE("matrix_elements_matrix_parallel_matches_serial") {
   Basis basis = Basis::with_fixed_particle_number(1, 1);
   Expression A(FermionMonomial(
       {Operator::creation(Operator::Spin::Up, 0), Operator::annihilation(Operator::Spin::Up, 0)}));
-  NormalOrderer orderer;
 
-  arma::cx_mat serial = compute_matrix_elements_serial<arma::cx_mat>(basis, A, orderer);
+  arma::cx_mat serial = compute_matrix_elements_serial<arma::cx_mat>(basis, A);
   arma::cx_mat parallel = compute_matrix_elements<arma::cx_mat>(basis, A);
 
   CHECK((parallel.n_rows) == (serial.n_rows));
@@ -84,9 +80,8 @@ TEST_CASE("rectangular_matrix_elements_serial_current_operator") {
   const std::vector<size_t> Q = {1};
   Expression current_expr = model.current(Q, 0);
 
-  NormalOrderer orderer;
-  arma::cx_mat mat = compute_rectangular_matrix_elements_serial<arma::cx_mat>(
-      basis_KQ, basis_K, current_expr, orderer);
+  arma::cx_mat mat =
+      compute_rectangular_matrix_elements_serial<arma::cx_mat>(basis_KQ, basis_K, current_expr);
 
   // Verify dimensions
   CHECK(mat.n_rows == basis_KQ.set.size());
@@ -110,9 +105,8 @@ TEST_CASE("rectangular_matrix_elements_parallel_matches_serial") {
   const std::vector<size_t> Q = {2};
   Expression current_expr = model.current(Q, 0);
 
-  NormalOrderer orderer;
-  arma::cx_mat serial = compute_rectangular_matrix_elements_serial<arma::cx_mat>(
-      basis_KQ, basis_K, current_expr, orderer);
+  arma::cx_mat serial =
+      compute_rectangular_matrix_elements_serial<arma::cx_mat>(basis_KQ, basis_K, current_expr);
   arma::cx_mat parallel =
       compute_rectangular_matrix_elements<arma::cx_mat>(basis_KQ, basis_K, current_expr);
 

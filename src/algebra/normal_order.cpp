@@ -3,30 +3,16 @@
 #include "algebra/expression.h"
 #include "utils/tolerances.h"
 
+using complex_type = FermionMonomial::complex_type;
+using container_type = FermionMonomial::container_type;
+
 constexpr auto tolerance = tolerances::tolerance<Expression::complex_type::value_type>();
 
-Expression NormalOrderer::normal_order(const complex_type& c, const container_type& ops) {
-  if (std::norm(c) < tolerance * tolerance) {
-    return {};
-  }
-  Expression result = normal_order_recursive(ops);
-  result *= c;
-  return result;
-}
+namespace {
+Expression normal_order_recursive(container_type ops);
+Expression handle_non_commuting(container_type ops, size_t index);
 
-Expression NormalOrderer::normal_order(const FermionMonomial& term) {
-  return normal_order(term.c, term.operators);
-}
-
-Expression NormalOrderer::normal_order(const Expression& expr) {
-  Expression result;
-  for (const auto& [ops, c] : expr.terms()) {
-    result += normal_order(c, ops);
-  }
-  return result;
-}
-
-Expression NormalOrderer::normal_order_recursive(container_type ops) {
+Expression normal_order_recursive(container_type ops) {
   if (ops.size() < 2) {
     return Expression(ops);
   }
@@ -59,7 +45,7 @@ Expression NormalOrderer::normal_order_recursive(container_type ops) {
   return Expression(phase, std::move(ops));
 }
 
-Expression NormalOrderer::handle_non_commuting(container_type ops, size_t index) {
+Expression handle_non_commuting(container_type ops, size_t index) {
   container_type contracted;
   contracted.append_range(ops.begin(), ops.begin() + index);
   contracted.append_range(ops.begin() + index + 2, ops.end());
@@ -67,4 +53,26 @@ Expression NormalOrderer::handle_non_commuting(container_type ops, size_t index)
   Expression lhs = normal_order_recursive(std::move(contracted));
   lhs -= normal_order_recursive(std::move(ops));
   return lhs;
+}
+}  // namespace
+
+Expression normal_order(const complex_type& c, const container_type& ops) {
+  if (std::norm(c) < tolerance * tolerance) {
+    return {};
+  }
+  Expression result = normal_order_recursive(ops);
+  result *= c;
+  return result;
+}
+
+Expression normal_order(const FermionMonomial& term) {
+  return normal_order(term.c, term.operators);
+}
+
+Expression normal_order(const Expression& expr) {
+  Expression result;
+  for (const auto& [ops, c] : expr.terms()) {
+    result += normal_order(c, ops);
+  }
+  return result;
 }

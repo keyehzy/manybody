@@ -24,9 +24,8 @@ int main() {
   Expression generator = schriffer_wolff(kinetic, interaction_term, basis, iterations);
   Expression effective_hamiltonian = BCH(generator, hamiltonian, 1.0, iterations);
 
-  NormalOrderer orderer;
   arma::cx_mat effective_matrix =
-      compute_matrix_elements_serial<arma::cx_mat>(basis, effective_hamiltonian, orderer);
+      compute_matrix_elements_serial<arma::cx_mat>(basis, effective_hamiltonian);
 
   arma::vec eigenvalues;
   arma::cx_mat eigenvectors;

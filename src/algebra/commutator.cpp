@@ -6,36 +6,31 @@
 #include "utils/tolerances.h"
 
 Expression commutator(const FermionMonomial& A, const FermionMonomial& B) {
-  NormalOrderer orderer;
-  Expression result = orderer.normal_order(A * B);
-  result -= orderer.normal_order(B * A);
+  Expression result = normal_order(A * B);
+  result -= normal_order(B * A);
   return result;
 }
 
 Expression commutator(const Expression& A, const Expression& B) {
-  NormalOrderer orderer;
-  Expression result = orderer.normal_order(A * B);
-  result -= orderer.normal_order(B * A);
+  Expression result = normal_order(A * B);
+  result -= normal_order(B * A);
   return result;
 }
 
 Expression anticommutator(const FermionMonomial& A, const FermionMonomial& B) {
-  NormalOrderer orderer;
-  Expression result = orderer.normal_order(A * B);
-  result += orderer.normal_order(B * A);
+  Expression result = normal_order(A * B);
+  result += normal_order(B * A);
   return result;
 }
 
 Expression anticommutator(const Expression& A, const Expression& B) {
-  NormalOrderer orderer;
-  Expression result = orderer.normal_order(A * B);
-  result += orderer.normal_order(B * A);
+  Expression result = normal_order(A * B);
+  result += normal_order(B * A);
   return result;
 }
 
 Expression BCH(const Expression& A, const Expression& B,
                Expression::complex_type::value_type lambda, size_t order) {
-  NormalOrderer orderer;
   Expression current = B;
   Expression::complex_type::value_type coeff{1.0};
   Expression result = current * coeff;
@@ -52,5 +47,5 @@ Expression BCH(const Expression& A, const Expression& B,
     result += current * coeff;
   }
 
-  return orderer.normal_order(result);
+  return normal_order(result);
 }
