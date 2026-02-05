@@ -3,6 +3,8 @@
 #include <sstream>
 #include <utility>
 
+#include "utils/tolerances.h"
+
 namespace majorana {
 
 std::string MajoranaExpression::to_string() const {
@@ -16,53 +18,27 @@ std::string MajoranaExpression::to_string() const {
       });
 }
 
-MajoranaExpression& MajoranaExpression::operator*=(const MajoranaExpression& value) {
-  if (this->empty() || value.empty()) {
-    this->clear();
-    return *this;
+constexpr auto tolerance = tolerances::tolerance<MajoranaExpression::complex_type::value_type>();
+
+MajoranaExpression canonicalize(const MajoranaMonomial::complex_type& c,
+                                const MajoranaMonomial::container_type& ops) {
+  if (std::norm(c) < tolerance * tolerance) {
+    return {};
   }
-  map_type result;
-  result.reserve(this->size() * value.size());
-  for (const auto& [lhs_str, lhs_coeff] : this->data) {
-    for (const auto& [rhs_str, rhs_coeff] : value.data) {
-      auto product = multiply_strings(lhs_str, rhs_str);
-      auto coeff = lhs_coeff * rhs_coeff * static_cast<double>(product.sign);
-      add_to(result, std::move(product.string), coeff);
-    }
-  }
-  this->data = std::move(result);
-  return *this;
+  MajoranaProduct prod = canonicalize(ops);
+  MajoranaMonomial mon(c * MajoranaExpression::complex_type(prod.sign), prod.string);
+  return MajoranaExpression{mon};
 }
 
-MajoranaExpression& MajoranaExpression::operator*=(const MajoranaMonomial& value) {
-  if (this->empty()) {
-    return *this;
-  }
-  if (this->is_zero(value.c)) {
-    this->clear();
-    return *this;
-  }
-
-  auto canonical = canonicalize(value.operators);
-  auto coeff = value.c * static_cast<double>(canonical.sign);
-  if (this->is_zero(coeff)) {
-    this->clear();
-    return *this;
-  }
-  if (canonical.string.empty()) {
-    this->scale(coeff);
-    return *this;
-  }
-
-  map_type result;
-  result.reserve(this->size());
-  for (const auto& [lhs_str, lhs_coeff] : this->data) {
-    auto product = multiply_strings(lhs_str, canonical.string);
-    auto scaled = lhs_coeff * coeff * static_cast<double>(product.sign);
-    add_to(result, std::move(product.string), scaled);
-  }
-  this->data = std::move(result);
-  return *this;
+MajoranaExpression canonicalize(const MajoranaMonomial& term) {
+  return canonicalize(term.c, term.operators);
 }
 
+MajoranaExpression canonicalize(const MajoranaExpression& expr) {
+  MajoranaExpression result;
+  for (const auto& [ops, c] : expr.terms()) {
+    result += canonicalize(c, ops);
+  }
+  return result;
+}
 }  // namespace majorana

@@ -11,14 +11,8 @@
 struct FermionExpression : ExpressionBase<FermionExpression, FermionMonomial> {
   using Base = ExpressionBase<FermionExpression, FermionMonomial>;
   using Base::Base;
-  using Base::operator*=;
-  using Base::operator+=;
-  using Base::operator-=;
-
-  FermionExpression() = default;
 
   FermionExpression adjoint() const;
-
   void format_to(std::ostringstream& oss) const;
   std::string to_string() const;
 };
