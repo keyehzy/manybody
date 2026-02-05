@@ -57,7 +57,6 @@ MajoranaExpression to_majorana(const Expression& expr) {
 /// The result is normal-ordered.
 Expression from_majorana(const MajoranaExpression& expr) {
   using complex_type = Expression::complex_type;
-  NormalOrderer orderer;
   Expression result;
 
   for (const auto& [str, coeff] : expr.terms()) {
@@ -87,7 +86,7 @@ Expression from_majorana(const MajoranaExpression& expr) {
     result += term_expr;
   }
 
-  return orderer.normal_order(result);
+  return normal_order(result);
 }
 
 }  // namespace majorana
