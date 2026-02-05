@@ -2,7 +2,7 @@
 
 #include <complex>
 
-#include "algebra/fermion/matrix_elements.h"
+#include "algebra/matrix_elements.h"
 #include "utils/tolerances.h"
 
 namespace {

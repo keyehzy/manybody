@@ -2,7 +2,7 @@
 #include <catch2/catch.hpp>
 
 #include "algebra/fermion/basis.h"
-#include "algebra/fermion/matrix_elements.h"
+#include "algebra/matrix_elements.h"
 #include "algorithms/brg/hubbard_block.h"
 
 TEST_CASE("block_2d_2x2 geometry is correct") {

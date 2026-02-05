@@ -3,7 +3,7 @@
 #include <cmath>
 
 #include "algebra/fermion/basis.h"
-#include "algebra/fermion/matrix_elements.h"
+#include "algebra/matrix_elements.h"
 #include "algebra/model/hubbard_model.h"
 #include "algorithms/schriffer_wolff.h"
 

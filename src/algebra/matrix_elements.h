@@ -5,10 +5,9 @@
 #include <utility>
 #include <vector>
 
-#include "algebra/fermion/expression.h"
-
-template <typename VectorType, typename Basis>
+template <typename VectorType, typename Basis, typename Expression>
 VectorType compute_vector_elements_serial(const Basis& basis, const Expression& A) {
+  using complex_type = typename Expression::complex_type;
   const auto& set = basis.set;
   VectorType result(set.size());
   result.zeros();
@@ -17,14 +16,15 @@ VectorType compute_vector_elements_serial(const Basis& basis, const Expression& 
     Expression product = canonicalize(adjoint(left) * A);
     {
       auto it = product.terms().find({});
-      result(i) = (it != product.terms().end()) ? it->second : Expression::complex_type{};
+      result(i) = (it != product.terms().end()) ? it->second : complex_type{};
     }
   }
   return result;
 }
 
-template <typename VectorType, typename Basis>
+template <typename VectorType, typename Basis, typename Expression>
 VectorType compute_vector_elements(const Basis& basis, const Expression& A) {
+  using complex_type = typename Expression::complex_type;
   const auto& set = basis.set;
   VectorType result(set.size());
   result.zeros();
@@ -36,14 +36,14 @@ VectorType compute_vector_elements(const Basis& basis, const Expression& A) {
       Expression product = canonicalize(adjoint(left) * A);
       {
         auto it = product.terms().find({});
-        result(i) = (it != product.terms().end()) ? it->second : Expression::complex_type{};
+        result(i) = (it != product.terms().end()) ? it->second : complex_type{};
       }
     }
   }
   return result;
 }
 
-template <typename MatrixType, typename Basis>
+template <typename MatrixType, typename Basis, typename Expression>
 MatrixType compute_matrix_elements_serial(const Basis& basis, const Expression& A) {
   const auto& set = basis.set;
   MatrixType result(set.size(), set.size());
@@ -61,8 +61,9 @@ MatrixType compute_matrix_elements_serial(const Basis& basis, const Expression& 
   return result;
 }
 
-template <typename MatrixType, typename Basis>
+template <typename MatrixType, typename Basis, typename Expression>
 MatrixType compute_matrix_elements(const Basis& basis, const Expression& A) {
+  using complex_type = typename Expression::complex_type;
   const auto& set = basis.set;
   MatrixType result(set.size(), set.size());
   result.zeros();
@@ -72,7 +73,7 @@ MatrixType compute_matrix_elements(const Basis& basis, const Expression& A) {
     for (size_t j = 0; j < set.size(); ++j) {
       Expression right(set[j]);
       Expression product = canonicalize(A * right);
-      std::vector<std::pair<size_t, Expression::complex_type>> coefficients;
+      std::vector<std::pair<size_t, complex_type>> coefficients;
       coefficients.reserve(product.terms().size());
       for (const auto& term : product.terms()) {
         if (set.contains(term.first)) {
@@ -94,7 +95,7 @@ MatrixType compute_matrix_elements(const Basis& basis, const Expression& A) {
 // Compute matrix elements of an operator that maps from one basis to another.
 // This is used for operators like the current operator J(Q) which maps
 // from momentum sector K to K+Q.
-template <typename MatrixType, typename BasisRow, typename BasisCol>
+template <typename MatrixType, typename BasisRow, typename BasisCol, typename Expression>
 MatrixType compute_rectangular_matrix_elements_serial(const BasisRow& row_basis,
                                                       const BasisCol& col_basis,
                                                       const Expression& A) {
@@ -115,9 +116,10 @@ MatrixType compute_rectangular_matrix_elements_serial(const BasisRow& row_basis,
   return result;
 }
 
-template <typename MatrixType, typename BasisRow, typename BasisCol>
+template <typename MatrixType, typename BasisRow, typename BasisCol, typename Expression>
 MatrixType compute_rectangular_matrix_elements(const BasisRow& row_basis, const BasisCol& col_basis,
                                                const Expression& A) {
+  using complex_type = typename Expression::complex_type;
   const auto& row_set = row_basis.set;
   const auto& col_set = col_basis.set;
   MatrixType result(row_set.size(), col_set.size());
@@ -128,7 +130,7 @@ MatrixType compute_rectangular_matrix_elements(const BasisRow& row_basis, const 
     for (size_t j = 0; j < col_set.size(); ++j) {
       Expression right(col_set[j]);
       Expression product = canonicalize(A * right);
-      std::vector<std::pair<size_t, Expression::complex_type>> coefficients;
+      std::vector<std::pair<size_t, complex_type>> coefficients;
       coefficients.reserve(product.terms().size());
       for (const auto& term : product.terms()) {
         if (row_set.contains(term.first)) {
