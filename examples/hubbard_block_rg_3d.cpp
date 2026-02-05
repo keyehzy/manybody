@@ -35,8 +35,8 @@
 #include <iostream>
 #include <string>
 
-#include "algebra/basis.h"
-#include "algebra/matrix_elements.h"
+#include "algebra/fermion/basis.h"
+#include "algebra/fermion/matrix_elements.h"
 #include "algorithms/brg/brg.h"
 #include "cxxopts.hpp"
 

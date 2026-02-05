@@ -7,7 +7,7 @@
 #include <type_traits>
 #include <utility>
 
-#include "algebra/expression.h"
+#include "algebra/fermion/expression.h"
 #include "utils/index.h"
 
 enum class FourierMode { Direct, Inverse };

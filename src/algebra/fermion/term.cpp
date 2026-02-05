@@ -1,4 +1,4 @@
-#include "algebra/term.h"
+#include "algebra/fermion/term.h"
 
 void to_string(std::ostringstream& oss, const FermionMonomial& term) {
   if (term.c == FermionMonomial::complex_type{}) {

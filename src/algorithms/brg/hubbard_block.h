@@ -5,7 +5,7 @@
 #include <utility>
 #include <vector>
 
-#include "algebra/expression.h"
+#include "algebra/fermion/expression.h"
 
 namespace brg {
 

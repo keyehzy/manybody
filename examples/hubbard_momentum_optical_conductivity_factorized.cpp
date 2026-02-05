@@ -11,7 +11,7 @@
 #include <random>
 #include <vector>
 
-#include "algebra/basis.h"
+#include "algebra/fermion/basis.h"
 #include "algorithms/optical_conductivity.h"
 #include "cxxopts.hpp"
 #include "numerics/current_operator_fixed_k.h"

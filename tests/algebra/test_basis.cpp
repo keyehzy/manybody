@@ -1,6 +1,6 @@
 #include <catch2/catch.hpp>
 
-#include "algebra/basis.h"
+#include "algebra/fermion/basis.h"
 
 TEST_CASE("basis_restrict_single_particle") {
   Basis basis = Basis::with_fixed_particle_number(1, 1);

@@ -5,7 +5,7 @@
 #include <cstddef>
 #include <numbers>
 
-#include "algebra/expression.h"
+#include "algebra/fermion/expression.h"
 #include "algebra/model/model.h"
 #include "utils/index.h"
 

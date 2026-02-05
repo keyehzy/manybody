@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "algebra/basis.h"
+#include "algebra/fermion/basis.h"
 #include "algebra/model/hubbard_model.h"
 #include "algorithms/diagonal_terms.h"
 #include "algorithms/schriffer_wolff.h"

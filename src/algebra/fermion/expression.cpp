@@ -1,4 +1,4 @@
-#include "algebra/expression.h"
+#include "algebra/fermion/expression.h"
 
 #include <algorithm>
 #include <complex>

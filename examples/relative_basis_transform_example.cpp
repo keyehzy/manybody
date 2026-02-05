@@ -5,10 +5,10 @@
 #include <iostream>
 #include <vector>
 
-#include "algebra/basis.h"
-#include "algebra/matrix_elements.h"
+#include "algebra/fermion/basis.h"
+#include "algebra/fermion/matrix_elements.h"
+#include "algebra/fermion/relative_basis_transform.h"
 #include "algebra/model/hubbard_model_momentum.h"
-#include "algebra/relative_basis_transform.h"
 #include "cxxopts.hpp"
 #include "utils/index.h"
 

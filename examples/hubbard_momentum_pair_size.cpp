@@ -12,8 +12,8 @@
 #include <sstream>
 #include <vector>
 
-#include "algebra/basis.h"
-#include "algebra/matrix_elements.h"
+#include "algebra/fermion/basis.h"
+#include "algebra/fermion/matrix_elements.h"
 #include "algebra/model/hubbard_model_momentum.h"
 #include "cxxopts.hpp"
 #include "numerics/lanczos.h"

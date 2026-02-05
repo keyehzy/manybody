@@ -8,7 +8,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "algebra/basis.h"
+#include "algebra/fermion/basis.h"
 #include "numerics/linear_operator.h"
 #include "utils/index.h"
 

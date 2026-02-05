@@ -4,9 +4,9 @@
 #include <cstdlib>
 #include <iostream>
 
-#include "algebra/basis.h"
-#include "algebra/expression.h"
-#include "algebra/matrix_elements.h"
+#include "algebra/fermion/basis.h"
+#include "algebra/fermion/expression.h"
+#include "algebra/fermion/matrix_elements.h"
 
 namespace brg {
 

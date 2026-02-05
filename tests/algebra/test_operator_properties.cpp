@@ -1,7 +1,7 @@
 #include <rapidcheck.h>
 #include <rapidcheck/catch.h>
 
-#include "algebra/operator.h"
+#include "algebra/fermion/operator.h"
 
 namespace {
 constexpr std::size_t kValueLimit = Operator::max_index() + 1;

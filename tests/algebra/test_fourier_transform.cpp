@@ -3,7 +3,7 @@
 #include <complex>
 #include <numbers>
 
-#include "algebra/fourier_transform.h"
+#include "algebra/fermion/fourier_transform.h"
 #include "algebra/model/hubbard_model.h"
 #include "algebra/model/hubbard_model_momentum.h"
 #include "utils/index.h"

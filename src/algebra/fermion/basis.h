@@ -1,6 +1,6 @@
 #pragma once
 
-#include "algebra/term.h"
+#include "algebra/fermion/term.h"
 #include "utils/index.h"
 #include "utils/indexed_hash_set.h"
 

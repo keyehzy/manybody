@@ -7,9 +7,9 @@
 #include <iostream>
 #include <vector>
 
-#include "algebra/basis.h"
-#include "algebra/fourier_transform.h"
-#include "algebra/matrix_elements.h"
+#include "algebra/fermion/basis.h"
+#include "algebra/fermion/fourier_transform.h"
+#include "algebra/fermion/matrix_elements.h"
 #include "algebra/model/hubbard_model_momentum.h"
 #include "cxxopts.hpp"
 

@@ -1,7 +1,7 @@
 #include <catch2/catch.hpp>
 
-#include "algebra/basis.h"
-#include "algebra/expression.h"
+#include "algebra/fermion/basis.h"
+#include "algebra/fermion/expression.h"
 #include "algorithms/brg/diagonalization.h"
 
 TEST_CASE("diagonalize_sector returns correct number of eigenvalues") {

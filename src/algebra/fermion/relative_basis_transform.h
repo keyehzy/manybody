@@ -8,8 +8,8 @@
 #include <numbers>
 #include <vector>
 
-#include "algebra/basis.h"
-#include "algebra/operator.h"
+#include "algebra/fermion/basis.h"
+#include "algebra/fermion/operator.h"
 #include "utils/index.h"
 
 // Constructs the unitary transformation matrix from momentum basis to relative position basis.

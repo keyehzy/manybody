@@ -4,8 +4,8 @@
 #include <cstddef>
 #include <vector>
 
-#include "algebra/basis.h"
-#include "algebra/matrix_elements.h"
+#include "algebra/fermion/basis.h"
+#include "algebra/fermion/matrix_elements.h"
 #include "algebra/model/hubbard_model_momentum.h"
 #include "numerics/current_operator_fixed_k.h"
 #include "utils/index.h"

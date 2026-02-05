@@ -8,7 +8,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "algebra/basis.h"
+#include "algebra/fermion/basis.h"
 #include "utils/index.h"
 
 /// Matrix-free current operator for fixed momentum sectors.

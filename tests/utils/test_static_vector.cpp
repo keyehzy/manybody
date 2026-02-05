@@ -2,7 +2,7 @@
 #include <catch2/catch.hpp>
 #include <unordered_set>
 
-#include "algebra/operator.h"
+#include "algebra/fermion/operator.h"
 #include "utils/static_vector.h"
 
 TEST_CASE("static_vector_default_is_empty") {

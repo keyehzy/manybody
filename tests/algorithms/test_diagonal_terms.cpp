@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <catch2/catch.hpp>
 
-#include "algebra/term.h"
+#include "algebra/fermion/term.h"
 #include "algorithms/diagonal_terms.h"
 
 namespace {

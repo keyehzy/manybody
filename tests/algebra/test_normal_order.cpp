@@ -1,6 +1,6 @@
 #include <catch2/catch.hpp>
 
-#include "algebra/expression.h"
+#include "algebra/fermion/expression.h"
 
 TEST_CASE("canonicalize_zero_coefficient_returns_empty") {
   FermionMonomial::container_type ops{};

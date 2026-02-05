@@ -1,4 +1,4 @@
-#include "algebra/basis.h"
+#include "algebra/fermion/basis.h"
 
 #include <algorithm>
 #include <cassert>

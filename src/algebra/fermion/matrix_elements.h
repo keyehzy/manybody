@@ -5,7 +5,7 @@
 #include <utility>
 #include <vector>
 
-#include "algebra/expression.h"
+#include "algebra/fermion/expression.h"
 
 template <typename VectorType, typename Basis>
 VectorType compute_vector_elements_serial(const Basis& basis, const Expression& A) {

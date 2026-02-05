@@ -2,11 +2,11 @@
 #include <catch2/catch.hpp>
 #include <vector>
 
-#include "algebra/basis.h"
-#include "algebra/matrix_elements.h"
+#include "algebra/fermion/basis.h"
+#include "algebra/fermion/matrix_elements.h"
+#include "algebra/fermion/operator.h"
+#include "algebra/fermion/term.h"
 #include "algebra/model/hubbard_model_momentum.h"
-#include "algebra/operator.h"
-#include "algebra/term.h"
 #include "utils/index.h"
 
 TEST_CASE("matrix_elements_vector_serial_creation") {

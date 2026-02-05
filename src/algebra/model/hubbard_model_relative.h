@@ -6,8 +6,8 @@
 #include <cstdint>
 #include <numbers>
 
+#include "algebra/fermion/term.h"
 #include "algebra/model/model.h"
-#include "algebra/term.h"
 #include "utils/canonicalize_momentum.h"
 
 // Two-particle Hubbard model in the relative coordinate basis with fixed total momentum K.

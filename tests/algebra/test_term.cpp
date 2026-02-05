@@ -1,6 +1,6 @@
 #include <catch2/catch.hpp>
 
-#include "algebra/term.h"
+#include "algebra/fermion/term.h"
 
 TEST_CASE("term_default_is_identity") {
   FermionMonomial term;

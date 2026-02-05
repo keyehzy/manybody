@@ -5,7 +5,7 @@
 #include <string>
 
 #include "algebra/expression_base.h"
-#include "algebra/term.h"
+#include "algebra/fermion/term.h"
 #include "robin_hood.h"
 
 struct FermionExpression : ExpressionBase<FermionExpression, FermionMonomial> {

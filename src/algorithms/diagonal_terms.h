@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "algebra/expression.h"
+#include "algebra/fermion/expression.h"
 #include "robin_hood.h"
 
 struct DiagonalChildrenResult {
