@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <cmath>
 #include <complex>
 #include <initializer_list>
 #include <sstream>
@@ -339,5 +340,27 @@ struct ExpressionBase {
     Derived result = A * B;
     result += B * A;
     return result;
+  }
+
+  friend Derived BCH(const Derived& A, const Derived& B, typename complex_type::value_type lambda,
+                     size_t order = 1000) {
+    using value_type = typename complex_type::value_type;
+    Derived current(B);
+    value_type coeff{1.0};
+    Derived result(current);
+    constexpr auto tolerance = tolerances::tolerance<value_type>();
+
+    for (size_t n = 1; n <= order; ++n) {
+      current = commutator(A, current);
+      coeff *= (lambda / static_cast<value_type>(n));
+
+      if (std::abs(coeff) < tolerance) {
+        break;
+      }
+
+      result += current * coeff;
+    }
+
+    return canonicalize(result);
   }
 };
