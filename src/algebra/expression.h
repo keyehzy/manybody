@@ -12,10 +12,11 @@ struct FermionExpression : ExpressionBase<FermionExpression, FermionMonomial> {
   using Base = ExpressionBase<FermionExpression, FermionMonomial>;
   using Base::Base;
 
-  FermionExpression adjoint() const;
   void format_to(std::ostringstream& oss) const;
   std::string to_string() const;
 };
+
+FermionExpression adjoint(const FermionExpression& expr);
 
 inline FermionExpression hopping(const FermionExpression::complex_type& coeff, size_t from,
                                  size_t to, Operator::Spin spin) noexcept {

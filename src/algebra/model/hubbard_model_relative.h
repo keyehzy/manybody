@@ -44,7 +44,7 @@ struct HubbardModelRelative : Model {
     return result;
   }
 
-  Expression pair_annihilation(size_t r) const { return pair_creation(r).adjoint(); }
+  Expression pair_annihilation(size_t r) const { return adjoint(pair_creation(r)); }
 
   Expression kinetic() const {
     Expression kinetic_term;

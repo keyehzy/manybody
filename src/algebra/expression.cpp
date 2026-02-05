@@ -6,9 +6,9 @@
 
 #include "utils/tolerances.h"
 
-FermionExpression FermionExpression::adjoint() const {
+FermionExpression adjoint(const FermionExpression& expr) {
   FermionExpression result;
-  for (const auto& [ops, coeff] : this->data) {
+  for (const auto& [ops, coeff] : expr.terms()) {
     FermionMonomial term(coeff, ops);
     FermionMonomial adj = ::adjoint(term);
     result.add_to_map(std::move(adj.operators), adj.c);

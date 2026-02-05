@@ -35,7 +35,7 @@ TEST_CASE("expression_adjoint_conjugates_and_reverses") {
   FermionMonomial term(Expression::complex_type(1.0f, 2.0f), {a, b});
   Expression expr(term);
 
-  Expression adj = expr.adjoint();
+  Expression adj = adjoint(expr);
   Expression::container_type ops{b.adjoint(), a.adjoint()};
   auto it = adj.terms().find(ops);
   CHECK(it != adj.terms().end());

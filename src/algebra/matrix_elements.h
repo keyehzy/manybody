@@ -15,7 +15,7 @@ VectorType compute_vector_elements_serial(const Basis& basis, const Expression& 
   result.zeros();
   for (size_t i = 0; i < set.size(); ++i) {
     Expression left(set[i]);
-    Expression product = normal_order(left.adjoint() * A);
+    Expression product = normal_order(adjoint(left) * A);
     {
       auto it = product.terms().find({});
       result(i) = (it != product.terms().end()) ? it->second : Expression::complex_type{};
@@ -34,7 +34,7 @@ VectorType compute_vector_elements(const Basis& basis, const Expression& A) {
 #pragma omp for schedule(dynamic)
     for (size_t i = 0; i < set.size(); ++i) {
       Expression left(set[i]);
-      Expression product = normal_order(left.adjoint() * A);
+      Expression product = normal_order(adjoint(left) * A);
       {
         auto it = product.terms().find({});
         result(i) = (it != product.terms().end()) ? it->second : Expression::complex_type{};
