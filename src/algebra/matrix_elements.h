@@ -14,7 +14,7 @@ VectorType compute_vector_elements_serial(const Basis& basis, const Expression& 
   result.zeros();
   for (size_t i = 0; i < set.size(); ++i) {
     Expression left(set[i]);
-    Expression product = normal_order(adjoint(left) * A);
+    Expression product = canonicalize(adjoint(left) * A);
     {
       auto it = product.terms().find({});
       result(i) = (it != product.terms().end()) ? it->second : Expression::complex_type{};
@@ -33,7 +33,7 @@ VectorType compute_vector_elements(const Basis& basis, const Expression& A) {
 #pragma omp for schedule(dynamic)
     for (size_t i = 0; i < set.size(); ++i) {
       Expression left(set[i]);
-      Expression product = normal_order(adjoint(left) * A);
+      Expression product = canonicalize(adjoint(left) * A);
       {
         auto it = product.terms().find({});
         result(i) = (it != product.terms().end()) ? it->second : Expression::complex_type{};
@@ -50,7 +50,7 @@ MatrixType compute_matrix_elements_serial(const Basis& basis, const Expression& 
   result.zeros();
   for (size_t j = 0; j < set.size(); ++j) {
     Expression right(set[j]);
-    Expression product = normal_order(A * right);
+    Expression product = canonicalize(A * right);
     for (const auto& term : product.terms()) {
       if (set.contains(term.first)) {
         size_t i = set.index_of(term.first);
@@ -71,7 +71,7 @@ MatrixType compute_matrix_elements(const Basis& basis, const Expression& A) {
 #pragma omp for schedule(dynamic)
     for (size_t j = 0; j < set.size(); ++j) {
       Expression right(set[j]);
-      Expression product = normal_order(A * right);
+      Expression product = canonicalize(A * right);
       std::vector<std::pair<size_t, Expression::complex_type>> coefficients;
       coefficients.reserve(product.terms().size());
       for (const auto& term : product.terms()) {
@@ -104,7 +104,7 @@ MatrixType compute_rectangular_matrix_elements_serial(const BasisRow& row_basis,
   result.zeros();
   for (size_t j = 0; j < col_set.size(); ++j) {
     Expression right(col_set[j]);
-    Expression product = normal_order(A * right);
+    Expression product = canonicalize(A * right);
     for (const auto& term : product.terms()) {
       if (row_set.contains(term.first)) {
         size_t i = row_set.index_of(term.first);
@@ -127,7 +127,7 @@ MatrixType compute_rectangular_matrix_elements(const BasisRow& row_basis, const 
 #pragma omp for schedule(dynamic)
     for (size_t j = 0; j < col_set.size(); ++j) {
       Expression right(col_set[j]);
-      Expression product = normal_order(A * right);
+      Expression product = canonicalize(A * right);
       std::vector<std::pair<size_t, Expression::complex_type>> coefficients;
       coefficients.reserve(product.terms().size());
       for (const auto& term : product.terms()) {

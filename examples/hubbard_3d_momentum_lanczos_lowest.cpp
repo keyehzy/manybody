@@ -108,7 +108,7 @@ struct HubbardMomentumOperator final : LinearOperator<arma::cx_vec> {
   VectorType apply(const VectorType& v) const override {
     assert(static_cast<size_t>(v.n_elem) == dimension());
     Expression state = vector_to_expression(v);
-    Expression applied = normal_order(hamiltonian_ * state);
+    Expression applied = canonicalize(hamiltonian_ * state);
     return expression_to_vector(applied);
   }
 

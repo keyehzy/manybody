@@ -84,7 +84,7 @@ Expression from_majorana(const MajoranaExpression& expr) {
     result += term_expr;
   }
 
-  return normal_order(result);
+  return canonicalize(result);
 }
 
 }  // namespace majorana

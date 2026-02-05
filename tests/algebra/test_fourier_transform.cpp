@@ -137,8 +137,8 @@ TEST_CASE("fourier_transform_hubbard_1d_gives_momentum_space") {
   Expression H_momentum = hubbard_momentum.hamiltonian();
 
   // Normal order both expressions before comparing
-  H_transformed = normal_order(H_transformed);
-  H_momentum = normal_order(H_momentum);
+  H_transformed = canonicalize(H_transformed);
+  H_momentum = canonicalize(H_momentum);
 
   // Compare expressions term by term
   CHECK(H_transformed.terms().size() == H_momentum.terms().size());
@@ -166,8 +166,8 @@ TEST_CASE("fourier_transform_hubbard_2d_gives_momentum_space") {
   Expression H_momentum = hubbard_momentum.hamiltonian();
 
   // Normal order both expressions before comparing
-  H_transformed = normal_order(H_transformed);
-  H_momentum = normal_order(H_momentum);
+  H_transformed = canonicalize(H_transformed);
+  H_momentum = canonicalize(H_momentum);
 
   CHECK(H_transformed.terms().size() == H_momentum.terms().size());
   for (const auto& [ops, coeff] : H_momentum.terms()) {
@@ -195,8 +195,8 @@ TEST_CASE("fourier_transform_hubbard_3d_gives_momentum_space") {
   Expression H_momentum = hubbard_momentum.hamiltonian();
 
   // Normal order both expressions before comparing
-  H_transformed = normal_order(H_transformed);
-  H_momentum = normal_order(H_momentum);
+  H_transformed = canonicalize(H_transformed);
+  H_momentum = canonicalize(H_momentum);
 
   CHECK(H_transformed.terms().size() == H_momentum.terms().size());
   for (const auto& [ops, coeff] : H_momentum.terms()) {

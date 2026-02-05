@@ -52,10 +52,10 @@ using container_type = FermionMonomial::container_type;
 constexpr auto tolerance = tolerances::tolerance<Expression::complex_type::value_type>();
 
 namespace {
-Expression normal_order_recursive(container_type ops);
+Expression canonicalize_recursive(container_type ops);
 Expression handle_non_commuting(container_type ops, size_t index);
 
-Expression normal_order_recursive(container_type ops) {
+Expression canonicalize_recursive(container_type ops) {
   if (ops.size() < 2) {
     return Expression(ops);
   }
@@ -93,39 +93,29 @@ Expression handle_non_commuting(container_type ops, size_t index) {
   contracted.append_range(ops.begin(), ops.begin() + index);
   contracted.append_range(ops.begin() + index + 2, ops.end());
   std::swap(ops[index], ops[index + 1]);
-  Expression lhs = normal_order_recursive(std::move(contracted));
-  lhs -= normal_order_recursive(std::move(ops));
+  Expression lhs = canonicalize_recursive(std::move(contracted));
+  lhs -= canonicalize_recursive(std::move(ops));
   return lhs;
 }
 }  // namespace
 
-Expression normal_order(const complex_type& c, const container_type& ops) {
+Expression canonicalize(const complex_type& c, const container_type& ops) {
   if (std::norm(c) < tolerance * tolerance) {
     return {};
   }
-  Expression result = normal_order_recursive(ops);
+  Expression result = canonicalize_recursive(ops);
   result *= c;
   return result;
 }
 
-Expression normal_order(const FermionMonomial& term) {
-  return normal_order(term.c, term.operators);
+Expression canonicalize(const FermionMonomial& term) {
+  return canonicalize(term.c, term.operators);
 }
 
-Expression normal_order(const Expression& expr) {
+Expression canonicalize(const Expression& expr) {
   Expression result;
   for (const auto& [ops, c] : expr.terms()) {
-    result += normal_order(c, ops);
+    result += canonicalize(c, ops);
   }
   return result;
 }
-
-// For backwards compatibility
-Expression canonicalize(const FermionMonomial::complex_type& c,
-                        const FermionMonomial::container_type& ops) {
-  return normal_order(c, ops);
-}
-
-Expression canonicalize(const FermionMonomial& term) { return normal_order(term); }
-
-Expression canonicalize(const Expression& expr) { return normal_order(expr); }

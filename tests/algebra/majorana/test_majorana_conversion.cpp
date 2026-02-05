@@ -112,7 +112,7 @@ TEST_CASE("majorana_conversion_hopping_term") {
 
   // Round-trip: convert back and normal-order, should match
   Expression roundtrip = from_majorana(maj);
-  Expression original = normal_order(hop);
+  Expression original = canonicalize(hop);
 
   CHECK(expressions_equal(roundtrip, original));
 }
@@ -123,7 +123,7 @@ TEST_CASE("majorana_conversion_roundtrip_single_operator") {
 
   auto maj = to_majorana(original);
   Expression roundtrip = from_majorana(maj);
-  Expression expected = normal_order(original);
+  Expression expected = canonicalize(original);
 
   CHECK(expressions_equal(roundtrip, expected));
 }
@@ -133,7 +133,7 @@ TEST_CASE("majorana_conversion_roundtrip_density") {
 
   auto maj = to_majorana(original);
   Expression roundtrip = from_majorana(maj);
-  Expression expected = normal_order(original);
+  Expression expected = canonicalize(original);
 
   CHECK(expressions_equal(roundtrip, expected));
 }
@@ -143,7 +143,7 @@ TEST_CASE("majorana_conversion_roundtrip_two_body") {
 
   auto maj = to_majorana(original);
   Expression roundtrip = from_majorana(maj);
-  Expression expected = normal_order(original);
+  Expression expected = canonicalize(original);
 
   CHECK(expressions_equal(roundtrip, expected));
 }
@@ -163,7 +163,7 @@ TEST_CASE("majorana_conversion_tv_hamiltonian") {
                     density_density(Operator::Spin::Up, i, Operator::Spin::Up, j));
   }
 
-  Expression H_normal = normal_order(H);
+  Expression H_normal = canonicalize(H);
 
   auto H_maj = to_majorana(H);
   Expression H_roundtrip = from_majorana(H_maj);
@@ -176,7 +176,7 @@ TEST_CASE("majorana_conversion_roundtrip_scalar_complex") {
 
   auto maj = to_majorana(original);
   Expression roundtrip = from_majorana(maj);
-  Expression expected = normal_order(original);
+  Expression expected = canonicalize(original);
 
   CHECK(expressions_equal(roundtrip, expected));
 }
@@ -190,7 +190,7 @@ TEST_CASE("majorana_conversion_from_majorana_even_gamma") {
   Expression expected;
   expected += Expression(Operator::creation(Operator::Spin::Down, 1));
   expected += Expression(Operator::annihilation(Operator::Spin::Down, 1));
-  expected = normal_order(expected);
+  expected = canonicalize(expected);
 
   CHECK(expressions_equal(result, expected));
 }
@@ -206,7 +206,7 @@ TEST_CASE("majorana_conversion_from_majorana_odd_gamma_complex_coeff") {
   Operator annihilate = Operator::annihilation(Operator::Spin::Up, 0);
   expected += Expression(FermionMonomial(Expression::complex_type(2.0, 0.0), {create}));
   expected += Expression(FermionMonomial(Expression::complex_type(-2.0, 0.0), {annihilate}));
-  expected = normal_order(expected);
+  expected = canonicalize(expected);
 
   CHECK(expressions_equal(result, expected));
 }
@@ -218,7 +218,7 @@ TEST_CASE("majorana_conversion_roundtrip_complex_one_body") {
 
   auto maj = to_majorana(original);
   Expression roundtrip = from_majorana(maj);
-  Expression expected = normal_order(original);
+  Expression expected = canonicalize(original);
 
   CHECK(expressions_equal(roundtrip, expected));
 }

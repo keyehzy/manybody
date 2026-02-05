@@ -156,11 +156,11 @@ int main(int argc, char** argv) {
   }
 
   const arma::cx_vec ground_state = eigenvectors.col(0);
-  const Expression momentum_state = normal_order(vector_to_expression(ground_state, basis));
+  const Expression momentum_state = canonicalize(vector_to_expression(ground_state, basis));
 
-  const Expression real_space_state = normal_order(transform_expression(
+  const Expression real_space_state = canonicalize(transform_expression(
       fourier_transform_operator, momentum_state, index, FourierMode::Inverse));
-  const Expression round_trip = normal_order(transform_expression(
+  const Expression round_trip = canonicalize(transform_expression(
       fourier_transform_operator, real_space_state, index, FourierMode::Direct));
 
   const double max_error_norm = max_expression_delta_norm(round_trip, momentum_state);
