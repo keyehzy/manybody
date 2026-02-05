@@ -163,6 +163,27 @@ struct ExpressionBase {
     return static_cast<Derived&>(*this);
   }
 
+  Derived& operator*=(const ExpressionBase& value) {
+    if (this->empty() || value.empty()) {
+      this->clear();
+      return static_cast<Derived&>(*this);
+    }
+    map_type result;
+    result.reserve(this->size() * value.size());
+    for (const auto& [lhs_ops, lhs_coeff] : this->data) {
+      for (const auto& [rhs_ops, rhs_coeff] : value.data) {
+        if (lhs_ops.size() + rhs_ops.size() > container_type::max_size()) {
+          continue;
+        }
+        container_type combined = lhs_ops;
+        combined.append_range(rhs_ops.begin(), rhs_ops.end());
+        add_to(result, std::move(combined), lhs_coeff * rhs_coeff);
+      }
+    }
+    this->data = std::move(result);
+    return static_cast<Derived&>(*this);
+  }
+
   void truncate_by_norm(double min_norm) {
     if (min_norm <= 0.0) {
       return;
@@ -247,6 +268,34 @@ struct ExpressionBase {
 
   Derived& operator-=(const MonomialType& value) {
     static_cast<Derived*>(this)->add_to_map(value.operators, -value.c);
+    return static_cast<Derived&>(*this);
+  }
+
+  Derived& operator*=(const MonomialType& value) {
+    if (this->empty()) {
+      return static_cast<Derived&>(*this);
+    }
+    if (is_zero(value.c)) {
+      this->clear();
+      return static_cast<Derived&>(*this);
+    }
+    if (value.operators.size() == 0) {
+      for (auto& [ops, coeff] : this->data) {
+        coeff *= value.c;
+      }
+      return static_cast<Derived&>(*this);
+    }
+    map_type result;
+    result.reserve(this->size());
+    for (const auto& [ops, coeff] : this->data) {
+      if (ops.size() + value.operators.size() > container_type::max_size()) {
+        continue;
+      }
+      container_type combined = ops;
+      combined.append_range(value.operators.begin(), value.operators.end());
+      add_to(result, std::move(combined), coeff * value.c);
+    }
+    this->data = std::move(result);
     return static_cast<Derived&>(*this);
   }
 

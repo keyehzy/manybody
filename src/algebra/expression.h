@@ -19,9 +19,6 @@ struct FermionExpression : ExpressionBase<FermionExpression, FermionMonomial> {
 
   FermionExpression adjoint() const;
 
-  FermionExpression& operator*=(const FermionExpression& value);
-  FermionExpression& operator*=(const FermionMonomial& value);
-
   void format_to(std::ostringstream& oss) const;
   std::string to_string() const;
 };
