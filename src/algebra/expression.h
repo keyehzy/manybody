@@ -18,18 +18,9 @@ struct FermionExpression : ExpressionBase<FermionExpression, FermionMonomial> {
 
 FermionExpression adjoint(const FermionExpression& expr);
 
-inline FermionExpression hopping(const FermionExpression::complex_type& coeff, size_t from,
-                                 size_t to, Operator::Spin spin) noexcept {
-  FermionExpression result = FermionExpression(
-      FermionMonomial(coeff, {Operator::creation(spin, from), Operator::annihilation(spin, to)}));
-  result += FermionExpression(FermionMonomial(
-      std::conj(coeff), {Operator::creation(spin, to), Operator::annihilation(spin, from)}));
-  return result;
-}
-
-inline FermionExpression hopping(size_t from, size_t to, Operator::Spin spin) noexcept {
-  return hopping(1.0, from, to, spin);
-}
+FermionExpression hopping(const FermionExpression::complex_type& coeff, size_t from, size_t to,
+                          Operator::Spin spin) noexcept;
+FermionExpression hopping(size_t from, size_t to, Operator::Spin spin) noexcept;
 
 // Backwards compatibility alias
 using Expression = FermionExpression;

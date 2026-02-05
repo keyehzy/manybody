@@ -1,6 +1,7 @@
 #include "algebra/expression.h"
 
 #include <algorithm>
+#include <complex>
 #include <sstream>
 #include <utility>
 
@@ -14,6 +15,19 @@ FermionExpression adjoint(const FermionExpression& expr) {
     result.add_to_map(std::move(adj.operators), adj.c);
   }
   return result;
+}
+
+FermionExpression hopping(const FermionExpression::complex_type& coeff, size_t from, size_t to,
+                          Operator::Spin spin) noexcept {
+  FermionExpression result = FermionExpression(
+      FermionMonomial(coeff, {Operator::creation(spin, from), Operator::annihilation(spin, to)}));
+  result += FermionExpression(FermionMonomial(
+      std::conj(coeff), {Operator::creation(spin, to), Operator::annihilation(spin, from)}));
+  return result;
+}
+
+FermionExpression hopping(size_t from, size_t to, Operator::Spin spin) noexcept {
+  return hopping(1.0, from, to, spin);
 }
 
 void FermionExpression::format_to(std::ostringstream& oss) const {
