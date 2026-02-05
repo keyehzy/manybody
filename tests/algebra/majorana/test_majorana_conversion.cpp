@@ -1,7 +1,6 @@
 #include <catch2/catch.hpp>
 
 #include "algebra/majorana/conversion.h"
-#include "algebra/normal_order.h"
 #include "utils/tolerances.h"
 
 using namespace majorana;

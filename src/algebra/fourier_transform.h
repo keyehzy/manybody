@@ -8,7 +8,6 @@
 #include <utility>
 
 #include "algebra/expression.h"
-#include "algebra/normal_order.h"
 #include "utils/index.h"
 
 enum class FourierMode { Direct, Inverse };

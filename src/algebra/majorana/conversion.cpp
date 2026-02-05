@@ -1,7 +1,5 @@
 #include "algebra/majorana/conversion.h"
 
-#include "algebra/normal_order.h"
-
 namespace majorana {
 
 /// Convert a fermionic Expression (in terms of c, c+) to a MajoranaExpression.

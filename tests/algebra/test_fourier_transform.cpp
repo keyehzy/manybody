@@ -6,7 +6,6 @@
 #include "algebra/fourier_transform.h"
 #include "algebra/model/hubbard_model.h"
 #include "algebra/model/hubbard_model_momentum.h"
-#include "algebra/normal_order.h"
 #include "utils/index.h"
 
 namespace {

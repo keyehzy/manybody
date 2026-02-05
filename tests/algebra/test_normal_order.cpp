@@ -1,6 +1,6 @@
 #include <catch2/catch.hpp>
 
-#include "algebra/normal_order.h"
+#include "algebra/expression.h"
 
 TEST_CASE("normal_order_zero_coefficient_returns_empty") {
   FermionMonomial::container_type ops{};

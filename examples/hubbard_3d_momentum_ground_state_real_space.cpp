@@ -11,7 +11,6 @@
 #include "algebra/fourier_transform.h"
 #include "algebra/matrix_elements.h"
 #include "algebra/model/hubbard_model_momentum.h"
-#include "algebra/normal_order.h"
 #include "cxxopts.hpp"
 
 namespace {
