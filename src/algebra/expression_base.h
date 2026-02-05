@@ -93,6 +93,12 @@ struct ExpressionBase {
     }
   }
 
+  static void add_all_to(map_type& target, const ExpressionBase& other) {
+    for (const auto& [key, coeff] : other.terms()) {
+      add_to(target, key, coeff);
+    }
+  }
+
   template <typename Key>
   void add(Key&& key, const complex_type& coeff) {
     add_to(data, std::forward<Key>(key), coeff);
@@ -175,9 +181,8 @@ struct ExpressionBase {
         if (lhs_ops.size() + rhs_ops.size() > container_type::max_size()) {
           continue;
         }
-        container_type combined = lhs_ops;
-        combined.append_range(rhs_ops.begin(), rhs_ops.end());
-        add_to(result, std::move(combined), lhs_coeff * rhs_coeff);
+        add_all_to(result, canonicalize(MonomialType(lhs_coeff, lhs_ops) *
+                                        MonomialType(rhs_coeff, rhs_ops)));
       }
     }
     this->data = std::move(result);

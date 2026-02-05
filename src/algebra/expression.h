@@ -38,3 +38,13 @@ inline FermionExpression hopping(size_t from, size_t to, Operator::Spin spin) no
 
 // Backwards compatibility alias
 using Expression = FermionExpression;
+
+Expression normal_order(const FermionMonomial::complex_type& c,
+                        const FermionMonomial::container_type& ops);
+Expression normal_order(const FermionMonomial& term);
+Expression normal_order(const Expression& expr);
+
+Expression canonicalize(const FermionMonomial::complex_type& c,
+                        const FermionMonomial::container_type& ops);
+Expression canonicalize(const FermionMonomial& term);
+Expression canonicalize(const Expression& expr);
