@@ -328,4 +328,16 @@ struct ExpressionBase {
     rhs *= lhs;
     return rhs;
   }
+
+  friend Derived commutator(const Derived& A, const Derived& B) {
+    Derived result = A * B;
+    result -= B * A;
+    return result;
+  }
+
+  friend Derived anticommutator(const Derived& A, const Derived& B) {
+    Derived result = A * B;
+    result += B * A;
+    return result;
+  }
 };

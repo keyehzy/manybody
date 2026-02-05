@@ -2,32 +2,7 @@
 
 #include <cmath>
 
-#include "algebra/normal_order.h"
 #include "utils/tolerances.h"
-
-Expression commutator(const FermionMonomial& A, const FermionMonomial& B) {
-  Expression result = normal_order(A * B);
-  result -= normal_order(B * A);
-  return result;
-}
-
-Expression commutator(const Expression& A, const Expression& B) {
-  Expression result = normal_order(A * B);
-  result -= normal_order(B * A);
-  return result;
-}
-
-Expression anticommutator(const FermionMonomial& A, const FermionMonomial& B) {
-  Expression result = normal_order(A * B);
-  result += normal_order(B * A);
-  return result;
-}
-
-Expression anticommutator(const Expression& A, const Expression& B) {
-  Expression result = normal_order(A * B);
-  result += normal_order(B * A);
-  return result;
-}
 
 Expression BCH(const Expression& A, const Expression& B,
                Expression::complex_type::value_type lambda, size_t order) {
@@ -47,5 +22,5 @@ Expression BCH(const Expression& A, const Expression& B,
     result += current * coeff;
   }
 
-  return normal_order(result);
+  return result;
 }

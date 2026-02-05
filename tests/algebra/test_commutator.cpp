@@ -1,12 +1,13 @@
 #include <catch2/catch.hpp>
 
 #include "algebra/commutator.h"
+#include "algebra/expression.h"
 
 TEST_CASE("commutator_commuting_creations_doubles_ordered_term") {
   Operator a = Operator::creation(Operator::Spin::Up, 1);
   Operator b = Operator::creation(Operator::Spin::Up, 2);
-  FermionMonomial left(a);
-  FermionMonomial right(b);
+  FermionExpression left(a);
+  FermionExpression right(b);
 
   Expression result = commutator(left, right);
 
@@ -20,8 +21,8 @@ TEST_CASE("commutator_commuting_creations_doubles_ordered_term") {
 TEST_CASE("anticommutator_commuting_creations_vanishes") {
   Operator a = Operator::creation(Operator::Spin::Up, 1);
   Operator b = Operator::creation(Operator::Spin::Up, 2);
-  FermionMonomial left(a);
-  FermionMonomial right(b);
+  FermionExpression left(a);
+  FermionExpression right(b);
 
   Expression result = anticommutator(left, right);
   CHECK((result.size()) == (0u));
@@ -30,8 +31,8 @@ TEST_CASE("anticommutator_commuting_creations_vanishes") {
 TEST_CASE("commutator_creation_annihilation_same_orbital") {
   Operator create = Operator::creation(Operator::Spin::Down, 3);
   Operator annihilate = Operator::annihilation(Operator::Spin::Down, 3);
-  FermionMonomial left(create);
-  FermionMonomial right(annihilate);
+  FermionExpression left(create);
+  FermionExpression right(annihilate);
 
   Expression result = commutator(left, right);
 
@@ -50,8 +51,8 @@ TEST_CASE("commutator_creation_annihilation_same_orbital") {
 TEST_CASE("anticommutator_creation_annihilation_same_orbital_is_identity") {
   Operator create = Operator::creation(Operator::Spin::Down, 3);
   Operator annihilate = Operator::annihilation(Operator::Spin::Down, 3);
-  FermionMonomial left(create);
-  FermionMonomial right(annihilate);
+  FermionExpression left(create);
+  FermionExpression right(annihilate);
 
   Expression result = anticommutator(left, right);
 
@@ -66,11 +67,11 @@ TEST_CASE("commutator_expression_distributes_over_terms") {
   Operator a = Operator::creation(Operator::Spin::Up, 1);
   Operator b = Operator::creation(Operator::Spin::Up, 2);
   Operator annihilate = Operator::annihilation(Operator::Spin::Up, 1);
-  FermionMonomial term_a(a);
-  FermionMonomial term_b(b);
-  FermionMonomial term_c(annihilate);
+  FermionExpression term_a(a);
+  FermionExpression term_b(b);
+  FermionExpression term_c(annihilate);
 
-  Expression left({term_a, term_b});
+  Expression left = term_a + term_b;
   Expression right(term_c);
 
   Expression result = commutator(left, right);
