@@ -136,4 +136,41 @@ TEST_CASE("majorana_expression_ignores_near_zero_coefficients") {
   CHECK(expr.size() == 0u);
 }
 
+TEST_CASE("majorana_expression_canonicalize_unsorted_term") {
+  MajoranaMonomial::container_type str =
+      make_string({odd(0, Operator::Spin::Up), even(0, Operator::Spin::Up)});
+
+  auto canonical = canonicalize(MajoranaExpression::complex_type(2.0, 0.0), str);
+
+  MajoranaMonomial::container_type expected =
+      make_string({even(0, Operator::Spin::Up), odd(0, Operator::Spin::Up)});
+  CHECK(canonical.size() == 1u);
+  auto it = canonical.terms().find(expected);
+  CHECK(it != canonical.terms().end());
+  CHECK(it->second == MajoranaExpression::complex_type(-2.0, 0.0));
+}
+
+TEST_CASE("majorana_expression_canonicalize_expression_cancels") {
+  MajoranaMonomial::container_type sorted =
+      make_string({even(0, Operator::Spin::Up), odd(0, Operator::Spin::Up)});
+  MajoranaMonomial::container_type unsorted =
+      make_string({odd(0, Operator::Spin::Up), even(0, Operator::Spin::Up)});
+
+  MajoranaExpression expr;
+  expr += MajoranaExpression(MajoranaExpression::complex_type(1.0, 0.0), sorted);
+  expr += MajoranaExpression(MajoranaExpression::complex_type(1.0, 0.0), unsorted);
+
+  auto canonical = canonicalize(expr);
+
+  CHECK(canonical.size() == 0u);
+}
+
+TEST_CASE("majorana_expression_canonicalize_drops_small_coefficients") {
+  constexpr auto tol = tolerances::tolerance<double>();
+  MajoranaMonomial::container_type str = make_string({even(1, Operator::Spin::Down)});
+  auto canonical = canonicalize(MajoranaExpression::complex_type(0.5 * tol, 0.0), str);
+
+  CHECK(canonical.size() == 0u);
+}
+
 }  // namespace majorana_expression_tests

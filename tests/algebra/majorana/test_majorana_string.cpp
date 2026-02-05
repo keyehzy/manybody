@@ -140,6 +140,28 @@ TEST_CASE("majorana_string_three_element_anticommutation") {
   CHECK(ab.sign == ba.sign);
 }
 
+TEST_CASE("majorana_string_canonicalize_unsorted_sign") {
+  MajoranaMonomial::container_type str =
+      make_string({odd(0, Operator::Spin::Up), even(0, Operator::Spin::Up)});
+
+  auto result = canonicalize(str);
+
+  MajoranaMonomial::container_type expected =
+      make_string({even(0, Operator::Spin::Up), odd(0, Operator::Spin::Up)});
+  CHECK(result.string == expected);
+  CHECK(result.sign == -1);
+}
+
+TEST_CASE("majorana_string_canonicalize_cancels_pair") {
+  MajoranaMonomial::container_type str =
+      make_string({even(1, Operator::Spin::Down), even(1, Operator::Spin::Down)});
+
+  auto result = canonicalize(str);
+
+  CHECK(result.string.empty());
+  CHECK(result.sign == 1);
+}
+
 TEST_CASE("majorana_element_accessors") {
   auto even_elem = MajoranaOperator::even(3, Operator::Spin::Up);
   auto odd_elem = MajoranaOperator::odd(2, Operator::Spin::Down);

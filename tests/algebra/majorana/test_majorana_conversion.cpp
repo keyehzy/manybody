@@ -172,4 +172,56 @@ TEST_CASE("majorana_conversion_tv_hamiltonian") {
   CHECK(expressions_equal(H_roundtrip, H_normal));
 }
 
+TEST_CASE("majorana_conversion_roundtrip_scalar_complex") {
+  Expression original(Expression::complex_type(0.25, -0.5));
+
+  auto maj = to_majorana(original);
+  Expression roundtrip = from_majorana(maj);
+  Expression expected = normal_order(original);
+
+  CHECK(expressions_equal(roundtrip, expected));
+}
+
+TEST_CASE("majorana_conversion_from_majorana_even_gamma") {
+  MajoranaMonomial::container_type str = make_string({even(1, Operator::Spin::Down)});
+  MajoranaExpression maj(MajoranaExpression::complex_type(1.0, 0.0), str);
+
+  Expression result = from_majorana(maj);
+
+  Expression expected;
+  expected += Expression(Operator::creation(Operator::Spin::Down, 1));
+  expected += Expression(Operator::annihilation(Operator::Spin::Down, 1));
+  expected = normal_order(expected);
+
+  CHECK(expressions_equal(result, expected));
+}
+
+TEST_CASE("majorana_conversion_from_majorana_odd_gamma_complex_coeff") {
+  MajoranaMonomial::container_type str = make_string({odd(0, Operator::Spin::Up)});
+  MajoranaExpression maj(MajoranaExpression::complex_type(0.0, 2.0), str);
+
+  Expression result = from_majorana(maj);
+
+  Expression expected;
+  Operator create = Operator::creation(Operator::Spin::Up, 0);
+  Operator annihilate = Operator::annihilation(Operator::Spin::Up, 0);
+  expected += Expression(FermionMonomial(Expression::complex_type(2.0, 0.0), {create}));
+  expected += Expression(FermionMonomial(Expression::complex_type(-2.0, 0.0), {annihilate}));
+  expected = normal_order(expected);
+
+  CHECK(expressions_equal(result, expected));
+}
+
+TEST_CASE("majorana_conversion_roundtrip_complex_one_body") {
+  Operator create = Operator::creation(Operator::Spin::Up, 0);
+  Operator annihilate = Operator::annihilation(Operator::Spin::Down, 1);
+  Expression original(FermionMonomial(Expression::complex_type(0.0, 0.75), {create, annihilate}));
+
+  auto maj = to_majorana(original);
+  Expression roundtrip = from_majorana(maj);
+  Expression expected = normal_order(original);
+
+  CHECK(expressions_equal(roundtrip, expected));
+}
+
 }  // namespace majorana_conversion_tests

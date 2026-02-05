@@ -172,4 +172,43 @@ TEST_CASE("majorana_commutator_string_with_overlap") {
   CHECK(std::abs(it->second - MajoranaExpression::complex_type(-2.0, 0.0)) < 1e-12);
 }
 
+TEST_CASE("majorana_commutator_with_scalar_is_zero") {
+  MajoranaExpression identity(MajoranaExpression::complex_type(2.0, -1.0));
+  MajoranaMonomial::container_type str = make_string({even(0, Operator::Spin::Up)});
+  MajoranaExpression g(MajoranaExpression::complex_type(1.0, 0.0), str);
+
+  auto result = commutator(identity, g);
+
+  CHECK(result.size() == 0u);
+}
+
+TEST_CASE("majorana_anticommutator_with_scalar_is_double") {
+  MajoranaExpression identity(MajoranaExpression::complex_type(2.0, -1.0));
+  MajoranaMonomial::container_type str = make_string({odd(1, Operator::Spin::Down)});
+  MajoranaExpression g(MajoranaExpression::complex_type(1.0, 0.0), str);
+
+  auto result = anticommutator(identity, g);
+
+  CHECK(result.size() == 1u);
+  auto it = result.terms().find(str);
+  CHECK(it != result.terms().end());
+  CHECK(std::abs(it->second - MajoranaExpression::complex_type(4.0, -2.0)) < 1e-12);
+}
+
+TEST_CASE("majorana_commutator_complex_coefficients") {
+  MajoranaMonomial::container_type str_i = make_string({even(0, Operator::Spin::Up)});
+  MajoranaMonomial::container_type str_j = make_string({even(0, Operator::Spin::Down)});
+  MajoranaExpression gi(MajoranaExpression::complex_type(0.0, 1.0), str_i);
+  MajoranaExpression gj(MajoranaExpression::complex_type(1.0, 0.0), str_j);
+
+  auto result = commutator(gi, gj);
+
+  MajoranaMonomial::container_type expected =
+      make_string({even(0, Operator::Spin::Up), even(0, Operator::Spin::Down)});
+  CHECK(result.size() == 1u);
+  auto it = result.terms().find(expected);
+  CHECK(it != result.terms().end());
+  CHECK(std::abs(it->second - MajoranaExpression::complex_type(0.0, 2.0)) < 1e-12);
+}
+
 }  // namespace majorana_commutator_tests
