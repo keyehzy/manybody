@@ -8,6 +8,7 @@
 #include <utility>
 #include <vector>
 
+#include "algebra/term_utils.h"
 #include "robin_hood.h"
 #include "utils/tolerances.h"
 
@@ -339,6 +340,30 @@ struct ExpressionBase {
   friend Derived anticommutator(const Derived& A, const Derived& B) {
     Derived result = A * B;
     result += B * A;
+    return result;
+  }
+
+  void format_to(std::ostringstream& oss) const {
+    this->format_sorted(
+        oss, [](std::ostringstream& os, const container_type& ops, const complex_type& coeff) {
+          MonomialType term(coeff, ops);
+          ::to_string(os, term);
+        });
+  }
+
+  std::string to_string() const {
+    std::ostringstream oss;
+    format_to(oss);
+    return oss.str();
+  }
+
+  friend Derived adjoint(const Derived& expr) {
+    Derived result;
+    for (const auto& [ops, coeff] : expr.terms()) {
+      MonomialType term(coeff, ops);
+      MonomialType adj = ::adjoint(term);
+      result.add_to_map(std::move(adj.operators), adj.c);
+    }
     return result;
   }
 
