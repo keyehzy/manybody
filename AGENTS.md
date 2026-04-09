@@ -3,19 +3,12 @@
 ## Build System
 
 - We use CMake as the build system.
-- Use scripts/make.sh to build and test
 
 ## Commit
 
-- Format files using script/format.sh before commiting
+- Format files before commiting
+- Use the codebase conventions
 
-Example COMMIT:
-```
-Refactor user service to reduce duplication
-
-Extract shared validation logic into a helper module,
-simplifying maintenance and improving test coverage.
-```
 ## Coding Conventions
 
 1. Header Guards: #pragma once
