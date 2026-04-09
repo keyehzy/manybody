@@ -3,12 +3,14 @@
 #include <numbers>
 #include <type_traits>
 
-#include "algebra/boson/model/model.h"
+#include "algebra/boson/expression.h"
 #include "algebra/fermion/model/hubbard_model.h"
 #include "algebra/fermion/model/hubbard_model_momentum.h"
 #include "algebra/fermion/model/hubbard_model_relative.h"
 #include "algebra/fermion/model/model.h"
 #include "algebra/model.h"
+
+using BosonModel = BasicModel<BosonExpression>;
 
 namespace {
 constexpr float kTolerance = 1e-6f;
