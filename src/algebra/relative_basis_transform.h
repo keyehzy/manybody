@@ -134,7 +134,7 @@ struct RelativeTransformResult {
 
 template <typename BasisType>
 RelativeTransformResult relative_position_transform_with_index(const BasisType& momentum_basis,
-                                                                const Index& index) {
+                                                               const Index& index) {
   const size_t num_particles = momentum_basis.particles;
   if (num_particles < 2) {
     throw std::invalid_argument(

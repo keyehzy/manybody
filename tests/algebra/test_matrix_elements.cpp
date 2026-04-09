@@ -3,10 +3,10 @@
 #include <vector>
 
 #include "algebra/fermion/basis.h"
-#include "algebra/operator.h"
 #include "algebra/fermion/term.h"
 #include "algebra/matrix_elements.h"
 #include "algebra/model/hubbard_model_momentum.h"
+#include "algebra/operator.h"
 #include "utils/index.h"
 
 TEST_CASE("matrix_elements_vector_serial_creation") {

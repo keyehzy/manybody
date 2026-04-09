@@ -23,8 +23,8 @@ auto transform_operator(F&& f, OpType op, Args&&... args)
 
 template <typename F, typename ExprType, typename... Args>
 auto transform_term(F&& f, const ExprType& term_as_expr, Args&&... args)
-    -> std::enable_if_t<
-        is_operator_callable<typename ExprType::operator_type, F, Args...>::value, ExprType> {
+    -> std::enable_if_t<is_operator_callable<typename ExprType::operator_type, F, Args...>::value,
+                        ExprType> {
   using monomial_type = typename ExprType::monomial_type;
   // Reconstruct a single-term expression for each operator product
   for (const auto& [ops, coeff] : term_as_expr.terms()) {
@@ -39,8 +39,8 @@ auto transform_term(F&& f, const ExprType& term_as_expr, Args&&... args)
 
 template <typename F, typename ExprType, typename... Args>
 auto transform_expression(F&& f, const ExprType& expr, Args&&... args)
-    -> std::enable_if_t<
-        is_operator_callable<typename ExprType::operator_type, F, Args...>::value, ExprType> {
+    -> std::enable_if_t<is_operator_callable<typename ExprType::operator_type, F, Args...>::value,
+                        ExprType> {
   ExprType result;
   for (const auto& [ops, coeff] : expr.terms()) {
     ExprType term_result(coeff);
@@ -86,8 +86,7 @@ ExprType fourier_transform_operator(typename ExprType::operator_type op, const I
     coefficient = std::exp(coefficient) * normalization;
 
     op_type transformed_op(op.type(), op.spin(), i);
-    result += monomial_type(complex_type(coefficient.real(), coefficient.imag()),
-                            {transformed_op});
+    result += monomial_type(complex_type(coefficient.real(), coefficient.imag()), {transformed_op});
   }
 
   return result;
