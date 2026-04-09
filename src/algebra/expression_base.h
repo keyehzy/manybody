@@ -14,6 +14,7 @@
 
 template <typename Derived, typename MonomialType>
 struct ExpressionBase {
+  using monomial_type = MonomialType;
   using complex_type = typename MonomialType::complex_type;
   using container_type = typename MonomialType::container_type;
   using operator_type = typename MonomialType::operator_type;
