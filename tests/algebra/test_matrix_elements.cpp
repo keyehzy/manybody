@@ -10,8 +10,8 @@
 #include "utils/index.h"
 
 TEST_CASE("matrix_elements_vector_serial_creation") {
-  Basis basis = Basis::with_fixed_particle_number(1, 1);
-  Expression A(Operator::creation(Operator::Spin::Up, 0));
+  FermionBasis basis = FermionBasis::with_fixed_particle_number(1, 1);
+  FermionExpression A(FermionOperator::creation(FermionOperator::Spin::Up, 0));
 
   arma::cx_vec vec = compute_vector_elements_serial<arma::cx_vec>(basis, A);
 
@@ -21,8 +21,8 @@ TEST_CASE("matrix_elements_vector_serial_creation") {
 }
 
 TEST_CASE("matrix_elements_vector_parallel_matches_serial") {
-  Basis basis = Basis::with_fixed_particle_number(1, 1);
-  Expression A(Operator::creation(Operator::Spin::Up, 0));
+  FermionBasis basis = FermionBasis::with_fixed_particle_number(1, 1);
+  FermionExpression A(FermionOperator::creation(FermionOperator::Spin::Up, 0));
 
   arma::cx_vec serial = compute_vector_elements_serial<arma::cx_vec>(basis, A);
   arma::cx_vec parallel = compute_vector_elements<arma::cx_vec>(basis, A);
@@ -33,9 +33,10 @@ TEST_CASE("matrix_elements_vector_parallel_matches_serial") {
 }
 
 TEST_CASE("matrix_elements_matrix_serial_density") {
-  Basis basis = Basis::with_fixed_particle_number(1, 1);
-  Expression A(FermionMonomial(
-      {Operator::creation(Operator::Spin::Up, 0), Operator::annihilation(Operator::Spin::Up, 0)}));
+  FermionBasis basis = FermionBasis::with_fixed_particle_number(1, 1);
+  FermionExpression A(
+      FermionMonomial({FermionOperator::creation(FermionOperator::Spin::Up, 0),
+                       FermionOperator::annihilation(FermionOperator::Spin::Up, 0)}));
 
   arma::cx_mat mat = compute_matrix_elements_serial<arma::cx_mat>(basis, A);
 
@@ -48,9 +49,10 @@ TEST_CASE("matrix_elements_matrix_serial_density") {
 }
 
 TEST_CASE("matrix_elements_matrix_parallel_matches_serial") {
-  Basis basis = Basis::with_fixed_particle_number(1, 1);
-  Expression A(FermionMonomial(
-      {Operator::creation(Operator::Spin::Up, 0), Operator::annihilation(Operator::Spin::Up, 0)}));
+  FermionBasis basis = FermionBasis::with_fixed_particle_number(1, 1);
+  FermionExpression A(
+      FermionMonomial({FermionOperator::creation(FermionOperator::Spin::Up, 0),
+                       FermionOperator::annihilation(FermionOperator::Spin::Up, 0)}));
 
   arma::cx_mat serial = compute_matrix_elements_serial<arma::cx_mat>(basis, A);
   arma::cx_mat parallel = compute_matrix_elements<arma::cx_mat>(basis, A);
@@ -69,16 +71,17 @@ TEST_CASE("rectangular_matrix_elements_serial_current_operator") {
 
   // Momentum sector K=0
   const std::vector<size_t> K = {0};
-  Basis basis_K = Basis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, K);
+  FermionBasis basis_K = FermionBasis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, K);
 
   // Momentum sector K+Q where Q=1
   const std::vector<size_t> KQ = {1};
-  Basis basis_KQ = Basis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, KQ);
+  FermionBasis basis_KQ =
+      FermionBasis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, KQ);
 
   // Create current operator expression
   HubbardModelMomentum model(1.0, 4.0, size);
   const std::vector<size_t> Q = {1};
-  Expression current_expr = model.current(Q, 0);
+  FermionExpression current_expr = model.current(Q, 0);
 
   arma::cx_mat mat =
       compute_rectangular_matrix_elements_serial<arma::cx_mat>(basis_KQ, basis_K, current_expr);
@@ -94,16 +97,17 @@ TEST_CASE("rectangular_matrix_elements_parallel_matches_serial") {
 
   // Momentum sector K=1
   const std::vector<size_t> K = {1};
-  Basis basis_K = Basis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, K);
+  FermionBasis basis_K = FermionBasis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, K);
 
   // Momentum sector K+Q where Q=2
   const std::vector<size_t> KQ = {3};
-  Basis basis_KQ = Basis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, KQ);
+  FermionBasis basis_KQ =
+      FermionBasis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, KQ);
 
   // Create current operator expression
   HubbardModelMomentum model(1.0, 4.0, size);
   const std::vector<size_t> Q = {2};
-  Expression current_expr = model.current(Q, 0);
+  FermionExpression current_expr = model.current(Q, 0);
 
   arma::cx_mat serial =
       compute_rectangular_matrix_elements_serial<arma::cx_mat>(basis_KQ, basis_K, current_expr);
@@ -125,14 +129,15 @@ TEST_CASE("rectangular_matrix_elements_sparse_matrix") {
   Index index(size);
 
   const std::vector<size_t> K = {0};
-  Basis basis_K = Basis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, K);
+  FermionBasis basis_K = FermionBasis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, K);
 
   const std::vector<size_t> KQ = {1};
-  Basis basis_KQ = Basis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, KQ);
+  FermionBasis basis_KQ =
+      FermionBasis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, KQ);
 
   HubbardModelMomentum model(1.0, 4.0, size);
   const std::vector<size_t> Q = {1};
-  Expression current_expr = model.current(Q, 0);
+  FermionExpression current_expr = model.current(Q, 0);
 
   // Test that sparse matrix version works
   arma::sp_cx_mat sparse_mat =

@@ -49,8 +49,9 @@ struct HubbardMomentumFactorizedFixedK final : LinearOperator<arma::cx_vec> {
   /// @param t Hopping amplitude
   /// @param U On-site interaction strength
   /// @param target_momentum The total momentum K of the sector
-  HubbardMomentumFactorizedFixedK(const Basis& basis, const std::vector<size_t>& lattice_size,
-                                  double t, double U, const Index::container_type& target_momentum)
+  HubbardMomentumFactorizedFixedK(const FermionBasis& basis,
+                                  const std::vector<size_t>& lattice_size, double t, double U,
+                                  const Index::container_type& target_momentum)
       : basis_(basis),
         index_(lattice_size),
         t_(t),
@@ -63,7 +64,7 @@ struct HubbardMomentumFactorizedFixedK final : LinearOperator<arma::cx_vec> {
     }
     if (basis.orbitals != N_sites_) {
       throw std::invalid_argument(
-          "Basis orbitals must equal total number of lattice sites (momentum points).");
+          "FermionBasis orbitals must equal total number of lattice sites (momentum points).");
     }
     if (target_momentum.size() != lattice_size.size()) {
       throw std::invalid_argument(
@@ -114,7 +115,7 @@ struct HubbardMomentumFactorizedFixedK final : LinearOperator<arma::cx_vec> {
   const std::vector<arma::sp_cx_mat>& rho_down() const { return rho_down_; }
 
   /// Get the sector bases (for testing/debugging).
-  const std::vector<Basis>& sector_bases() const { return sector_bases_; }
+  const std::vector<FermionBasis>& sector_bases() const { return sector_bases_; }
 
  private:
   /// Compute the flat index for -q (component-wise negation with periodic BCs).
@@ -149,7 +150,7 @@ struct HubbardMomentumFactorizedFixedK final : LinearOperator<arma::cx_vec> {
     if (!basis_.set.empty()) {
       const auto& first_state = basis_.set[0];
       for (const auto& op : first_state) {
-        if (op.spin() == Operator::Spin::Up) {
+        if (op.spin() == FermionOperator::Spin::Up) {
           ++n_up;
         } else {
           ++n_down;
@@ -162,7 +163,7 @@ struct HubbardMomentumFactorizedFixedK final : LinearOperator<arma::cx_vec> {
       Index::container_type sector_momentum = add_momentum(target_momentum_, q);
 
       // Build basis for sector K + q
-      sector_bases_[q] = Basis::with_fixed_particle_number_spin_momentum(
+      sector_bases_[q] = FermionBasis::with_fixed_particle_number_spin_momentum(
           basis_.orbitals, basis_.particles, spin_projection, index_, sector_momentum);
     }
   }
@@ -225,7 +226,7 @@ struct HubbardMomentumFactorizedFixedK final : LinearOperator<arma::cx_vec> {
     // For each q, source basis is sector_bases_[minus_q], target basis is basis_ (sector K)
     for (size_t q = 0; q < N_sites_; ++q) {
       const size_t minus_q = compute_minus_q(q);
-      const Basis& source_basis = sector_bases_[minus_q];
+      const FermionBasis& source_basis = sector_bases_[minus_q];
 
       // Precompute k+q for all k
       std::vector<size_t> k_plus_q(N_sites_);
@@ -241,15 +242,15 @@ struct HubbardMomentumFactorizedFixedK final : LinearOperator<arma::cx_vec> {
       // For each column j (state in source sector K-q)
       for (size_t j = 0; j < source_basis.set.size(); ++j) {
         const auto& state_j = source_basis.set[j];
-        apply_density_operator_cross_sector(state_j, j, k_plus_q, Operator::Spin::Up, source_basis,
-                                            basis_, rho_up_[q]);
+        apply_density_operator_cross_sector(state_j, j, k_plus_q, FermionOperator::Spin::Up,
+                                            source_basis, basis_, rho_up_[q]);
       }
     }
 
     // Build rho_down_[q]: maps sector K → K+q
     // For each q, source basis is basis_ (sector K), target basis is sector_bases_[q]
     for (size_t q = 0; q < N_sites_; ++q) {
-      const Basis& target_basis = sector_bases_[q];
+      const FermionBasis& target_basis = sector_bases_[q];
 
       // Precompute k+q for all k
       std::vector<size_t> k_plus_q(N_sites_);
@@ -265,17 +266,19 @@ struct HubbardMomentumFactorizedFixedK final : LinearOperator<arma::cx_vec> {
       // For each column j (state in source sector K)
       for (size_t j = 0; j < basis_.set.size(); ++j) {
         const auto& state_j = basis_.set[j];
-        apply_density_operator_cross_sector(state_j, j, k_plus_q, Operator::Spin::Down, basis_,
-                                            target_basis, rho_down_[q]);
+        apply_density_operator_cross_sector(state_j, j, k_plus_q, FermionOperator::Spin::Down,
+                                            basis_, target_basis, rho_down_[q]);
       }
     }
   }
 
   /// Apply density operator ρ_{q,σ} = Σ_k c†_{k+q,σ} c_{k,σ} to a basis state,
   /// looking up the resulting state in a potentially different target basis.
-  void apply_density_operator_cross_sector(const Basis::key_type& state_j, size_t j,
-                                           const std::vector<size_t>& k_plus_q, Operator::Spin spin,
-                                           const Basis& /*source_basis*/, const Basis& target_basis,
+  void apply_density_operator_cross_sector(const FermionBasis::key_type& state_j, size_t j,
+                                           const std::vector<size_t>& k_plus_q,
+                                           FermionOperator::Spin spin,
+                                           const FermionBasis& /*source_basis*/,
+                                           const FermionBasis& target_basis,
                                            arma::sp_cx_mat& rho_q) {
     // For each occupied orbital k with matching spin
     for (size_t op_idx = 0; op_idx < state_j.size(); ++op_idx) {
@@ -310,9 +313,9 @@ struct HubbardMomentumFactorizedFixedK final : LinearOperator<arma::cx_vec> {
         }
       } else {
         // Create the new state: copy, erase old operator, insert new one
-        Operator new_op = Operator::creation(spin, kq);
+        FermionOperator new_op = FermionOperator::creation(spin, kq);
 
-        Basis::key_type new_state = state_j;
+        FermionBasis::key_type new_state = state_j;
         new_state.erase(op_idx);
 
         // Find where new_op should be inserted to maintain sorted order
@@ -334,14 +337,14 @@ struct HubbardMomentumFactorizedFixedK final : LinearOperator<arma::cx_vec> {
     }
   }
 
-  const Basis& basis_;
+  const FermionBasis& basis_;
   Index index_;
   double t_;
   double U_;
   size_t N_sites_;
   Index::container_type target_momentum_;
 
-  std::vector<Basis> sector_bases_;  // sector_bases_[q] = basis for sector K + q
+  std::vector<FermionBasis> sector_bases_;  // sector_bases_[q] = basis for sector K + q
 
   arma::vec kinetic_diagonal_;
   std::vector<arma::sp_cx_mat> rho_up_;    // rho_up_[q] maps K-q → K

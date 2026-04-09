@@ -200,7 +200,8 @@ arma::sp_cx_mat load_sparse_matrix(const std::string& path) {
 arma::sp_cx_mat load_or_compute_hamiltonian_component(const CliOptions& opts,
                                                       const std::string& component,
                                                       const std::vector<size_t>& K,
-                                                      const Basis& basis, const Expression& expr) {
+                                                      const FermionBasis& basis,
+                                                      const FermionExpression& expr) {
   const std::string path = hamiltonian_cache_path(opts, component, K);
 
   if (std::filesystem::exists(path)) {
@@ -220,8 +221,9 @@ arma::sp_cx_mat load_or_compute_hamiltonian_component(const CliOptions& opts,
 
 // Load or compute current operator matrix
 arma::sp_cx_mat load_or_compute_current(const CliOptions& opts, const std::vector<size_t>& K,
-                                        const std::vector<size_t>& Q, const Basis& row_basis,
-                                        const Basis& col_basis, const Expression& expr) {
+                                        const std::vector<size_t>& Q, const FermionBasis& row_basis,
+                                        const FermionBasis& col_basis,
+                                        const FermionExpression& expr) {
   const std::string path = current_cache_path(opts, K, Q);
 
   if (std::filesystem::exists(path)) {
@@ -267,12 +269,12 @@ int main(int argc, char** argv) {
 
   // Build bases for momentum sectors K and K+Q
   std::cerr << "Building basis for sector K=(" << K[0] << "," << K[1] << ")..." << std::endl;
-  Basis basis_K = Basis::with_fixed_particle_number_spin_momentum(sites, opts.particles,
-                                                                  opts.spin_projection, index, K);
+  FermionBasis basis_K = FermionBasis::with_fixed_particle_number_spin_momentum(
+      sites, opts.particles, opts.spin_projection, index, K);
 
   std::cerr << "Building basis for sector K+Q=(" << KQ[0] << "," << KQ[1] << ")..." << std::endl;
-  Basis basis_KQ = Basis::with_fixed_particle_number_spin_momentum(sites, opts.particles,
-                                                                   opts.spin_projection, index, KQ);
+  FermionBasis basis_KQ = FermionBasis::with_fixed_particle_number_spin_momentum(
+      sites, opts.particles, opts.spin_projection, index, KQ);
 
   if (basis_K.set.empty()) {
     std::cerr << "No basis states for momentum sector K.\n";
@@ -283,12 +285,12 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  std::cerr << "Basis sizes: |K|=" << basis_K.set.size() << ", |K+Q|=" << basis_KQ.set.size()
+  std::cerr << "FermionBasis sizes: |K|=" << basis_K.set.size() << ", |K+Q|=" << basis_KQ.set.size()
             << std::endl;
 
   // Get base expressions for kinetic and interaction terms (with t=1, u=1)
-  const Expression kinetic_expr = hubbard_base.kinetic();
-  const Expression interaction_expr = hubbard_base.interaction();
+  const FermionExpression kinetic_expr = hubbard_base.kinetic();
+  const FermionExpression interaction_expr = hubbard_base.interaction();
 
   // Load or compute kinetic and interaction matrices for sector K
   std::cerr << "Building Hamiltonian matrices for sector K..." << std::endl;
@@ -316,7 +318,7 @@ int main(int argc, char** argv) {
   // Load or compute current operator J(Q) which maps from sector K to sector K+Q
   // The base current operator is computed with t=1, then scaled by t
   std::cerr << "Building current operator J(Q)..." << std::endl;
-  const Expression current_expr = hubbard_base.current(Q, opts.direction);
+  const FermionExpression current_expr = hubbard_base.current(Q, opts.direction);
 
   // J_Q_base maps from basis_K (columns) to basis_KQ (rows), computed with t=1
   arma::sp_cx_mat J_Q_base = load_or_compute_current(opts, K, Q, basis_KQ, basis_K, current_expr);

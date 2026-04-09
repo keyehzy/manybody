@@ -79,27 +79,28 @@ inline BlockGeometry block_3d_2x2x2() {
 /// H = -t Σ_{<i,j>,σ} (c†_iσ c_jσ + h.c.)
 ///   + U Σ_i n_{i↑} n_{i↓}
 ///   - μ Σ_{i,σ} n_{iσ}
-inline Expression build_hubbard_block_hamiltonian(const BlockGeometry& geometry, double t, double U,
-                                                  double mu) {
-  Expression H;
+inline FermionExpression build_hubbard_block_hamiltonian(const BlockGeometry& geometry, double t,
+                                                         double U, double mu) {
+  FermionExpression H;
 
   // Hopping: -t * sum_{<i,j>,sigma} (c^dag_i c_j + h.c.)
   for (auto [i, j] : geometry.bonds) {
-    for (auto sigma : {Operator::Spin::Up, Operator::Spin::Down}) {
+    for (auto sigma : {FermionOperator::Spin::Up, FermionOperator::Spin::Down}) {
       H += hopping({-t, 0.0}, i, j, sigma);
     }
   }
 
   // On-site interaction: U * sum_i n_{i,up} n_{i,down}
   for (size_t i = 0; i < geometry.num_sites; ++i) {
-    H += Expression(density_density(Operator::Spin::Up, i, Operator::Spin::Down, i)) *
+    H += FermionExpression(
+             density_density(FermionOperator::Spin::Up, i, FermionOperator::Spin::Down, i)) *
          std::complex<double>(U, 0.0);
   }
 
   // Chemical potential: -mu * sum_i (n_{i,up} + n_{i,down})
   for (size_t i = 0; i < geometry.num_sites; ++i) {
-    for (auto sigma : {Operator::Spin::Up, Operator::Spin::Down}) {
-      H += Expression(density(sigma, i)) * std::complex<double>(-mu, 0.0);
+    for (auto sigma : {FermionOperator::Spin::Up, FermionOperator::Spin::Down}) {
+      H += FermionExpression(density(sigma, i)) * std::complex<double>(-mu, 0.0);
     }
   }
 
@@ -107,29 +108,29 @@ inline Expression build_hubbard_block_hamiltonian(const BlockGeometry& geometry,
 }
 
 /// Convenience: Build 2D 2x2 Hubbard block Hamiltonian.
-inline Expression build_2d_block_hamiltonian(double t, double U, double mu) {
+inline FermionExpression build_2d_block_hamiltonian(double t, double U, double mu) {
   return build_hubbard_block_hamiltonian(block_2d_2x2(), t, U, mu);
 }
 
 /// Convenience: Build 3D 2x2x2 Hubbard block Hamiltonian.
-inline Expression build_3d_block_hamiltonian(double t, double U, double mu) {
+inline FermionExpression build_3d_block_hamiltonian(double t, double U, double mu) {
   return build_hubbard_block_hamiltonian(block_3d_2x2x2(), t, U, mu);
 }
 
 /// Pair creation operator: Delta^dag_i = c^dag_{i,up} c^dag_{i,down}
 /// Creates a singlet Cooper pair at site i.
-inline Expression pair_creation(size_t site) {
-  FermionMonomial t({Operator::creation(Operator::Spin::Up, site),
-                     Operator::creation(Operator::Spin::Down, site)});
-  return Expression(t);
+inline FermionExpression pair_creation(size_t site) {
+  FermionMonomial t({FermionOperator::creation(FermionOperator::Spin::Up, site),
+                     FermionOperator::creation(FermionOperator::Spin::Down, site)});
+  return FermionExpression(t);
 }
 
 /// Pair annihilation operator: Delta_i = c_{i,down} c_{i,up}
 /// Annihilates a singlet Cooper pair at site i.
-inline Expression pair_annihilation(size_t site) {
-  FermionMonomial t({Operator::annihilation(Operator::Spin::Down, site),
-                     Operator::annihilation(Operator::Spin::Up, site)});
-  return Expression(t);
+inline FermionExpression pair_annihilation(size_t site) {
+  FermionMonomial t({FermionOperator::annihilation(FermionOperator::Spin::Down, site),
+                     FermionOperator::annihilation(FermionOperator::Spin::Up, site)});
+  return FermionExpression(t);
 }
 
 }  // namespace brg

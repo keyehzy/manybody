@@ -83,12 +83,16 @@ CliOptions parse_cli_options(int argc, char** argv) {
 brg::BrgStepResult brg_step_zero_t(double t, double U, double mu) {
   const auto geometry = brg::block_2d_2x2();
 
-  const Expression H = brg::build_hubbard_block_hamiltonian(geometry, t, U, mu);
+  const FermionExpression H = brg::build_hubbard_block_hamiltonian(geometry, t, U, mu);
 
-  Basis basis_N0 = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 0, 0);
-  Basis basis_N1_up = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, 1);
-  Basis basis_N1_down = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, -1);
-  Basis basis_N2 = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 2, 0);
+  FermionBasis basis_N0 =
+      FermionBasis::with_fixed_particle_number_and_spin(geometry.num_sites, 0, 0);
+  FermionBasis basis_N1_up =
+      FermionBasis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, 1);
+  FermionBasis basis_N1_down =
+      FermionBasis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, -1);
+  FermionBasis basis_N2 =
+      FermionBasis::with_fixed_particle_number_and_spin(geometry.num_sites, 2, 0);
 
   brg::SectorResult res_N0 = brg::diagonalize_sector(basis_N0, H);
   brg::SectorResult res_N1_up = brg::diagonalize_sector(basis_N1_up, H);
@@ -124,11 +128,11 @@ brg::BrgStepResult brg_step_zero_t(double t, double U, double mu) {
     const size_t site = geometry.border_sites[si];
 
     for (size_t spi = 0; spi < 2; ++spi) {
-      auto sigma = (spi == 0) ? Operator::Spin::Up : Operator::Spin::Down;
+      auto sigma = (spi == 0) ? FermionOperator::Spin::Up : FermionOperator::Spin::Down;
 
-      Expression c_dag(creation(sigma, site));
+      FermionExpression c_dag(creation(sigma, site));
 
-      const Basis& row_basis = (spi == 0) ? basis_N1_up : basis_N1_down;
+      const FermionBasis& row_basis = (spi == 0) ? basis_N1_up : basis_N1_down;
       const arma::cx_vec& psi_sigma = (spi == 0) ? psi_up : psi_down;
 
       arma::cx_mat M =
@@ -139,7 +143,7 @@ brg::BrgStepResult brg_step_zero_t(double t, double U, double mu) {
       lambda_sum += std::abs(lambda_val);
       ++lambda_count;
 
-      const Basis& closure_col_basis = (spi == 0) ? basis_N1_down : basis_N1_up;
+      const FermionBasis& closure_col_basis = (spi == 0) ? basis_N1_down : basis_N1_up;
       const arma::cx_vec& psi_minus_sigma = (spi == 0) ? psi_down : psi_up;
 
       arma::cx_mat M_closure =
@@ -178,7 +182,7 @@ brg::BrgStepResult brg_step_zero_t(double t, double U, double mu) {
   double lambda_pair_sum = 0.0;
 
   for (size_t site = 0; site < geometry.num_sites; ++site) {
-    Expression Delta_dag = brg::pair_creation(site);
+    FermionExpression Delta_dag = brg::pair_creation(site);
     arma::cx_mat M_pair =
         compute_rectangular_matrix_elements<arma::cx_mat>(basis_N2, basis_N0, Delta_dag);
     std::complex<double> pair_val = arma::cdot(psi_ud, M_pair * psi_0);
@@ -205,9 +209,9 @@ brg::BrgStepResult brg_step_zero_t(double t, double U, double mu) {
     for (size_t j = 0; j < geometry.num_sites; ++j) {
       if (i == j) continue;
 
-      Expression Delta_dag_i = brg::pair_creation(i);
-      Expression Delta_j = brg::pair_annihilation(j);
-      Expression pair_hop = Delta_dag_i * Delta_j;
+      FermionExpression Delta_dag_i = brg::pair_creation(i);
+      FermionExpression Delta_j = brg::pair_annihilation(j);
+      FermionExpression pair_hop = Delta_dag_i * Delta_j;
 
       arma::cx_mat M_corr =
           compute_rectangular_matrix_elements<arma::cx_mat>(basis_N2, basis_N2, pair_hop);
@@ -238,12 +242,16 @@ brg::BrgStepResult brg_step_finite_t(double t, double U, double mu, double T) {
 
   const auto geometry = brg::block_2d_2x2();
 
-  const Expression H = brg::build_hubbard_block_hamiltonian(geometry, t, U, mu);
+  const FermionExpression H = brg::build_hubbard_block_hamiltonian(geometry, t, U, mu);
 
-  Basis basis_N0 = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 0, 0);
-  Basis basis_N1_up = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, 1);
-  Basis basis_N1_down = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, -1);
-  Basis basis_N2 = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 2, 0);
+  FermionBasis basis_N0 =
+      FermionBasis::with_fixed_particle_number_and_spin(geometry.num_sites, 0, 0);
+  FermionBasis basis_N1_up =
+      FermionBasis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, 1);
+  FermionBasis basis_N1_down =
+      FermionBasis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, -1);
+  FermionBasis basis_N2 =
+      FermionBasis::with_fixed_particle_number_and_spin(geometry.num_sites, 2, 0);
 
   brg::SectorResult res_N0 = brg::diagonalize_sector(basis_N0, H);
   brg::SectorResult res_N1_up = brg::diagonalize_sector(basis_N1_up, H);
@@ -291,11 +299,11 @@ brg::BrgStepResult brg_step_finite_t(double t, double U, double mu, double T) {
     const size_t site = geometry.border_sites[si];
 
     for (size_t spi = 0; spi < 2; ++spi) {
-      auto sigma = (spi == 0) ? Operator::Spin::Up : Operator::Spin::Down;
+      auto sigma = (spi == 0) ? FermionOperator::Spin::Up : FermionOperator::Spin::Down;
 
-      Expression c_dag(creation(sigma, site));
+      FermionExpression c_dag(creation(sigma, site));
 
-      const Basis& row_basis = (spi == 0) ? basis_N1_up : basis_N1_down;
+      const FermionBasis& row_basis = (spi == 0) ? basis_N1_up : basis_N1_down;
       const arma::cx_mat& eigvecs_sigma = (spi == 0) ? eigvecs_up : eigvecs_down;
       const arma::vec& weights_sigma = (spi == 0) ? w_N1_up.weights : w_N1_down.weights;
 
@@ -313,7 +321,7 @@ brg::BrgStepResult brg_step_finite_t(double t, double U, double mu, double T) {
       lambda_sq_sum += lambda_sq;
       ++lambda_count;
 
-      const Basis& closure_col_basis = (spi == 0) ? basis_N1_down : basis_N1_up;
+      const FermionBasis& closure_col_basis = (spi == 0) ? basis_N1_down : basis_N1_up;
       const arma::cx_mat& eigvecs_minus_sigma = (spi == 0) ? eigvecs_down : eigvecs_up;
       const arma::vec& weights_minus_sigma = (spi == 0) ? w_N1_down.weights : w_N1_up.weights;
 
@@ -357,7 +365,7 @@ brg::BrgStepResult brg_step_finite_t(double t, double U, double mu, double T) {
   double lambda_pair_sum = 0.0;
 
   for (size_t site = 0; site < geometry.num_sites; ++site) {
-    Expression Delta_dag = brg::pair_creation(site);
+    FermionExpression Delta_dag = brg::pair_creation(site);
     arma::cx_mat M_pair =
         compute_rectangular_matrix_elements<arma::cx_mat>(basis_N2, basis_N0, Delta_dag);
     arma::cx_vec v = M_pair * psi_0;
@@ -390,9 +398,9 @@ brg::BrgStepResult brg_step_finite_t(double t, double U, double mu, double T) {
     for (size_t j = 0; j < geometry.num_sites; ++j) {
       if (i == j) continue;
 
-      Expression Delta_dag_i = brg::pair_creation(i);
-      Expression Delta_j = brg::pair_annihilation(j);
-      Expression pair_hop = Delta_dag_i * Delta_j;
+      FermionExpression Delta_dag_i = brg::pair_creation(i);
+      FermionExpression Delta_j = brg::pair_annihilation(j);
+      FermionExpression pair_hop = Delta_dag_i * Delta_j;
 
       arma::cx_mat M_corr =
           compute_rectangular_matrix_elements<arma::cx_mat>(basis_N2, basis_N2, pair_hop);
@@ -439,12 +447,16 @@ brg::BrgStepResult brg_step_finite_t(double t, double U, double mu, double T) {
 double tune_mu_for_quarter_filling_zero_t(double t, double U, bool& window_exists) {
   const auto geometry = brg::block_2d_2x2();
 
-  const Expression H0 = brg::build_hubbard_block_hamiltonian(geometry, t, U, 0.0);
+  const FermionExpression H0 = brg::build_hubbard_block_hamiltonian(geometry, t, U, 0.0);
 
-  Basis basis_N0 = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 0, 0);
-  Basis basis_N1_up = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, 1);
-  Basis basis_N1_down = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, -1);
-  Basis basis_N2 = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 2, 0);
+  FermionBasis basis_N0 =
+      FermionBasis::with_fixed_particle_number_and_spin(geometry.num_sites, 0, 0);
+  FermionBasis basis_N1_up =
+      FermionBasis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, 1);
+  FermionBasis basis_N1_down =
+      FermionBasis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, -1);
+  FermionBasis basis_N2 =
+      FermionBasis::with_fixed_particle_number_and_spin(geometry.num_sites, 2, 0);
 
   brg::SectorResult res_N0 = brg::diagonalize_sector(basis_N0, H0);
   brg::SectorResult res_N1_up = brg::diagonalize_sector(basis_N1_up, H0);
@@ -474,12 +486,16 @@ double tune_mu_for_quarter_filling_finite_t(double t, double U, double T, bool& 
 
   const auto geometry = brg::block_2d_2x2();
 
-  const Expression H0 = brg::build_hubbard_block_hamiltonian(geometry, t, U, 0.0);
+  const FermionExpression H0 = brg::build_hubbard_block_hamiltonian(geometry, t, U, 0.0);
 
-  Basis basis_N0 = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 0, 0);
-  Basis basis_N1_up = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, 1);
-  Basis basis_N1_down = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, -1);
-  Basis basis_N2 = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 2, 0);
+  FermionBasis basis_N0 =
+      FermionBasis::with_fixed_particle_number_and_spin(geometry.num_sites, 0, 0);
+  FermionBasis basis_N1_up =
+      FermionBasis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, 1);
+  FermionBasis basis_N1_down =
+      FermionBasis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, -1);
+  FermionBasis basis_N2 =
+      FermionBasis::with_fixed_particle_number_and_spin(geometry.num_sites, 2, 0);
 
   brg::SectorResult res_N0 = brg::diagonalize_sector(basis_N0, H0);
   brg::SectorResult res_N1_up = brg::diagonalize_sector(basis_N1_up, H0);

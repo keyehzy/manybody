@@ -6,11 +6,12 @@
 
 TEST_CASE("diagonalize_sector returns correct number of eigenvalues") {
   // Single-site, single particle sector (N=1, Sz=1): dimension 1
-  Basis basis = Basis::with_fixed_particle_number_and_spin(1, 1, 1);
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_and_spin(1, 1, 1);
 
   // Simple Hamiltonian: H = -mu * n
   double mu = 0.5;
-  Expression H = Expression(density(Operator::Spin::Up, 0)) * std::complex<double>(-mu, 0.0);
+  FermionExpression H =
+      FermionExpression(density(FermionOperator::Spin::Up, 0)) * std::complex<double>(-mu, 0.0);
 
   auto result = brg::diagonalize_sector(basis, H);
 
@@ -22,11 +23,11 @@ TEST_CASE("diagonalize_sector returns correct number of eigenvalues") {
 
 TEST_CASE("diagonalize_sector with two-site hopping") {
   // Two sites, one up-spin electron: dimension 2
-  Basis basis = Basis::with_fixed_particle_number_and_spin(2, 1, 1);
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_and_spin(2, 1, 1);
 
   // Hopping Hamiltonian: H = -t (c†_0 c_1 + c†_1 c_0)
   double t = 1.0;
-  Expression H = hopping({-t, 0.0}, 0, 1, Operator::Spin::Up);
+  FermionExpression H = hopping({-t, 0.0}, 0, 1, FermionOperator::Spin::Up);
 
   auto result = brg::diagonalize_sector(basis, H);
 
@@ -38,10 +39,10 @@ TEST_CASE("diagonalize_sector with two-site hopping") {
 
 TEST_CASE("diagonalize_sector eigenvalues are sorted ascending") {
   // Two-site Hubbard with one electron
-  Basis basis = Basis::with_fixed_particle_number_and_spin(2, 1, 1);
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_and_spin(2, 1, 1);
 
   double t = 2.0;
-  Expression H = hopping({-t, 0.0}, 0, 1, Operator::Spin::Up);
+  FermionExpression H = hopping({-t, 0.0}, 0, 1, FermionOperator::Spin::Up);
 
   auto result = brg::diagonalize_sector(basis, H);
 
@@ -51,10 +52,10 @@ TEST_CASE("diagonalize_sector eigenvalues are sorted ascending") {
 }
 
 TEST_CASE("diagonalize_sector eigenvectors are orthonormal") {
-  Basis basis = Basis::with_fixed_particle_number_and_spin(2, 1, 1);
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_and_spin(2, 1, 1);
 
   double t = 1.5;
-  Expression H = hopping({-t, 0.0}, 0, 1, Operator::Spin::Up);
+  FermionExpression H = hopping({-t, 0.0}, 0, 1, FermionOperator::Spin::Up);
 
   auto result = brg::diagonalize_sector(basis, H);
 
@@ -71,13 +72,14 @@ TEST_CASE("diagonalize_sector eigenvectors are orthonormal") {
 
 TEST_CASE("diagonalize_sector vacuum sector has single zero eigenvalue") {
   // Vacuum sector (N=0, Sz=0): dimension 1
-  Basis basis = Basis::with_fixed_particle_number_and_spin(2, 0, 0);
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_and_spin(2, 0, 0);
 
   // Any Hamiltonian should give E=0 for vacuum
   double t = 1.0;
   double U = -4.0;
-  Expression H = hopping({-t, 0.0}, 0, 1, Operator::Spin::Up);
-  H += Expression(density_density(Operator::Spin::Up, 0, Operator::Spin::Down, 0)) *
+  FermionExpression H = hopping({-t, 0.0}, 0, 1, FermionOperator::Spin::Up);
+  H += FermionExpression(
+           density_density(FermionOperator::Spin::Up, 0, FermionOperator::Spin::Down, 0)) *
        std::complex<double>(U, 0.0);
 
   auto result = brg::diagonalize_sector(basis, H);

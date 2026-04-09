@@ -36,7 +36,7 @@ struct CurrentOperatorFixedK {
   /// @param t Hopping amplitude
   /// @param Q Transfer momentum (flat index)
   /// @param direction Direction index d for the current (0, 1, or 2 for x, y, z)
-  CurrentOperatorFixedK(const Basis& source_basis, const Basis& target_basis,
+  CurrentOperatorFixedK(const FermionBasis& source_basis, const FermionBasis& target_basis,
                         const std::vector<size_t>& lattice_size, double t, size_t Q,
                         size_t direction)
       : source_basis_(source_basis),
@@ -51,7 +51,7 @@ struct CurrentOperatorFixedK {
     }
     if (source_basis.orbitals != N_sites_ || target_basis.orbitals != N_sites_) {
       throw std::invalid_argument(
-          "Basis orbitals must equal total number of lattice sites (momentum points).");
+          "FermionBasis orbitals must equal total number of lattice sites (momentum points).");
     }
     if (direction >= lattice_size.size()) {
       throw std::invalid_argument("Direction must be less than lattice dimensionality.");
@@ -146,13 +146,13 @@ struct CurrentOperatorFixedK {
   }
 
   /// Apply J_d(Q) = Σ_{k,σ} v_d(k) c†_{k+Q,σ} c_{k,σ} to a basis state.
-  void apply_current_to_state(const Basis::key_type& state_j, ScalarType coeff, VectorType& w,
-                              bool /*adjoint*/) const {
+  void apply_current_to_state(const FermionBasis::key_type& state_j, ScalarType coeff,
+                              VectorType& w, bool /*adjoint*/) const {
     // For each occupied orbital k with spin σ
     for (size_t op_idx = 0; op_idx < state_j.size(); ++op_idx) {
       const auto& op = state_j[op_idx];
       const size_t k = op.value();
-      const Operator::Spin spin = op.spin();
+      const FermionOperator::Spin spin = op.spin();
 
       const double v_k = velocities_[k];
       if (std::abs(v_k) < 1e-15) {
@@ -183,9 +183,9 @@ struct CurrentOperatorFixedK {
         }
       } else {
         // Create the new state: remove operator at k, add operator at k+Q
-        Operator new_op = Operator::creation(spin, kQ);
+        FermionOperator new_op = FermionOperator::creation(spin, kQ);
 
-        Basis::key_type new_state = state_j;
+        FermionBasis::key_type new_state = state_j;
         new_state.erase(op_idx);
 
         // Find where new_op should be inserted to maintain sorted order
@@ -209,7 +209,7 @@ struct CurrentOperatorFixedK {
 
   /// Apply J†_d(Q) = Σ_{k,σ} v_d(k)* c†_{k,σ} c_{k+Q,σ} to a basis state.
   /// Since v_d(k) is real, J†_d(Q) = Σ_{k,σ} v_d(k) c†_{k,σ} c_{k+Q,σ}.
-  void apply_adjoint_current_to_state(const Basis::key_type& state_j, ScalarType coeff,
+  void apply_adjoint_current_to_state(const FermionBasis::key_type& state_j, ScalarType coeff,
                                       VectorType& w) const {
     // For the adjoint, we need to find occupied k+Q and move to k.
     // J†_d(Q) = Σ_{k,σ} v_d(k) c†_{k,σ} c_{k+Q,σ}
@@ -219,7 +219,7 @@ struct CurrentOperatorFixedK {
     for (size_t op_idx = 0; op_idx < state_j.size(); ++op_idx) {
       const auto& op = state_j[op_idx];
       const size_t kQ = op.value();  // This is k+Q in the adjoint
-      const Operator::Spin spin = op.spin();
+      const FermionOperator::Spin spin = op.spin();
 
       // Find which k maps to this kQ
       // We need to find k such that k_plus_Q_[k] == kQ
@@ -255,9 +255,9 @@ struct CurrentOperatorFixedK {
           }
         } else {
           // Create the new state: remove operator at k+Q, add operator at k
-          Operator new_op = Operator::creation(spin, k);
+          FermionOperator new_op = FermionOperator::creation(spin, k);
 
-          Basis::key_type new_state = state_j;
+          FermionBasis::key_type new_state = state_j;
           new_state.erase(op_idx);
 
           // Find where new_op should be inserted to maintain sorted order
@@ -280,8 +280,8 @@ struct CurrentOperatorFixedK {
     }
   }
 
-  const Basis& source_basis_;
-  const Basis& target_basis_;
+  const FermionBasis& source_basis_;
+  const FermionBasis& target_basis_;
   Index index_;
   double t_;
   size_t Q_;

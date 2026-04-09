@@ -91,9 +91,9 @@ int main(int argc, char** argv) {
   const int spin_projection = 1;
 
   HubbardModel3D hubbard(opts.t, opts.U, size_x, size_y, size_z);
-  Basis basis = Basis::with_fixed_particle_number_and_spin(size_x * size_y * size_z, particles,
-                                                           spin_projection);
-  const Expression hamiltonian_full = hubbard.hamiltonian();
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_and_spin(
+      size_x * size_y * size_z, particles, spin_projection);
+  const FermionExpression hamiltonian_full = hubbard.hamiltonian();
   arma::sp_cx_mat H = compute_matrix_elements<arma::sp_cx_mat>(basis, hamiltonian_full);
 
   arma::cx_vec sparse_vals;

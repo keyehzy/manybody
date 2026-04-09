@@ -36,32 +36,32 @@ TEST_CASE("model_hubbard_relative_inherits_from_interface") {
 
 TEST_CASE("model_hubbard_hamiltonian_term_count") {
   HubbardModel hubbard(1.0, 2.0, 2);
-  const Expression hamiltonian = hubbard.hamiltonian();
+  const FermionExpression hamiltonian = hubbard.hamiltonian();
   CHECK((hamiltonian.size()) == (6u));
 }
 
 TEST_CASE("model_hubbard_2d_hamiltonian_term_count") {
   HubbardModel2D hubbard(1.0, 2.0, 2, 2);
-  const Expression hamiltonian = hubbard.hamiltonian();
+  const FermionExpression hamiltonian = hubbard.hamiltonian();
   CHECK((hamiltonian.size()) == (20u));
 }
 
 TEST_CASE("model_hubbard_3d_hamiltonian_term_count") {
   HubbardModel3D hubbard(1.0, 2.0, 2, 2, 2);
-  const Expression hamiltonian = hubbard.hamiltonian();
+  const FermionExpression hamiltonian = hubbard.hamiltonian();
   CHECK((hamiltonian.size()) == (56u));
 }
 
 TEST_CASE("model_hubbard_relative_hamiltonian_term_count") {
   HubbardModelRelative hubbard(1.0, 2.0, 4, 0);
-  const Expression hamiltonian = hubbard.hamiltonian();
+  const FermionExpression hamiltonian = hubbard.hamiltonian();
   CHECK((hamiltonian.size()) == (16u));
 }
 
 TEST_CASE("model_hubbard_relative_hamiltonian_coefficients") {
   constexpr size_t kMomentum = 0;
   HubbardModelRelative hubbard(1.25, 3.0, 4, kMomentum);
-  const Expression hamiltonian = hubbard.hamiltonian();
+  const FermionExpression hamiltonian = hubbard.hamiltonian();
 
   const size_t size = 4;
   const size_t p_same = 0;
@@ -73,17 +73,17 @@ TEST_CASE("model_hubbard_relative_hamiltonian_coefficients") {
   const size_t k_minus_p_diff = (kMomentum + size - p_diff) % size;
   const size_t k_minus_q_diff = (kMomentum + size - q_diff) % size;
 
-  Expression::container_type diag_ops{
-      Operator::creation(Operator::Spin::Up, p_same),
-      Operator::creation(Operator::Spin::Down, k_minus_p_same),
-      Operator::annihilation(Operator::Spin::Down, k_minus_q_same),
-      Operator::annihilation(Operator::Spin::Up, q_same),
+  FermionExpression::container_type diag_ops{
+      FermionOperator::creation(FermionOperator::Spin::Up, p_same),
+      FermionOperator::creation(FermionOperator::Spin::Down, k_minus_p_same),
+      FermionOperator::annihilation(FermionOperator::Spin::Down, k_minus_q_same),
+      FermionOperator::annihilation(FermionOperator::Spin::Up, q_same),
   };
-  Expression::container_type off_diag_ops{
-      Operator::creation(Operator::Spin::Up, p_diff),
-      Operator::creation(Operator::Spin::Down, k_minus_p_diff),
-      Operator::annihilation(Operator::Spin::Down, k_minus_q_diff),
-      Operator::annihilation(Operator::Spin::Up, q_diff),
+  FermionExpression::container_type off_diag_ops{
+      FermionOperator::creation(FermionOperator::Spin::Up, p_diff),
+      FermionOperator::creation(FermionOperator::Spin::Down, k_minus_p_diff),
+      FermionOperator::annihilation(FermionOperator::Spin::Down, k_minus_q_diff),
+      FermionOperator::annihilation(FermionOperator::Spin::Up, q_diff),
   };
 
   const auto diag_it = hamiltonian.terms().find(diag_ops);
@@ -138,7 +138,7 @@ TEST_CASE("model_hubbard_momentum_inherits_from_interface") {
 TEST_CASE("model_hubbard_momentum_1d_hamiltonian_term_count") {
   // 1D lattice with 4 sites
   HubbardModelMomentum hubbard(1.0, 2.0, {4});
-  const Expression hamiltonian = hubbard.hamiltonian();
+  const FermionExpression hamiltonian = hubbard.hamiltonian();
   // Kinetic: 4 sites * 2 spins = 8 terms (but diagonal, so some may combine)
   // Interaction: 4^3 = 64 terms (but normal ordering may reduce)
   CHECK(hamiltonian.size() > 0);
@@ -147,14 +147,14 @@ TEST_CASE("model_hubbard_momentum_1d_hamiltonian_term_count") {
 TEST_CASE("model_hubbard_momentum_2d_hamiltonian_term_count") {
   // 2D lattice with 2x2 sites
   HubbardModelMomentum hubbard(1.0, 2.0, {2, 2});
-  const Expression hamiltonian = hubbard.hamiltonian();
+  const FermionExpression hamiltonian = hubbard.hamiltonian();
   CHECK(hamiltonian.size() > 0);
 }
 
 TEST_CASE("model_hubbard_momentum_3d_hamiltonian_term_count") {
   // 3D lattice with 2x2x2 sites
   HubbardModelMomentum hubbard(1.0, 2.0, {2, 2, 2});
-  const Expression hamiltonian = hubbard.hamiltonian();
+  const FermionExpression hamiltonian = hubbard.hamiltonian();
   CHECK(hamiltonian.size() > 0);
 }
 
@@ -183,7 +183,7 @@ TEST_CASE("model_hubbard_momentum_dispersion_2d") {
 
 TEST_CASE("model_hubbard_momentum_kinetic_diagonal") {
   HubbardModelMomentum hubbard(1.0, 0.0, {4});  // U=0, only kinetic
-  const Expression hamiltonian = hubbard.hamiltonian();
+  const FermionExpression hamiltonian = hubbard.hamiltonian();
 
   // With U=0, all terms should be diagonal number operators
   // k=0: ε=-2, k=1: ε=0, k=2: ε=2, k=3: ε=0
@@ -196,7 +196,7 @@ TEST_CASE("model_hubbard_momentum_interaction_momentum_conservation") {
   // The interaction term conserves momentum: k1+q and k2-q
   // This is implicitly tested by the structure of the Hamiltonian
   HubbardModelMomentum hubbard(0.0, 1.0, {2});  // t=0, only interaction
-  const Expression hamiltonian = hubbard.hamiltonian();
+  const FermionExpression hamiltonian = hubbard.hamiltonian();
 
   // With t=0, only interaction terms
   // 2^3 = 8 terms for the interaction (k1, k2, q each run over 2 values)
@@ -220,21 +220,21 @@ TEST_CASE("model_hubbard_opposite_spin_correlation_1d_term_count") {
   HubbardModel hubbard(1.0, 2.0, 4);
 
   // G_{↑↓}(r=0): on-site correlation, 4 terms (one per site)
-  const Expression g0 = hubbard.opposite_spin_correlation(0);
+  const FermionExpression g0 = hubbard.opposite_spin_correlation(0);
   CHECK(g0.size() == 4u);
 
   // G_{↑↓}(r=1): nearest-neighbor correlation, 4 terms
-  const Expression g1 = hubbard.opposite_spin_correlation(1);
+  const FermionExpression g1 = hubbard.opposite_spin_correlation(1);
   CHECK(g1.size() == 4u);
 
   // G_{↑↓}(r=2): next-nearest-neighbor correlation, 4 terms
-  const Expression g2 = hubbard.opposite_spin_correlation(2);
+  const FermionExpression g2 = hubbard.opposite_spin_correlation(2);
   CHECK(g2.size() == 4u);
 }
 
 TEST_CASE("model_hubbard_opposite_spin_correlation_1d_coefficients") {
   HubbardModel hubbard(1.0, 2.0, 4);
-  const Expression g0 = hubbard.opposite_spin_correlation(0);
+  const FermionExpression g0 = hubbard.opposite_spin_correlation(0);
 
   // Each term should have coefficient 1/N = 1/4 = 0.25
   for (const auto& [ops, coeff] : g0.terms()) {
@@ -247,8 +247,8 @@ TEST_CASE("model_hubbard_opposite_spin_correlation_1d_periodicity") {
 
   // G(r) and G(N-r) should be related by periodicity
   // For r=1 and r=3 (=4-1), the terms should be structurally similar
-  const Expression g1 = hubbard.opposite_spin_correlation(1);
-  const Expression g3 = hubbard.opposite_spin_correlation(3);
+  const FermionExpression g1 = hubbard.opposite_spin_correlation(1);
+  const FermionExpression g3 = hubbard.opposite_spin_correlation(3);
   CHECK(g1.size() == g3.size());
 }
 
@@ -257,21 +257,21 @@ TEST_CASE("model_hubbard_2d_opposite_spin_correlation_term_count") {
   const size_t N = 9;
 
   // G_{↑↓}(0,0): on-site correlation, N terms
-  const Expression g00 = hubbard.opposite_spin_correlation(0, 0);
+  const FermionExpression g00 = hubbard.opposite_spin_correlation(0, 0);
   CHECK(g00.size() == N);
 
   // G_{↑↓}(1,0): nearest-neighbor in x, N terms
-  const Expression g10 = hubbard.opposite_spin_correlation(1, 0);
+  const FermionExpression g10 = hubbard.opposite_spin_correlation(1, 0);
   CHECK(g10.size() == N);
 
   // G_{↑↓}(1,1): diagonal neighbor, N terms
-  const Expression g11 = hubbard.opposite_spin_correlation(1, 1);
+  const FermionExpression g11 = hubbard.opposite_spin_correlation(1, 1);
   CHECK(g11.size() == N);
 }
 
 TEST_CASE("model_hubbard_2d_opposite_spin_correlation_coefficients") {
   HubbardModel2D hubbard(1.0, 2.0, 2, 2);
-  const Expression g00 = hubbard.opposite_spin_correlation(0, 0);
+  const FermionExpression g00 = hubbard.opposite_spin_correlation(0, 0);
 
   // Each term should have coefficient 1/N = 1/4 = 0.25
   for (const auto& [ops, coeff] : g00.terms()) {
@@ -284,21 +284,21 @@ TEST_CASE("model_hubbard_3d_opposite_spin_correlation_term_count") {
   const size_t N = 8;
 
   // G_{↑↓}(0,0,0): on-site correlation, N terms
-  const Expression g000 = hubbard.opposite_spin_correlation(0, 0, 0);
+  const FermionExpression g000 = hubbard.opposite_spin_correlation(0, 0, 0);
   CHECK(g000.size() == N);
 
   // G_{↑↓}(1,0,0): nearest-neighbor in x, N terms
-  const Expression g100 = hubbard.opposite_spin_correlation(1, 0, 0);
+  const FermionExpression g100 = hubbard.opposite_spin_correlation(1, 0, 0);
   CHECK(g100.size() == N);
 
   // G_{↑↓}(1,1,1): body diagonal, N terms
-  const Expression g111 = hubbard.opposite_spin_correlation(1, 1, 1);
+  const FermionExpression g111 = hubbard.opposite_spin_correlation(1, 1, 1);
   CHECK(g111.size() == N);
 }
 
 TEST_CASE("model_hubbard_3d_opposite_spin_correlation_coefficients") {
   HubbardModel3D hubbard(1.0, 2.0, 2, 2, 2);
-  const Expression g000 = hubbard.opposite_spin_correlation(0, 0, 0);
+  const FermionExpression g000 = hubbard.opposite_spin_correlation(0, 0, 0);
 
   // Each term should have coefficient 1/N = 1/8 = 0.125
   for (const auto& [ops, coeff] : g000.terms()) {
@@ -310,11 +310,11 @@ TEST_CASE("model_hubbard_momentum_opposite_spin_correlation_1d") {
   HubbardModelMomentum hubbard(1.0, 2.0, {4});
 
   // G_{↑↓}(r=0): on-site in real space
-  const Expression g0 = hubbard.opposite_spin_correlation({0});
+  const FermionExpression g0 = hubbard.opposite_spin_correlation({0});
   CHECK(g0.size() > 0);
 
   // G_{↑↓}(r=1): nearest-neighbor
-  const Expression g1 = hubbard.opposite_spin_correlation({1});
+  const FermionExpression g1 = hubbard.opposite_spin_correlation({1});
   CHECK(g1.size() > 0);
 }
 
@@ -322,15 +322,15 @@ TEST_CASE("model_hubbard_momentum_opposite_spin_correlation_2d") {
   HubbardModelMomentum hubbard(1.0, 2.0, {2, 2});
 
   // G_{↑↓}(0,0): on-site
-  const Expression g00 = hubbard.opposite_spin_correlation({0, 0});
+  const FermionExpression g00 = hubbard.opposite_spin_correlation({0, 0});
   CHECK(g00.size() > 0);
 
   // G_{↑↓}(1,0): nearest-neighbor in x
-  const Expression g10 = hubbard.opposite_spin_correlation({1, 0});
+  const FermionExpression g10 = hubbard.opposite_spin_correlation({1, 0});
   CHECK(g10.size() > 0);
 
   // G_{↑↓}(1,1): diagonal
-  const Expression g11 = hubbard.opposite_spin_correlation({1, 1});
+  const FermionExpression g11 = hubbard.opposite_spin_correlation({1, 1});
   CHECK(g11.size() > 0);
 }
 
@@ -346,7 +346,7 @@ TEST_CASE("model_hubbard_momentum_opposite_spin_correlation_onsite_is_real") {
   // For r=0, the phase factor e^{-iq·r} = 1 for all q
   // So all coefficients should be real
   HubbardModelMomentum hubbard(1.0, 2.0, {3});
-  const Expression g0 = hubbard.opposite_spin_correlation({0});
+  const FermionExpression g0 = hubbard.opposite_spin_correlation({0});
 
   for (const auto& [ops, coeff] : g0.terms()) {
     CHECK(std::abs(coeff.imag()) < kTolerance);

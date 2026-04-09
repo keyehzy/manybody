@@ -4,9 +4,9 @@
 #include <vector>
 
 #include "algebra/fermion/basis.h"
-#include "algebra/relative_basis_transform.h"
 #include "algebra/matrix_elements.h"
 #include "algebra/model/hubbard_model_momentum.h"
+#include "algebra/relative_basis_transform.h"
 #include "utils/index.h"
 
 namespace {
@@ -19,8 +19,8 @@ TEST_CASE("relative_basis_transform_unitarity") {
   const size_t K = 1;
 
   Index index(size);
-  Basis momentum_basis =
-      Basis::with_fixed_particle_number_spin_momentum(lattice_size, 2, 0, index, {K});
+  FermionBasis momentum_basis =
+      FermionBasis::with_fixed_particle_number_spin_momentum(lattice_size, 2, 0, index, {K});
 
   arma::cx_mat U = relative_position_transform(momentum_basis, index);
 
@@ -39,11 +39,11 @@ TEST_CASE("relative_basis_transform_eigenvalue_preservation") {
   const double U_hubbard = 4.0;
 
   Index index(size);
-  Basis momentum_basis =
-      Basis::with_fixed_particle_number_spin_momentum(lattice_size, 2, 0, index, {K});
+  FermionBasis momentum_basis =
+      FermionBasis::with_fixed_particle_number_spin_momentum(lattice_size, 2, 0, index, {K});
 
   HubbardModelMomentum hubbard(t, U_hubbard, size);
-  const Expression H_expr = hubbard.hamiltonian();
+  const FermionExpression H_expr = hubbard.hamiltonian();
   arma::cx_mat H_mom = compute_matrix_elements<arma::cx_mat>(momentum_basis, H_expr);
 
   arma::cx_mat U = relative_position_transform(momentum_basis, index);
@@ -70,8 +70,8 @@ TEST_CASE("relative_basis_transform_interaction_localization") {
   const double U_hubbard = 4.0;
 
   Index index(size);
-  Basis momentum_basis =
-      Basis::with_fixed_particle_number_spin_momentum(lattice_size, 2, 0, index, {K});
+  FermionBasis momentum_basis =
+      FermionBasis::with_fixed_particle_number_spin_momentum(lattice_size, 2, 0, index, {K});
 
   HubbardModelMomentum hubbard(t, U_hubbard, size);
   arma::cx_mat H_interaction_mom =
@@ -100,8 +100,8 @@ TEST_CASE("relative_basis_transform_with_index") {
   const size_t K = 1;
 
   Index index(size);
-  Basis momentum_basis =
-      Basis::with_fixed_particle_number_spin_momentum(lattice_size, 2, 0, index, {K});
+  FermionBasis momentum_basis =
+      FermionBasis::with_fixed_particle_number_spin_momentum(lattice_size, 2, 0, index, {K});
 
   auto result = relative_position_transform_with_index(momentum_basis, index);
 
@@ -121,8 +121,8 @@ TEST_CASE("relative_basis_transform_different_momenta") {
 
   // Test for different total momenta K
   for (size_t K = 0; K < lattice_size; ++K) {
-    Basis momentum_basis =
-        Basis::with_fixed_particle_number_spin_momentum(lattice_size, 2, 0, index, {K});
+    FermionBasis momentum_basis =
+        FermionBasis::with_fixed_particle_number_spin_momentum(lattice_size, 2, 0, index, {K});
 
     arma::cx_mat U = relative_position_transform(momentum_basis, index);
 

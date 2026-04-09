@@ -17,7 +17,7 @@ bool complex_near(const FermionMonomial::complex_type& lhs,
   return std::abs(delta) <= tol;
 }
 
-FermionMonomial::complex_type expected_coefficient(Operator op, const Index& index,
+FermionMonomial::complex_type expected_coefficient(FermionOperator op, const Index& index,
                                                    const Index::container_type& other,
                                                    FourierMode mode) {
   const auto from = index(op.value());
@@ -31,7 +31,7 @@ FermionMonomial::complex_type expected_coefficient(Operator op, const Index& ind
   }
   phase *= 2.0 * std::numbers::pi_v<double>;
 
-  const double type_sign = (op.type() == Operator::Type::Annihilation) ? -1.0 : 1.0;
+  const double type_sign = (op.type() == FermionOperator::Type::Annihilation) ? -1.0 : 1.0;
   const double phase_sign = (mode == FourierMode::Direct) ? -1.0 : 1.0;
   std::complex<double> coefficient(0.0, phase_sign * type_sign * phase);
   coefficient = std::exp(coefficient) / std::sqrt(static_cast<double>(index.size()));
@@ -46,15 +46,17 @@ TEST_CASE("fourier_transform_operator_multidimensional_coefficients") {
   const auto momentum = Index::container_type{1, 0, 1};
   const auto momentum_orbital = index(momentum);
 
-  Operator annihilation = Operator::annihilation(Operator::Spin::Up, orbital);
-  Operator creation = Operator::creation(Operator::Spin::Up, orbital);
+  FermionOperator annihilation = FermionOperator::annihilation(FermionOperator::Spin::Up, orbital);
+  FermionOperator creation = FermionOperator::creation(FermionOperator::Spin::Up, orbital);
 
-  Expression annihilation_expr = fourier_transform_operator<Expression>(annihilation, index);
-  Expression creation_expr = fourier_transform_operator<Expression>(creation, index);
+  FermionExpression annihilation_expr =
+      fourier_transform_operator<FermionExpression>(annihilation, index);
+  FermionExpression creation_expr = fourier_transform_operator<FermionExpression>(creation, index);
 
-  Expression::container_type annihilation_ops{
-      Operator::annihilation(Operator::Spin::Up, momentum_orbital)};
-  Expression::container_type creation_ops{Operator::creation(Operator::Spin::Up, momentum_orbital)};
+  FermionExpression::container_type annihilation_ops{
+      FermionOperator::annihilation(FermionOperator::Spin::Up, momentum_orbital)};
+  FermionExpression::container_type creation_ops{
+      FermionOperator::creation(FermionOperator::Spin::Up, momentum_orbital)};
 
   auto annihilation_it = annihilation_expr.terms().find(annihilation_ops);
   auto creation_it = creation_expr.terms().find(creation_ops);
@@ -76,16 +78,19 @@ TEST_CASE("fourier_transform_operator_inverse_multidimensional_coefficients") {
   const auto momentum = Index::container_type{1, 0, 1};
   const auto momentum_orbital = index(momentum);
 
-  Operator annihilation = Operator::annihilation(Operator::Spin::Up, momentum_orbital);
-  Operator creation = Operator::creation(Operator::Spin::Up, momentum_orbital);
+  FermionOperator annihilation =
+      FermionOperator::annihilation(FermionOperator::Spin::Up, momentum_orbital);
+  FermionOperator creation = FermionOperator::creation(FermionOperator::Spin::Up, momentum_orbital);
 
-  Expression annihilation_expr =
-      fourier_transform_operator<Expression>(annihilation, index, FourierMode::Inverse);
-  Expression creation_expr =
-      fourier_transform_operator<Expression>(creation, index, FourierMode::Inverse);
+  FermionExpression annihilation_expr =
+      fourier_transform_operator<FermionExpression>(annihilation, index, FourierMode::Inverse);
+  FermionExpression creation_expr =
+      fourier_transform_operator<FermionExpression>(creation, index, FourierMode::Inverse);
 
-  Expression::container_type annihilation_ops{Operator::annihilation(Operator::Spin::Up, orbital)};
-  Expression::container_type creation_ops{Operator::creation(Operator::Spin::Up, orbital)};
+  FermionExpression::container_type annihilation_ops{
+      FermionOperator::annihilation(FermionOperator::Spin::Up, orbital)};
+  FermionExpression::container_type creation_ops{
+      FermionOperator::creation(FermionOperator::Spin::Up, orbital)};
 
   auto annihilation_it = annihilation_expr.terms().find(annihilation_ops);
   auto creation_it = creation_expr.terms().find(creation_ops);
@@ -104,15 +109,16 @@ TEST_CASE("fourier_transform_operator_round_trip_recovers_operator") {
   Index index({4});
   const auto orbital = index({2});
 
-  Operator annihilation = Operator::annihilation(Operator::Spin::Down, orbital);
-  Expression expr(annihilation);
+  FermionOperator annihilation =
+      FermionOperator::annihilation(FermionOperator::Spin::Down, orbital);
+  FermionExpression expr(annihilation);
 
-  Expression momentum = transform_expression(fourier_transform_operator<Expression>, expr, index,
-                                             FourierMode::Direct);
-  Expression restored = transform_expression(fourier_transform_operator<Expression>, momentum,
-                                             index, FourierMode::Inverse);
+  FermionExpression momentum = transform_expression(fourier_transform_operator<FermionExpression>,
+                                                    expr, index, FourierMode::Direct);
+  FermionExpression restored = transform_expression(fourier_transform_operator<FermionExpression>,
+                                                    momentum, index, FourierMode::Inverse);
 
-  Expression::container_type ops{annihilation};
+  FermionExpression::container_type ops{annihilation};
   auto it = restored.terms().find(ops);
   REQUIRE(it != restored.terms().end());
   CHECK(complex_near(it->second, FermionMonomial::complex_type{1.0f, 0.0f}, kTolerance));
@@ -130,12 +136,12 @@ TEST_CASE("fourier_transform_hubbard_1d_gives_momentum_space") {
   HubbardModel hubbard_real(t, U, L);
   Index index({L});
 
-  Expression H_real = hubbard_real.hamiltonian();
-  Expression H_transformed = transform_expression(fourier_transform_operator<Expression>, H_real,
-                                                  index, FourierMode::Direct);
+  FermionExpression H_real = hubbard_real.hamiltonian();
+  FermionExpression H_transformed = transform_expression(
+      fourier_transform_operator<FermionExpression>, H_real, index, FourierMode::Direct);
 
   HubbardModelMomentum hubbard_momentum(t, U, {L});
-  Expression H_momentum = hubbard_momentum.hamiltonian();
+  FermionExpression H_momentum = hubbard_momentum.hamiltonian();
 
   // Normal order both expressions before comparing
   H_transformed = canonicalize(H_transformed);
@@ -159,12 +165,12 @@ TEST_CASE("fourier_transform_hubbard_2d_gives_momentum_space") {
   HubbardModel2D hubbard_real(t, U, Lx, Ly);
   Index index({Lx, Ly});
 
-  Expression H_real = hubbard_real.hamiltonian();
-  Expression H_transformed = transform_expression(fourier_transform_operator<Expression>, H_real,
-                                                  index, FourierMode::Direct);
+  FermionExpression H_real = hubbard_real.hamiltonian();
+  FermionExpression H_transformed = transform_expression(
+      fourier_transform_operator<FermionExpression>, H_real, index, FourierMode::Direct);
 
   HubbardModelMomentum hubbard_momentum(t, U, {Lx, Ly});
-  Expression H_momentum = hubbard_momentum.hamiltonian();
+  FermionExpression H_momentum = hubbard_momentum.hamiltonian();
 
   // Normal order both expressions before comparing
   H_transformed = canonicalize(H_transformed);
@@ -188,12 +194,12 @@ TEST_CASE("fourier_transform_hubbard_3d_gives_momentum_space") {
   HubbardModel3D hubbard_real(t, U, Lx, Ly, Lz);
   Index index({Lx, Ly, Lz});
 
-  Expression H_real = hubbard_real.hamiltonian();
-  Expression H_transformed = transform_expression(fourier_transform_operator<Expression>, H_real,
-                                                  index, FourierMode::Direct);
+  FermionExpression H_real = hubbard_real.hamiltonian();
+  FermionExpression H_transformed = transform_expression(
+      fourier_transform_operator<FermionExpression>, H_real, index, FourierMode::Direct);
 
   HubbardModelMomentum hubbard_momentum(t, U, {Lx, Ly, Lz});
-  Expression H_momentum = hubbard_momentum.hamiltonian();
+  FermionExpression H_momentum = hubbard_momentum.hamiltonian();
 
   // Normal order both expressions before comparing
   H_transformed = canonicalize(H_transformed);

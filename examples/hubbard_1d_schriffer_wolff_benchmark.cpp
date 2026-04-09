@@ -14,14 +14,15 @@ int main() {
   const size_t iterations = 200;
 
   HubbardModel hubbard(hopping, interaction, lattice_size);
-  Basis basis = Basis::with_fixed_particle_number_and_spin(lattice_size, particles, 0);
+  FermionBasis basis =
+      FermionBasis::with_fixed_particle_number_and_spin(lattice_size, particles, 0);
 
-  Expression kinetic = hubbard.kinetic();
-  Expression interaction_term = hubbard.interaction();
-  Expression hamiltonian = kinetic + interaction_term;
+  FermionExpression kinetic = hubbard.kinetic();
+  FermionExpression interaction_term = hubbard.interaction();
+  FermionExpression hamiltonian = kinetic + interaction_term;
 
-  Expression generator = schriffer_wolff(kinetic, interaction_term, basis, iterations);
-  Expression effective_hamiltonian = BCH(generator, hamiltonian, 1.0, iterations);
+  FermionExpression generator = schriffer_wolff(kinetic, interaction_term, basis, iterations);
+  FermionExpression effective_hamiltonian = BCH(generator, hamiltonian, 1.0, iterations);
 
   arma::cx_mat effective_matrix =
       compute_matrix_elements_serial<arma::cx_mat>(basis, effective_hamiltonian);
@@ -35,7 +36,7 @@ int main() {
 
   std::cout << "1D Hubbard model (L=" << lattice_size << ", N=" << particles
             << ", U/t=" << interaction / hopping << ")\n";
-  std::cout << "Basis size: " << basis.set.size() << "\n";
+  std::cout << "FermionBasis size: " << basis.set.size() << "\n";
   std::cout << "Ground state energy (effective Hamiltonian): " << eigenvalues(0) << "\n";
 
   return 0;

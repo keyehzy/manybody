@@ -38,7 +38,7 @@ struct BasicMajoranaOperator {
 
   constexpr BasicMajoranaOperator() noexcept = default;
 
-  constexpr explicit BasicMajoranaOperator(std::size_t orbital, Operator::Spin spin,
+  constexpr explicit BasicMajoranaOperator(std::size_t orbital, FermionOperator::Spin spin,
                                            Parity parity) noexcept
       : data(pack(orbital, spin, parity)) {
     assert(orbital <= max_index());
@@ -48,8 +48,9 @@ struct BasicMajoranaOperator {
     return static_cast<std::size_t>(data >> kOrbitalShift);
   }
 
-  constexpr Operator::Spin spin() const noexcept {
-    return ((data & kSpinBit) == storage_type{0}) ? Operator::Spin::Up : Operator::Spin::Down;
+  constexpr FermionOperator::Spin spin() const noexcept {
+    return ((data & kSpinBit) == storage_type{0}) ? FermionOperator::Spin::Up
+                                                  : FermionOperator::Spin::Down;
   }
 
   constexpr Parity parity() const noexcept {
@@ -66,7 +67,7 @@ struct BasicMajoranaOperator {
   //   gamma_{2j-1, sigma} = c_{j sigma} + c^\dagger_{j sigma}
   //   gamma_{2j,   sigma} = -i(c_{j sigma} - c^\dagger_{j sigma}).
   void to_string(std::ostringstream& oss) const {
-    const char* spin_arrow = spin() == Operator::Spin::Up ? "↑" : "↓";
+    const char* spin_arrow = spin() == FermionOperator::Spin::Up ? "↑" : "↓";
     const std::size_t index = 2 * orbital() + (is_odd() ? 1u : 0u);
     oss << "γ(" << index << ", " << spin_arrow << ")";
   }
@@ -86,11 +87,13 @@ struct BasicMajoranaOperator {
     return data != other.data;
   }
 
-  constexpr static BasicMajoranaOperator even(std::size_t orbital, Operator::Spin spin) noexcept {
+  constexpr static BasicMajoranaOperator even(std::size_t orbital,
+                                              FermionOperator::Spin spin) noexcept {
     return BasicMajoranaOperator(orbital, spin, Parity::Even);
   }
 
-  constexpr static BasicMajoranaOperator odd(std::size_t orbital, Operator::Spin spin) noexcept {
+  constexpr static BasicMajoranaOperator odd(std::size_t orbital,
+                                             FermionOperator::Spin spin) noexcept {
     return BasicMajoranaOperator(orbital, spin, Parity::Odd);
   }
 
@@ -101,7 +104,7 @@ struct BasicMajoranaOperator {
   storage_type data{};
 
  private:
-  static constexpr storage_type pack(std::size_t orbital, Operator::Spin spin,
+  static constexpr storage_type pack(std::size_t orbital, FermionOperator::Spin spin,
                                      Parity parity) noexcept {
     return ((static_cast<storage_type>(orbital) & kOrbitalMask) << kOrbitalShift) |
            (static_cast<storage_type>(parity) << kParityShift) |

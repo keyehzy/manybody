@@ -121,6 +121,3 @@ struct std::hash<BasicOperator<S, Storage>> {
     return static_cast<std::size_t>(op.data);
   }
 };
-
-// For backwards compatibility
-using Operator = FermionOperator;

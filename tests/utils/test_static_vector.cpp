@@ -92,12 +92,12 @@ TEST_CASE("static_vector_at_access") {
 }
 
 TEST_CASE("static_vector_equality") {
-  Operator a = Operator::creation(Operator::Spin::Up, 1);
-  Operator b = Operator::annihilation(Operator::Spin::Down, 2);
+  FermionOperator a = FermionOperator::creation(FermionOperator::Spin::Up, 1);
+  FermionOperator b = FermionOperator::annihilation(FermionOperator::Spin::Down, 2);
 
-  static_vector<Operator, 4> lhs({a, b});
-  static_vector<Operator, 4> rhs({a, b});
-  static_vector<Operator, 4> different({b});
+  static_vector<FermionOperator, 4> lhs({a, b});
+  static_vector<FermionOperator, 4> rhs({a, b});
+  static_vector<FermionOperator, 4> different({b});
 
   CHECK(lhs == rhs);
   CHECK(!(lhs == different));

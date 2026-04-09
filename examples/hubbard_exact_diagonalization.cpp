@@ -13,11 +13,12 @@ int main() {
 
   // Build the model and a fixed-particle-number basis (spin is implicit).
   HubbardModel hubbard(hopping, interaction, lattice_size);
-  Basis full_basis = Basis::with_fixed_particle_number(lattice_size, particles);
-  Basis spin_zero_basis = Basis::with_fixed_particle_number_and_spin(lattice_size, particles, 0);
+  FermionBasis full_basis = FermionBasis::with_fixed_particle_number(lattice_size, particles);
+  FermionBasis spin_zero_basis =
+      FermionBasis::with_fixed_particle_number_and_spin(lattice_size, particles, 0);
 
   // Construct the Hamiltonian matrix in the chosen basis.
-  const Expression hamiltonian = hubbard.hamiltonian();
+  const FermionExpression hamiltonian = hubbard.hamiltonian();
   arma::cx_mat H = compute_matrix_elements<arma::cx_mat>(full_basis, hamiltonian);
   arma::cx_mat H_spin_zero = compute_matrix_elements<arma::cx_mat>(spin_zero_basis, hamiltonian);
 

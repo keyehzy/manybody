@@ -5,7 +5,7 @@
 
 namespace majorana {
 
-MajoranaExpression to_majorana(const Expression& expr);
-Expression from_majorana(const MajoranaExpression& expr);
+MajoranaExpression to_majorana(const FermionExpression& expr);
+FermionExpression from_majorana(const MajoranaExpression& expr);
 
 }  // namespace majorana

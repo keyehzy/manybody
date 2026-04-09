@@ -37,10 +37,10 @@ TEST_CASE("build_hubbard_block_hamiltonian vacuum energy is zero") {
   auto geom = brg::block_2d_2x2();
   double t = 1.0, U = -4.0, mu = 0.0;
 
-  Expression H = brg::build_hubbard_block_hamiltonian(geom, t, U, mu);
+  FermionExpression H = brg::build_hubbard_block_hamiltonian(geom, t, U, mu);
 
   // Vacuum sector: N=0, Sz=0
-  Basis vacuum = Basis::with_fixed_particle_number_and_spin(geom.num_sites, 0, 0);
+  FermionBasis vacuum = FermionBasis::with_fixed_particle_number_and_spin(geom.num_sites, 0, 0);
   arma::cx_mat mat = compute_matrix_elements<arma::cx_mat>(vacuum, H);
 
   CHECK(mat.n_rows == 1);
@@ -51,11 +51,11 @@ TEST_CASE("build_hubbard_block_hamiltonian vacuum energy is zero") {
 TEST_CASE("build_2d_block_hamiltonian matches generic builder") {
   double t = 1.5, U = -3.0, mu = 0.2;
 
-  Expression H_generic = brg::build_hubbard_block_hamiltonian(brg::block_2d_2x2(), t, U, mu);
-  Expression H_2d = brg::build_2d_block_hamiltonian(t, U, mu);
+  FermionExpression H_generic = brg::build_hubbard_block_hamiltonian(brg::block_2d_2x2(), t, U, mu);
+  FermionExpression H_2d = brg::build_2d_block_hamiltonian(t, U, mu);
 
   // Compare in single-particle sector
-  Basis basis = Basis::with_fixed_particle_number_and_spin(4, 1, 1);
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_and_spin(4, 1, 1);
   arma::cx_mat mat_generic = compute_matrix_elements<arma::cx_mat>(basis, H_generic);
   arma::cx_mat mat_2d = compute_matrix_elements<arma::cx_mat>(basis, H_2d);
 
@@ -69,11 +69,12 @@ TEST_CASE("build_2d_block_hamiltonian matches generic builder") {
 TEST_CASE("build_3d_block_hamiltonian matches generic builder") {
   double t = 0.8, U = -5.0, mu = 0.1;
 
-  Expression H_generic = brg::build_hubbard_block_hamiltonian(brg::block_3d_2x2x2(), t, U, mu);
-  Expression H_3d = brg::build_3d_block_hamiltonian(t, U, mu);
+  FermionExpression H_generic =
+      brg::build_hubbard_block_hamiltonian(brg::block_3d_2x2x2(), t, U, mu);
+  FermionExpression H_3d = brg::build_3d_block_hamiltonian(t, U, mu);
 
   // Compare in single-particle sector
-  Basis basis = Basis::with_fixed_particle_number_and_spin(8, 1, 1);
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_and_spin(8, 1, 1);
   arma::cx_mat mat_generic = compute_matrix_elements<arma::cx_mat>(basis, H_generic);
   arma::cx_mat mat_3d = compute_matrix_elements<arma::cx_mat>(basis, H_3d);
 
@@ -88,10 +89,10 @@ TEST_CASE("Hubbard block Hamiltonian is Hermitian") {
   auto geom = brg::block_2d_2x2();
   double t = 1.0, U = -4.0, mu = 0.5;
 
-  Expression H = brg::build_hubbard_block_hamiltonian(geom, t, U, mu);
+  FermionExpression H = brg::build_hubbard_block_hamiltonian(geom, t, U, mu);
 
   // Test in N=2, Sz=0 sector
-  Basis basis = Basis::with_fixed_particle_number_and_spin(geom.num_sites, 2, 0);
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_and_spin(geom.num_sites, 2, 0);
   arma::cx_mat mat = compute_matrix_elements<arma::cx_mat>(basis, H);
 
   // Check Hermiticity: H = H†
@@ -107,12 +108,12 @@ TEST_CASE("Chemical potential shifts energies correctly") {
   auto geom = brg::block_2d_2x2();
   double t = 1.0, U = -4.0;
 
-  Expression H0 = brg::build_hubbard_block_hamiltonian(geom, t, U, 0.0);
+  FermionExpression H0 = brg::build_hubbard_block_hamiltonian(geom, t, U, 0.0);
   double mu = 1.5;
-  Expression H_mu = brg::build_hubbard_block_hamiltonian(geom, t, U, mu);
+  FermionExpression H_mu = brg::build_hubbard_block_hamiltonian(geom, t, U, mu);
 
   // In N=2 sector, energy should shift by -2*mu
-  Basis basis = Basis::with_fixed_particle_number_and_spin(geom.num_sites, 2, 0);
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_and_spin(geom.num_sites, 2, 0);
   arma::cx_mat mat0 = compute_matrix_elements<arma::cx_mat>(basis, H0);
   arma::cx_mat mat_mu = compute_matrix_elements<arma::cx_mat>(basis, H_mu);
 

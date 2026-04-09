@@ -19,7 +19,7 @@ TEST_CASE("hubbard_momentum_factorized_construction_1d") {
   const size_t particles = 2;
   const int spin = 0;
 
-  Basis basis = Basis::with_fixed_particle_number_and_spin(sites, particles, spin);
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_and_spin(sites, particles, spin);
   HubbardMomentumFactorized H(basis, size, 1.0, 2.0);
 
   CHECK(H.dimension() == basis.set.size());
@@ -31,7 +31,7 @@ TEST_CASE("hubbard_momentum_factorized_kinetic_diagonal_1d") {
   const size_t particles = 2;
   const int spin = 0;
 
-  Basis basis = Basis::with_fixed_particle_number_and_spin(sites, particles, spin);
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_and_spin(sites, particles, spin);
   HubbardMomentumFactorized H(basis, size, 1.0, 0.0);  // U=0, only kinetic
 
   // Apply to a basis vector and check the result
@@ -58,7 +58,7 @@ TEST_CASE("hubbard_momentum_factorized_kinetic_matches_dense_1d") {
   const int spin = 0;
   const double t = 1.5;
 
-  Basis basis = Basis::with_fixed_particle_number_and_spin(sites, particles, spin);
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_and_spin(sites, particles, spin);
 
   // Factorized version
   HubbardMomentumFactorized H_factorized(basis, size, t, 0.0);
@@ -82,7 +82,7 @@ TEST_CASE("hubbard_momentum_factorized_interaction_matches_dense_1d_small") {
   const int spin = 0;
   const double U = 3.0;
 
-  Basis basis = Basis::with_fixed_particle_number_and_spin(sites, particles, spin);
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_and_spin(sites, particles, spin);
 
   // Factorized version (t=0 to isolate interaction)
   HubbardMomentumFactorized H_factorized(basis, size, 0.0, U);
@@ -107,7 +107,7 @@ TEST_CASE("hubbard_momentum_factorized_full_hamiltonian_matches_dense_1d") {
   const double t = 1.0;
   const double U = 4.0;
 
-  Basis basis = Basis::with_fixed_particle_number_and_spin(sites, particles, spin);
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_and_spin(sites, particles, spin);
 
   // Factorized version
   HubbardMomentumFactorized H_factorized(basis, size, t, U);
@@ -136,7 +136,7 @@ TEST_CASE("hubbard_momentum_factorized_full_hamiltonian_matches_dense_1d_larger"
   const double t = 1.0;
   const double U = -2.0;  // Attractive
 
-  Basis basis = Basis::with_fixed_particle_number_and_spin(sites, particles, spin);
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_and_spin(sites, particles, spin);
 
   // Factorized version
   HubbardMomentumFactorized H_factorized(basis, size, t, U);
@@ -165,7 +165,7 @@ TEST_CASE("hubbard_momentum_factorized_2d") {
   const double t = 1.0;
   const double U = 2.0;
 
-  Basis basis = Basis::with_fixed_particle_number_and_spin(sites, particles, spin);
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_and_spin(sites, particles, spin);
 
   // Factorized version
   HubbardMomentumFactorized H_factorized(basis, size, t, U);
@@ -190,7 +190,7 @@ TEST_CASE("hubbard_momentum_factorized_hermitian") {
   const double t = 1.0;
   const double U = 3.0;
 
-  Basis basis = Basis::with_fixed_particle_number_and_spin(sites, particles, spin);
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_and_spin(sites, particles, spin);
   HubbardMomentumFactorized H(basis, size, t, U);
 
   // Check ⟨x|H|y⟩ = ⟨y|H|x⟩* for random vectors
@@ -209,7 +209,7 @@ TEST_CASE("hubbard_momentum_factorized_density_operators_sparse") {
   const size_t particles = 2;
   const int spin = 0;
 
-  Basis basis = Basis::with_fixed_particle_number_and_spin(sites, particles, spin);
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_and_spin(sites, particles, spin);
   HubbardMomentumFactorized H(basis, size, 1.0, 1.0);
 
   // Check that density operators are sparse

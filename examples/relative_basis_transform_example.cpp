@@ -6,9 +6,9 @@
 #include <vector>
 
 #include "algebra/fermion/basis.h"
-#include "algebra/relative_basis_transform.h"
 #include "algebra/matrix_elements.h"
 #include "algebra/model/hubbard_model_momentum.h"
+#include "algebra/relative_basis_transform.h"
 #include "cxxopts.hpp"
 #include "utils/index.h"
 
@@ -116,7 +116,7 @@ int main(int argc, char** argv) {
   const std::vector<size_t> total_momentum{opts.kx, opts.ky, opts.kz};
   const size_t sites = opts.size_x * opts.size_y * opts.size_z;
 
-  std::cout << "=== Relative Basis Transform Example (3D) ===\n\n";
+  std::cout << "=== Relative FermionBasis Transform Example (3D) ===\n\n";
   std::cout << "Parameters: L=(" << opts.size_x << "x" << opts.size_y << "x" << opts.size_z
             << "), K=(" << opts.kx << "," << opts.ky << "," << opts.kz << "), t=" << opts.t
             << ", U=" << opts.U << "\n";
@@ -124,7 +124,7 @@ int main(int argc, char** argv) {
 
   // Build momentum basis for 2 opts.particles (1 up, 1 down) with fixed total momentum
   Index index(size);
-  Basis momentum_basis = Basis::with_fixed_particle_number_spin_momentum(
+  FermionBasis momentum_basis = FermionBasis::with_fixed_particle_number_spin_momentum(
       sites, opts.particles, opts.spin_projection, index, total_momentum);
 
   std::cout << "Momentum basis states (|p_up, p_down>):\n";

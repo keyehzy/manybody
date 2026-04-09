@@ -43,27 +43,29 @@ struct SSHModel : Model {
   size_t site_B(size_t cell) const { return index({SUBLATTICE_B, cell}); }
 
   /// Intra-cell hopping: A_n -> B_n with amplitude t1
-  Expression intracell_hopping() const {
-    Expression result;
-    const auto coeff = Expression::complex_type(-t1, 0.0);
+  FermionExpression intracell_hopping() const {
+    FermionExpression result;
+    const auto coeff = FermionExpression::complex_type(-t1, 0.0);
     for (size_t n = 0; n < num_cells; ++n) {
-      result += coeff * hopping(site_A(n), site_B(n), Operator::Spin::Up);
+      result += coeff * hopping(site_A(n), site_B(n), FermionOperator::Spin::Up);
     }
     return result;
   }
 
   /// Inter-cell hopping: B_n -> A_{n+1} with amplitude t2
-  Expression intercell_hopping() const {
-    Expression result;
-    const auto coeff = Expression::complex_type(-t2, 0.0);
+  FermionExpression intercell_hopping() const {
+    FermionExpression result;
+    const auto coeff = FermionExpression::complex_type(-t2, 0.0);
     for (size_t n = 0; n < num_cells; ++n) {
       const size_t next_cell = (n + 1) % num_cells;
-      result += coeff * hopping(site_B(n), site_A(next_cell), Operator::Spin::Up);
+      result += coeff * hopping(site_B(n), site_A(next_cell), FermionOperator::Spin::Up);
     }
     return result;
   }
 
-  Expression hamiltonian() const override { return intracell_hopping() + intercell_hopping(); }
+  FermionExpression hamiltonian() const override {
+    return intracell_hopping() + intercell_hopping();
+  }
 
   /// Build the single-particle Hamiltonian matrix directly.
   /// This is more efficient for non-interacting systems.

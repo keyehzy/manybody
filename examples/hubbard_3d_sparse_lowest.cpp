@@ -82,10 +82,10 @@ int main(int argc, char** argv) {
   const size_t sites = opts.size_x * opts.size_y * opts.size_z;
 
   HubbardModel3D hubbard(opts.t, opts.U, opts.size_x, opts.size_y, opts.size_z);
-  Basis basis =
-      Basis::with_fixed_particle_number_and_spin(sites, opts.particles, opts.spin_projection);
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_and_spin(sites, opts.particles,
+                                                                         opts.spin_projection);
 
-  const Expression hamiltonian = hubbard.hamiltonian();
+  const FermionExpression hamiltonian = hubbard.hamiltonian();
   arma::sp_cx_mat H = compute_matrix_elements<arma::sp_cx_mat>(basis, hamiltonian);
 
   arma::cx_vec eigenvalues;
@@ -99,7 +99,7 @@ int main(int argc, char** argv) {
   std::cout << "L=(" << opts.size_x << "x" << opts.size_y << "x" << opts.size_z << ")"
             << ", N=" << opts.particles << ", Sz=" << opts.spin_projection << "\n";
   std::cout << "t=" << opts.t << ", U=" << opts.U << "\n";
-  std::cout << "Basis size: " << basis.set.size() << "\n";
+  std::cout << "FermionBasis size: " << basis.set.size() << "\n";
   std::cout << "Lowest eigenvalue (sparse): " << eigenvalues(0) << std::endl;
 
   return 0;

@@ -15,8 +15,9 @@ constexpr double kTolerance = 1e-10;
 
 // Helper function that wraps the unified compute_rectangular_matrix_elements
 // with the parameter order used in this test (source, target, expr).
-arma::cx_mat compute_current_matrix(const Basis& source_basis, const Basis& target_basis,
-                                    const Expression& current_expr) {
+arma::cx_mat compute_current_matrix(const FermionBasis& source_basis,
+                                    const FermionBasis& target_basis,
+                                    const FermionExpression& current_expr) {
   return compute_rectangular_matrix_elements<arma::cx_mat>(target_basis, source_basis,
                                                            current_expr);
 }
@@ -28,11 +29,12 @@ TEST_CASE("CurrentOperatorFixedK construction", "[current][fixed-k]") {
 
   // Sector K=0
   const std::vector<size_t> K = {0};
-  Basis basis_K = Basis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, K);
+  FermionBasis basis_K = FermionBasis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, K);
 
   // Sector K+Q where Q=1
   const std::vector<size_t> KQ = {1};
-  Basis basis_KQ = Basis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, KQ);
+  FermionBasis basis_KQ =
+      FermionBasis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, KQ);
 
   // Q as flat index
   size_t Q_flat = index(std::vector<size_t>{1});
@@ -57,15 +59,17 @@ TEST_CASE("CurrentOperatorFixedK matches dense matrix 1D", "[current][fixed-k]")
       const std::vector<size_t> Q = {Q_val};
       const std::vector<size_t> KQ = {(K_val + Q_val) % 4};
 
-      Basis basis_K = Basis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, K);
-      Basis basis_KQ = Basis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, KQ);
+      FermionBasis basis_K =
+          FermionBasis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, K);
+      FermionBasis basis_KQ =
+          FermionBasis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, KQ);
 
       if (basis_K.set.empty() || basis_KQ.set.empty()) {
         continue;
       }
 
-      // Build dense matrix using Expression
-      Expression current_expr = model.current(Q, 0);
+      // Build dense matrix using FermionExpression
+      FermionExpression current_expr = model.current(Q, 0);
       arma::cx_mat J_dense = compute_current_matrix(basis_K, basis_KQ, current_expr);
 
       // Build matrix-free operator
@@ -96,15 +100,17 @@ TEST_CASE("CurrentOperatorFixedK adjoint matches dense matrix 1D", "[current][fi
       const std::vector<size_t> Q = {Q_val};
       const std::vector<size_t> KQ = {(K_val + Q_val) % 4};
 
-      Basis basis_K = Basis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, K);
-      Basis basis_KQ = Basis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, KQ);
+      FermionBasis basis_K =
+          FermionBasis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, K);
+      FermionBasis basis_KQ =
+          FermionBasis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, KQ);
 
       if (basis_K.set.empty() || basis_KQ.set.empty()) {
         continue;
       }
 
-      // Build dense matrix using Expression
-      Expression current_expr = model.current(Q, 0);
+      // Build dense matrix using FermionExpression
+      FermionExpression current_expr = model.current(Q, 0);
       arma::cx_mat J_dense = compute_current_matrix(basis_K, basis_KQ, current_expr);
       arma::cx_mat J_adj_dense = J_dense.t();
 
@@ -134,15 +140,16 @@ TEST_CASE("CurrentOperatorFixedK matches dense matrix 2D", "[current][fixed-k]")
   const std::vector<size_t> Q = {1, 1};
   const std::vector<size_t> KQ = {(K[0] + Q[0]) % 3, (K[1] + Q[1]) % 3};
 
-  Basis basis_K = Basis::with_fixed_particle_number_spin_momentum(9, 2, 0, index, K);
-  Basis basis_KQ = Basis::with_fixed_particle_number_spin_momentum(9, 2, 0, index, KQ);
+  FermionBasis basis_K = FermionBasis::with_fixed_particle_number_spin_momentum(9, 2, 0, index, K);
+  FermionBasis basis_KQ =
+      FermionBasis::with_fixed_particle_number_spin_momentum(9, 2, 0, index, KQ);
 
   REQUIRE(!basis_K.set.empty());
   REQUIRE(!basis_KQ.set.empty());
 
   // Test both directions
   for (size_t direction = 0; direction < 2; ++direction) {
-    Expression current_expr = model.current(Q, direction);
+    FermionExpression current_expr = model.current(Q, direction);
     arma::cx_mat J_dense = compute_current_matrix(basis_K, basis_KQ, current_expr);
 
     size_t Q_flat = index(Q);
@@ -172,7 +179,7 @@ TEST_CASE("CurrentOperatorFixedK Q=0 is diagonal", "[current][fixed-k]") {
   const std::vector<size_t> K = {0};
   const std::vector<size_t> Q = {0};
 
-  Basis basis_K = Basis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, K);
+  FermionBasis basis_K = FermionBasis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, K);
 
   // For Q=0, source and target are the same sector
   size_t Q_flat = index(Q);
@@ -182,7 +189,7 @@ TEST_CASE("CurrentOperatorFixedK Q=0 is diagonal", "[current][fixed-k]") {
 
   // Build dense matrix for comparison
   HubbardModelMomentum model(t, 4.0, size);
-  Expression current_expr = model.current(Q, 0);
+  FermionExpression current_expr = model.current(Q, 0);
   arma::cx_mat J_dense = compute_current_matrix(basis_K, basis_K, current_expr);
 
   // Verify it's diagonal
@@ -211,8 +218,9 @@ TEST_CASE("CurrentOperatorFixedK adjoint consistency", "[current][fixed-k]") {
   const std::vector<size_t> Q = {2};
   const std::vector<size_t> KQ = {3};
 
-  Basis basis_K = Basis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, K);
-  Basis basis_KQ = Basis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, KQ);
+  FermionBasis basis_K = FermionBasis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, K);
+  FermionBasis basis_KQ =
+      FermionBasis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, KQ);
 
   REQUIRE(!basis_K.set.empty());
   REQUIRE(!basis_KQ.set.empty());
@@ -242,8 +250,9 @@ TEST_CASE("CurrentOperatorFixedK different particle numbers", "[current][fixed-k
   const std::vector<size_t> Q = {1};
   const std::vector<size_t> KQ = {1};
 
-  Basis basis_K = Basis::with_fixed_particle_number_spin_momentum(4, 3, 1, index, K);
-  Basis basis_KQ = Basis::with_fixed_particle_number_spin_momentum(4, 3, 1, index, KQ);
+  FermionBasis basis_K = FermionBasis::with_fixed_particle_number_spin_momentum(4, 3, 1, index, K);
+  FermionBasis basis_KQ =
+      FermionBasis::with_fixed_particle_number_spin_momentum(4, 3, 1, index, KQ);
 
   if (basis_K.set.empty() || basis_KQ.set.empty()) {
     SUCCEED("No basis states for this configuration");
@@ -251,7 +260,7 @@ TEST_CASE("CurrentOperatorFixedK different particle numbers", "[current][fixed-k
   }
 
   HubbardModelMomentum model(t, 4.0, size);
-  Expression current_expr = model.current(Q, 0);
+  FermionExpression current_expr = model.current(Q, 0);
   arma::cx_mat J_dense = compute_current_matrix(basis_K, basis_KQ, current_expr);
 
   size_t Q_flat = index(Q);
@@ -273,7 +282,7 @@ TEST_CASE("CurrentOperatorFixedK velocity values", "[current][fixed-k]") {
   const std::vector<size_t> KQ = {0};
   size_t Q_flat = 0;
 
-  Basis basis_K = Basis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, K);
+  FermionBasis basis_K = FermionBasis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, K);
   CurrentOperatorFixedK J_op(basis_K, basis_K, size, t, Q_flat, 0);
 
   const auto& velocities = J_op.velocities();

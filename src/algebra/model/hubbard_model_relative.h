@@ -27,8 +27,8 @@ struct HubbardModelRelative : Model {
     return -2.0 * t * std::cos(0.5 * k_phase);
   }
 
-  Expression pair_creation(size_t r) const {
-    Expression result;
+  FermionExpression pair_creation(size_t r) const {
+    FermionExpression result;
     const double normalization = 1.0 / std::sqrt(static_cast<double>(size));
     for (size_t p = 0; p < size; ++p) {
       const size_t k_minus_p = (total_momentum + size - (p % size)) % size;
@@ -38,18 +38,18 @@ struct HubbardModelRelative : Model {
           std::exp(std::complex<double>(0.0, phase)) * normalization;
       result +=
           FermionMonomial(FermionMonomial::complex_type(coefficient.real(), coefficient.imag()),
-                          {Operator::creation(Operator::Spin::Up, p),
-                           Operator::creation(Operator::Spin::Down, k_minus_p)});
+                          {FermionOperator::creation(FermionOperator::Spin::Up, p),
+                           FermionOperator::creation(FermionOperator::Spin::Down, k_minus_p)});
     }
     return result;
   }
 
-  Expression pair_annihilation(size_t r) const { return adjoint(pair_creation(r)); }
+  FermionExpression pair_annihilation(size_t r) const { return adjoint(pair_creation(r)); }
 
-  Expression kinetic() const {
-    Expression kinetic_term;
+  FermionExpression kinetic() const {
+    FermionExpression kinetic_term;
     const double t_eff = effective_hopping();
-    const auto t_coeff = Expression::complex_type(t_eff, 0.0);
+    const auto t_coeff = FermionExpression::complex_type(t_eff, 0.0);
     for (size_t r = 0; r < size; ++r) {
       const size_t next = (r + 1) % size;
       kinetic_term += t_coeff * (pair_creation(r) * pair_annihilation(next));
@@ -58,15 +58,15 @@ struct HubbardModelRelative : Model {
     return kinetic_term;
   }
 
-  Expression interaction() const {
-    Expression interaction_term;
-    const auto u_coeff = Expression::complex_type(u, 0.0);
+  FermionExpression interaction() const {
+    FermionExpression interaction_term;
+    const auto u_coeff = FermionExpression::complex_type(u, 0.0);
     interaction_term += u_coeff * (pair_creation(0) * pair_annihilation(0));
     return interaction_term;
   }
 
-  Expression hamiltonian() const override {
-    Expression result = kinetic();
+  FermionExpression hamiltonian() const override {
+    FermionExpression result = kinetic();
     result += interaction();
     return result;
   }

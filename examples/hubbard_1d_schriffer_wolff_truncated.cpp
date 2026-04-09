@@ -43,17 +43,17 @@ int main() {
   const double cutoff = 0.1 * std::abs(hopping * hopping / interaction);
 
   HubbardModel hubbard(hopping, interaction, lattice_size);
-  Basis sw_basis = Basis::with_fixed_particle_number(lattice_size, sw_particles);
+  FermionBasis sw_basis = FermionBasis::with_fixed_particle_number(lattice_size, sw_particles);
 
-  Expression kinetic = hubbard.kinetic();
-  Expression interaction_term = hubbard.interaction();
-  Expression hamiltonian = kinetic + interaction_term;
+  FermionExpression kinetic = hubbard.kinetic();
+  FermionExpression interaction_term = hubbard.interaction();
+  FermionExpression hamiltonian = kinetic + interaction_term;
 
-  Expression generator = schriffer_wolff(kinetic, interaction_term, sw_basis, iterations);
-  Expression effective_hamiltonian = BCH(generator, hamiltonian, 1.0, iterations);
+  FermionExpression generator = schriffer_wolff(kinetic, interaction_term, sw_basis, iterations);
+  FermionExpression effective_hamiltonian = BCH(generator, hamiltonian, 1.0, iterations);
 
   for (size_t truncatation = 2; truncatation <= max_particles; ++truncatation) {
-    Expression truncated_effective = effective_hamiltonian;
+    FermionExpression truncated_effective = effective_hamiltonian;
     truncated_effective.truncate_by_size(2 * truncatation).truncate_by_norm(cutoff);
 
     {
@@ -65,7 +65,7 @@ int main() {
       }
     }
     for (size_t particles = 2; particles <= max_particles; ++particles) {
-      Basis diag_basis = Basis::with_fixed_particle_number(lattice_size, particles);
+      FermionBasis diag_basis = FermionBasis::with_fixed_particle_number(lattice_size, particles);
       arma::cx_mat H_exact = compute_matrix_elements<arma::cx_mat>(diag_basis, hamiltonian);
       arma::cx_mat H_effective =
           compute_matrix_elements<arma::cx_mat>(diag_basis, truncated_effective);

@@ -16,12 +16,12 @@
 namespace {
 constexpr double kRoundTripTolerance = 1e-2;
 
-Expression::complex_type to_expression_complex(const std::complex<double>& value) {
-  return Expression::complex_type(value.real(), value.imag());
+FermionExpression::complex_type to_expression_complex(const std::complex<double>& value) {
+  return FermionExpression::complex_type(value.real(), value.imag());
 }
 
-Expression vector_to_expression(const arma::cx_vec& v, const Basis& basis) {
-  Expression state;
+FermionExpression vector_to_expression(const arma::cx_vec& v, const FermionBasis& basis) {
+  FermionExpression state;
   state.terms().reserve(basis.set.size());
   for (size_t i = 0; i < basis.set.size(); ++i) {
     const std::complex<double> coeff = v(i);
@@ -32,11 +32,12 @@ Expression vector_to_expression(const arma::cx_vec& v, const Basis& basis) {
   return state;
 }
 
-double max_expression_delta_norm(const Expression& lhs, const Expression& rhs) {
+double max_expression_delta_norm(const FermionExpression& lhs, const FermionExpression& rhs) {
   double max_norm = 0.0;
   for (const auto& [ops, coeff] : lhs.terms()) {
     auto it = rhs.terms().find(ops);
-    const auto rhs_coeff = (it == rhs.terms().end()) ? Expression::complex_type{} : it->second;
+    const auto rhs_coeff =
+        (it == rhs.terms().end()) ? FermionExpression::complex_type{} : it->second;
     const auto delta = coeff - rhs_coeff;
     max_norm = std::max(max_norm, std::norm(delta));
   }
@@ -137,7 +138,7 @@ int main(int argc, char** argv) {
 
   HubbardModelMomentum hubbard(opts.t, opts.U, size);
   Index index(size);
-  Basis basis = Basis::with_fixed_particle_number_spin_momentum(
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_spin_momentum(
       sites, opts.particles, opts.spin_projection, index, total_momentum);
 
   if (basis.set.empty()) {
@@ -145,7 +146,7 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  const Expression hamiltonian = hubbard.hamiltonian();
+  const FermionExpression hamiltonian = hubbard.hamiltonian();
   arma::sp_cx_mat H = compute_matrix_elements<arma::sp_cx_mat>(basis, hamiltonian);
 
   arma::cx_vec eigenvalues;
@@ -156,12 +157,12 @@ int main(int argc, char** argv) {
   }
 
   const arma::cx_vec ground_state = eigenvectors.col(0);
-  const Expression momentum_state = canonicalize(vector_to_expression(ground_state, basis));
+  const FermionExpression momentum_state = canonicalize(vector_to_expression(ground_state, basis));
 
-  const Expression real_space_state = canonicalize(transform_expression(
-      fourier_transform_operator<Expression>, momentum_state, index, FourierMode::Inverse));
-  const Expression round_trip = canonicalize(transform_expression(
-      fourier_transform_operator<Expression>, real_space_state, index, FourierMode::Direct));
+  const FermionExpression real_space_state = canonicalize(transform_expression(
+      fourier_transform_operator<FermionExpression>, momentum_state, index, FourierMode::Inverse));
+  const FermionExpression round_trip = canonicalize(transform_expression(
+      fourier_transform_operator<FermionExpression>, real_space_state, index, FourierMode::Direct));
 
   const double max_error_norm = max_expression_delta_norm(round_trip, momentum_state);
   const double tol_norm = kRoundTripTolerance * kRoundTripTolerance;
@@ -177,7 +178,7 @@ int main(int argc, char** argv) {
             << ", N=" << opts.particles << ", Sz=" << opts.spin_projection << ", K=(" << opts.kx
             << "," << opts.ky << "," << opts.kz << ")\n";
   std::cout << "t=" << opts.t << ", U=" << opts.U << "\n";
-  std::cout << "Basis size: " << basis.set.size() << "\n";
+  std::cout << "FermionBasis size: " << basis.set.size() << "\n";
   std::cout << "Lowest eigenvalue (sparse): " << eigenvalues(0) << "\n";
   std::cout << "Round-trip Fourier transform check: ok (max_error=" << std::sqrt(max_error_norm)
             << ")\n";

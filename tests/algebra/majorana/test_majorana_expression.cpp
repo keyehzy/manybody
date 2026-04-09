@@ -14,11 +14,11 @@ static MajoranaMonomial::container_type make_string(
   return str;
 }
 
-static MajoranaOperator even(size_t orbital, Operator::Spin spin) {
+static MajoranaOperator even(size_t orbital, FermionOperator::Spin spin) {
   return MajoranaOperator::even(orbital, spin);
 }
 
-static MajoranaOperator odd(size_t orbital, Operator::Spin spin) {
+static MajoranaOperator odd(size_t orbital, FermionOperator::Spin spin) {
   return MajoranaOperator::odd(orbital, spin);
 }
 
@@ -32,8 +32,9 @@ TEST_CASE("majorana_expression_construct_from_scalar") {
 }
 
 TEST_CASE("majorana_expression_construct_from_string") {
-  MajoranaMonomial::container_type str = make_string(
-      {even(0, Operator::Spin::Down), odd(0, Operator::Spin::Down), even(1, Operator::Spin::Down)});
+  MajoranaMonomial::container_type str =
+      make_string({even(0, FermionOperator::Spin::Down), odd(0, FermionOperator::Spin::Down),
+                   even(1, FermionOperator::Spin::Down)});
   MajoranaExpression expr(MajoranaExpression::complex_type(2.0, 0.0), str);
   CHECK(expr.size() == 1u);
   auto it = expr.terms().find(str);
@@ -43,7 +44,7 @@ TEST_CASE("majorana_expression_construct_from_string") {
 
 TEST_CASE("majorana_expression_construct_from_sign") {
   MajoranaMonomial::container_type str =
-      make_string({even(0, Operator::Spin::Up), even(0, Operator::Spin::Down)});
+      make_string({even(0, FermionOperator::Spin::Up), even(0, FermionOperator::Spin::Down)});
   MajoranaExpression expr(-1, str);
   CHECK(expr.size() == 1u);
   auto it = expr.terms().find(str);
@@ -53,7 +54,7 @@ TEST_CASE("majorana_expression_construct_from_sign") {
 
 TEST_CASE("majorana_expression_add_combines_coefficients") {
   MajoranaMonomial::container_type str =
-      make_string({odd(0, Operator::Spin::Up), even(1, Operator::Spin::Up)});
+      make_string({odd(0, FermionOperator::Spin::Up), even(1, FermionOperator::Spin::Up)});
   MajoranaExpression a(MajoranaExpression::complex_type(1.0, 0.0), str);
   MajoranaExpression b(MajoranaExpression::complex_type(2.5, 0.0), str);
 
@@ -66,7 +67,7 @@ TEST_CASE("majorana_expression_add_combines_coefficients") {
 }
 
 TEST_CASE("majorana_expression_subtract_cancels") {
-  MajoranaMonomial::container_type str = make_string({even(0, Operator::Spin::Down)});
+  MajoranaMonomial::container_type str = make_string({even(0, FermionOperator::Spin::Down)});
   MajoranaExpression a(MajoranaExpression::complex_type(1.0, 0.0), str);
   MajoranaExpression b(MajoranaExpression::complex_type(1.0, 0.0), str);
 
@@ -77,7 +78,7 @@ TEST_CASE("majorana_expression_subtract_cancels") {
 
 TEST_CASE("majorana_expression_scalar_multiply") {
   MajoranaMonomial::container_type str =
-      make_string({even(0, Operator::Spin::Up), odd(0, Operator::Spin::Down)});
+      make_string({even(0, FermionOperator::Spin::Up), odd(0, FermionOperator::Spin::Down)});
   MajoranaExpression expr(MajoranaExpression::complex_type(2.0, 1.0), str);
 
   expr *= MajoranaExpression::complex_type(0.0, 1.0);
@@ -89,15 +90,15 @@ TEST_CASE("majorana_expression_scalar_multiply") {
 }
 
 TEST_CASE("majorana_expression_multiply_expressions") {
-  MajoranaMonomial::container_type str_a = make_string({even(0, Operator::Spin::Up)});
-  MajoranaMonomial::container_type str_b = make_string({even(0, Operator::Spin::Down)});
+  MajoranaMonomial::container_type str_a = make_string({even(0, FermionOperator::Spin::Up)});
+  MajoranaMonomial::container_type str_b = make_string({even(0, FermionOperator::Spin::Down)});
   MajoranaExpression a(MajoranaExpression::complex_type(1.0, 0.0), str_a);
   MajoranaExpression b(MajoranaExpression::complex_type(1.0, 0.0), str_b);
 
   a *= b;
 
   MajoranaMonomial::container_type expected =
-      make_string({even(0, Operator::Spin::Up), even(0, Operator::Spin::Down)});
+      make_string({even(0, FermionOperator::Spin::Up), even(0, FermionOperator::Spin::Down)});
   CHECK(a.size() == 1u);
   auto it = a.terms().find(expected);
   CHECK(it != a.terms().end());
@@ -106,7 +107,7 @@ TEST_CASE("majorana_expression_multiply_expressions") {
 
 TEST_CASE("majorana_expression_multiply_cancellation") {
   // gamma_0 * gamma_0 = identity (empty string)
-  MajoranaMonomial::container_type str = make_string({even(0, Operator::Spin::Up)});
+  MajoranaMonomial::container_type str = make_string({even(0, FermionOperator::Spin::Up)});
   MajoranaExpression a(MajoranaExpression::complex_type(1.0, 0.0), str);
   MajoranaExpression b(MajoranaExpression::complex_type(1.0, 0.0), str);
 
@@ -120,8 +121,9 @@ TEST_CASE("majorana_expression_multiply_cancellation") {
 }
 
 TEST_CASE("majorana_expression_zero_scalar_clears") {
-  MajoranaMonomial::container_type str = make_string(
-      {even(0, Operator::Spin::Down), odd(0, Operator::Spin::Up), odd(0, Operator::Spin::Down)});
+  MajoranaMonomial::container_type str =
+      make_string({even(0, FermionOperator::Spin::Down), odd(0, FermionOperator::Spin::Up),
+                   odd(0, FermionOperator::Spin::Down)});
   MajoranaExpression expr(MajoranaExpression::complex_type(5.0, 0.0), str);
 
   expr *= MajoranaExpression::complex_type(0.0, 0.0);
@@ -138,12 +140,12 @@ TEST_CASE("majorana_expression_ignores_near_zero_coefficients") {
 
 TEST_CASE("majorana_expression_canonicalize_unsorted_term") {
   MajoranaMonomial::container_type str =
-      make_string({odd(0, Operator::Spin::Up), even(0, Operator::Spin::Up)});
+      make_string({odd(0, FermionOperator::Spin::Up), even(0, FermionOperator::Spin::Up)});
 
   auto canonical = canonicalize(MajoranaExpression::complex_type(2.0, 0.0), str);
 
   MajoranaMonomial::container_type expected =
-      make_string({even(0, Operator::Spin::Up), odd(0, Operator::Spin::Up)});
+      make_string({even(0, FermionOperator::Spin::Up), odd(0, FermionOperator::Spin::Up)});
   CHECK(canonical.size() == 1u);
   auto it = canonical.terms().find(expected);
   CHECK(it != canonical.terms().end());
@@ -152,9 +154,9 @@ TEST_CASE("majorana_expression_canonicalize_unsorted_term") {
 
 TEST_CASE("majorana_expression_canonicalize_expression_cancels") {
   MajoranaMonomial::container_type sorted =
-      make_string({even(0, Operator::Spin::Up), odd(0, Operator::Spin::Up)});
+      make_string({even(0, FermionOperator::Spin::Up), odd(0, FermionOperator::Spin::Up)});
   MajoranaMonomial::container_type unsorted =
-      make_string({odd(0, Operator::Spin::Up), even(0, Operator::Spin::Up)});
+      make_string({odd(0, FermionOperator::Spin::Up), even(0, FermionOperator::Spin::Up)});
 
   MajoranaExpression expr;
   expr += MajoranaExpression(MajoranaExpression::complex_type(1.0, 0.0), sorted);
@@ -167,7 +169,7 @@ TEST_CASE("majorana_expression_canonicalize_expression_cancels") {
 
 TEST_CASE("majorana_expression_canonicalize_drops_small_coefficients") {
   constexpr auto tol = tolerances::tolerance<double>();
-  MajoranaMonomial::container_type str = make_string({even(1, Operator::Spin::Down)});
+  MajoranaMonomial::container_type str = make_string({even(1, FermionOperator::Spin::Down)});
   auto canonical = canonicalize(MajoranaExpression::complex_type(0.5 * tol, 0.0), str);
 
   CHECK(canonical.size() == 0u);

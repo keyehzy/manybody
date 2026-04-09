@@ -104,7 +104,7 @@ int main(int argc, char** argv) {
 
   HubbardModelMomentum hubbard(opts.t, opts.U, size);
   Index index(size);
-  Basis basis = Basis::with_fixed_particle_number_spin_momentum(
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_spin_momentum(
       sites, opts.particles, opts.spin_projection, index, total_momentum);
 
   if (basis.set.empty()) {
@@ -112,7 +112,7 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  const Expression hamiltonian = hubbard.hamiltonian();
+  const FermionExpression hamiltonian = hubbard.hamiltonian();
   arma::sp_cx_mat H = compute_matrix_elements<arma::sp_cx_mat>(basis, hamiltonian);
 
   SparseComplexMatrixOperator op(std::move(H));
@@ -128,7 +128,7 @@ int main(int argc, char** argv) {
             << ", N=" << opts.particles << ", Sz=" << opts.spin_projection << ", K=(" << opts.kx
             << "," << opts.ky << "," << opts.kz << ")\n";
   std::cout << "t=" << opts.t << ", U=" << opts.U << "\n";
-  std::cout << "Basis size: " << basis.set.size() << "\n";
+  std::cout << "FermionBasis size: " << basis.set.size() << "\n";
   std::cout << "Lanczos steps: " << lanczos_steps << "\n";
   std::cout << "Ground state energy: " << eigenpair.value << "\n";
   std::cout << "Residual norm: " << residual_norm << "\n";

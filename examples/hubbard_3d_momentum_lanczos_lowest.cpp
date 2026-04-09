@@ -102,21 +102,21 @@ struct HubbardMomentumOperator final : LinearOperator<arma::cx_vec> {
   using VectorType = arma::cx_vec;
   using ScalarType = std::complex<double>;
 
-  HubbardMomentumOperator(const HubbardModelMomentum& model, const Basis& basis)
+  HubbardMomentumOperator(const HubbardModelMomentum& model, const FermionBasis& basis)
       : model_(model), basis_(basis), hamiltonian_(model_.hamiltonian()) {}
 
   VectorType apply(const VectorType& v) const override {
     assert(static_cast<size_t>(v.n_elem) == dimension());
-    Expression state = vector_to_expression(v);
-    Expression applied = canonicalize(hamiltonian_ * state);
+    FermionExpression state = vector_to_expression(v);
+    FermionExpression applied = canonicalize(hamiltonian_ * state);
     return expression_to_vector(applied);
   }
 
   size_t dimension() const override { return basis_.set.size(); }
 
  private:
-  Expression vector_to_expression(const VectorType& v) const {
-    Expression state;
+  FermionExpression vector_to_expression(const VectorType& v) const {
+    FermionExpression state;
     state.terms().reserve(basis_.set.size());
     for (size_t i = 0; i < basis_.set.size(); ++i) {
       const ScalarType coeff = v(i);
@@ -127,7 +127,7 @@ struct HubbardMomentumOperator final : LinearOperator<arma::cx_vec> {
     return state;
   }
 
-  VectorType expression_to_vector(const Expression& expr) const {
+  VectorType expression_to_vector(const FermionExpression& expr) const {
     VectorType result(dimension(), arma::fill::zeros);
     for (const auto& term : expr.terms()) {
       if (basis_.set.contains(term.first)) {
@@ -138,17 +138,17 @@ struct HubbardMomentumOperator final : LinearOperator<arma::cx_vec> {
     return result;
   }
 
-  static Expression::complex_type to_expression_complex(const ScalarType& value) {
-    return Expression::complex_type(value.real(), value.imag());
+  static FermionExpression::complex_type to_expression_complex(const ScalarType& value) {
+    return FermionExpression::complex_type(value.real(), value.imag());
   }
 
-  static ScalarType to_arma_complex(const Expression::complex_type& value) {
+  static ScalarType to_arma_complex(const FermionExpression::complex_type& value) {
     return ScalarType(static_cast<double>(value.real()), static_cast<double>(value.imag()));
   }
 
   const HubbardModelMomentum& model_;
-  const Basis& basis_;
-  Expression hamiltonian_;
+  const FermionBasis& basis_;
+  FermionExpression hamiltonian_;
 };
 
 int main(int argc, char** argv) {
@@ -161,7 +161,7 @@ int main(int argc, char** argv) {
 
   HubbardModelMomentum hubbard(opts.t, opts.U, size);
   Index index(size);
-  Basis basis = Basis::with_fixed_particle_number_spin_momentum(
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_spin_momentum(
       sites, opts.particles, opts.spin_projection, index, total_momentum);
 
   if (basis.set.empty()) {
@@ -169,7 +169,7 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  const Expression hamiltonian = hubbard.hamiltonian();
+  const FermionExpression hamiltonian = hubbard.hamiltonian();
   arma::sp_cx_mat H = compute_matrix_elements<arma::sp_cx_mat>(basis, hamiltonian);
 
   arma::cx_vec eigenvalues;

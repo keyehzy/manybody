@@ -49,7 +49,7 @@ struct HubbardModelMomentum : Model {
 
   /// Current operator in direction d with momentum transfer Q:
   /// J_d(Q) = sum_{k,σ} v_d(k) c†_{k+Q,σ} c_{k,σ}
-  Expression current(const std::vector<size_t>& Q, size_t direction) const {
+  FermionExpression current(const std::vector<size_t>& Q, size_t direction) const {
     if (Q.size() != size.size()) {
       throw std::invalid_argument(
           "Momentum transfer Q must have the same dimension as the system.");
@@ -58,7 +58,7 @@ struct HubbardModelMomentum : Model {
       throw std::invalid_argument("Direction index out of bounds.");
     }
 
-    Expression current_term;
+    FermionExpression current_term;
     const size_t N = index.size();
 
     for (size_t k = 0; k < N; ++k) {
@@ -69,7 +69,7 @@ struct HubbardModelMomentum : Model {
         continue;
       }
 
-      const auto coeff = Expression::complex_type(v, 0.0);
+      const auto coeff = FermionExpression::complex_type(v, 0.0);
 
       // Compute k + Q with periodic boundary conditions
       std::vector<size_t> k_plus_Q(size.size());
@@ -79,66 +79,69 @@ struct HubbardModelMomentum : Model {
       const size_t k_plus_Q_idx = index(k_plus_Q);
 
       // c†_{k+Q,↑} c_{k,↑}
-      current_term +=
-          Expression(FermionMonomial(coeff, {Operator::creation(Operator::Spin::Up, k_plus_Q_idx),
-                                             Operator::annihilation(Operator::Spin::Up, k)}));
+      current_term += FermionExpression(FermionMonomial(
+          coeff, {FermionOperator::creation(FermionOperator::Spin::Up, k_plus_Q_idx),
+                  FermionOperator::annihilation(FermionOperator::Spin::Up, k)}));
       // c†_{k+Q,↓} c_{k,↓}
-      current_term +=
-          Expression(FermionMonomial(coeff, {Operator::creation(Operator::Spin::Down, k_plus_Q_idx),
-                                             Operator::annihilation(Operator::Spin::Down, k)}));
+      current_term += FermionExpression(FermionMonomial(
+          coeff, {FermionOperator::creation(FermionOperator::Spin::Down, k_plus_Q_idx),
+                  FermionOperator::annihilation(FermionOperator::Spin::Down, k)}));
     }
     return current_term;
   }
 
   /// Total momentum operator in direction d:
   /// P_d = sum_{k,σ} k_d n_{k,σ}
-  Expression total_momentum(size_t direction) const {
+  FermionExpression total_momentum(size_t direction) const {
     if (direction >= size.size()) {
       throw std::invalid_argument("Direction index out of bounds.");
     }
 
-    Expression P;
+    FermionExpression P;
     for (size_t k = 0; k < index.size(); ++k) {
       const auto k_coords = index(k);
-      const auto coeff = Expression::complex_type(static_cast<double>(k_coords[direction]), 0.0);
+      const auto coeff =
+          FermionExpression::complex_type(static_cast<double>(k_coords[direction]), 0.0);
 
       if (k_coords[direction] == 0) {
         continue;
       }
 
       // n_{k,↑} = c†_{k,↑} c_{k,↑}
-      P += Expression(FermionMonomial(coeff, {Operator::creation(Operator::Spin::Up, k),
-                                              Operator::annihilation(Operator::Spin::Up, k)}));
+      P += FermionExpression(
+          FermionMonomial(coeff, {FermionOperator::creation(FermionOperator::Spin::Up, k),
+                                  FermionOperator::annihilation(FermionOperator::Spin::Up, k)}));
       // n_{k,↓} = c†_{k,↓} c_{k,↓}
-      P += Expression(FermionMonomial(coeff, {Operator::creation(Operator::Spin::Down, k),
-                                              Operator::annihilation(Operator::Spin::Down, k)}));
+      P += FermionExpression(
+          FermionMonomial(coeff, {FermionOperator::creation(FermionOperator::Spin::Down, k),
+                                  FermionOperator::annihilation(FermionOperator::Spin::Down, k)}));
     }
     return P;
   }
 
-  Expression kinetic() const {
-    Expression kinetic_term;
+  FermionExpression kinetic() const {
+    FermionExpression kinetic_term;
     for (size_t k = 0; k < index.size(); ++k) {
       const auto momentum = index(k);
       const double energy = dispersion(momentum);
-      const auto coeff = Expression::complex_type(energy, 0.0);
+      const auto coeff = FermionExpression::complex_type(energy, 0.0);
 
       // n_{k,up} = c†_{k,up} c_{k,up}
-      kinetic_term +=
-          Expression(FermionMonomial(coeff, {Operator::creation(Operator::Spin::Up, k),
-                                             Operator::annihilation(Operator::Spin::Up, k)}));
+      kinetic_term += FermionExpression(
+          FermionMonomial(coeff, {FermionOperator::creation(FermionOperator::Spin::Up, k),
+                                  FermionOperator::annihilation(FermionOperator::Spin::Up, k)}));
       // n_{k,down} = c†_{k,down} c_{k,down}
-      kinetic_term +=
-          Expression(FermionMonomial(coeff, {Operator::creation(Operator::Spin::Down, k),
-                                             Operator::annihilation(Operator::Spin::Down, k)}));
+      kinetic_term += FermionExpression(
+          FermionMonomial(coeff, {FermionOperator::creation(FermionOperator::Spin::Down, k),
+                                  FermionOperator::annihilation(FermionOperator::Spin::Down, k)}));
     }
     return kinetic_term;
   }
 
-  Expression interaction() const {
-    Expression interaction_term;
+  FermionExpression interaction() const {
+    FermionExpression interaction_term;
     const size_t N = index.size();
-    const auto u_coeff = Expression::complex_type(u / static_cast<double>(N), 0.0);
+    const auto u_coeff = FermionExpression::complex_type(u / static_cast<double>(N), 0.0);
 
     // (U/N) sum_{k1,k2,q} c†_{k1+q,↑} c†_{k2-q,↓} c_{k2,↓} c_{k1,↑}
     for (size_t k1 = 0; k1 < N; ++k1) {
@@ -159,19 +162,19 @@ struct HubbardModelMomentum : Model {
           const size_t k1_plus_q_idx = index(k1_plus_q);
           const size_t k2_minus_q_idx = index(k2_minus_q);
 
-          interaction_term += Expression(
-              FermionMonomial(u_coeff, {Operator::creation(Operator::Spin::Up, k1_plus_q_idx),
-                                        Operator::creation(Operator::Spin::Down, k2_minus_q_idx),
-                                        Operator::annihilation(Operator::Spin::Down, k2),
-                                        Operator::annihilation(Operator::Spin::Up, k1)}));
+          interaction_term += FermionExpression(FermionMonomial(
+              u_coeff, {FermionOperator::creation(FermionOperator::Spin::Up, k1_plus_q_idx),
+                        FermionOperator::creation(FermionOperator::Spin::Down, k2_minus_q_idx),
+                        FermionOperator::annihilation(FermionOperator::Spin::Down, k2),
+                        FermionOperator::annihilation(FermionOperator::Spin::Up, k1)}));
         }
       }
     }
     return interaction_term;
   }
 
-  Expression hamiltonian() const override {
-    Expression result = kinetic();
+  FermionExpression hamiltonian() const override {
+    FermionExpression result = kinetic();
     result += interaction();
     return result;
   }
@@ -183,12 +186,12 @@ struct HubbardModelMomentum : Model {
   /// G_{↑↓}(r) = (1/N²) Σ_{k1,q,k2} e^{-iq·r} c†_{k1,↑} c_{k1+q,↑} c†_{k2,↓} c_{k2-q,↓}
   ///
   /// Measures spatial extent of opposite-spin correlations.
-  Expression opposite_spin_correlation(const std::vector<size_t>& r) const {
+  FermionExpression opposite_spin_correlation(const std::vector<size_t>& r) const {
     if (r.size() != size.size()) {
       throw std::invalid_argument("Separation r must have the same dimension as the system.");
     }
 
-    Expression result;
+    FermionExpression result;
     const size_t N = index.size();
 
     for (size_t k1 = 0; k1 < N; ++k1) {
@@ -217,14 +220,14 @@ struct HubbardModelMomentum : Model {
           }
 
           const auto coeff =
-              Expression::complex_type(std::cos(phase) / static_cast<double>(N * N),
-                                       -std::sin(phase) / static_cast<double>(N * N));
+              FermionExpression::complex_type(std::cos(phase) / static_cast<double>(N * N),
+                                              -std::sin(phase) / static_cast<double>(N * N));
 
-          result += Expression(FermionMonomial(
-              coeff, {Operator::creation(Operator::Spin::Up, k1),
-                      Operator::annihilation(Operator::Spin::Up, k1_plus_q_idx),
-                      Operator::creation(Operator::Spin::Down, k2),
-                      Operator::annihilation(Operator::Spin::Down, k2_minus_q_idx)}));
+          result += FermionExpression(FermionMonomial(
+              coeff, {FermionOperator::creation(FermionOperator::Spin::Up, k1),
+                      FermionOperator::annihilation(FermionOperator::Spin::Up, k1_plus_q_idx),
+                      FermionOperator::creation(FermionOperator::Spin::Down, k2),
+                      FermionOperator::annihilation(FermionOperator::Spin::Down, k2_minus_q_idx)}));
         }
       }
     }

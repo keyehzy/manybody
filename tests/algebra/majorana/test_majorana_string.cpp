@@ -13,25 +13,28 @@ static MajoranaMonomial::container_type make_string(
   return str;
 }
 
-static MajoranaOperator even(size_t orbital, Operator::Spin spin) {
+static MajoranaOperator even(size_t orbital, FermionOperator::Spin spin) {
   return MajoranaOperator::even(orbital, spin);
 }
 
-static MajoranaOperator odd(size_t orbital, Operator::Spin spin) {
+static MajoranaOperator odd(size_t orbital, FermionOperator::Spin spin) {
   return MajoranaOperator::odd(orbital, spin);
 }
 
 TEST_CASE("majorana_string_disjoint_multiply_concatenates") {
-  MajoranaMonomial::container_type a = make_string(
-      {even(0, Operator::Spin::Up), odd(0, Operator::Spin::Up), even(1, Operator::Spin::Up)});
-  MajoranaMonomial::container_type b = make_string(
-      {even(0, Operator::Spin::Down), odd(0, Operator::Spin::Down), even(1, Operator::Spin::Down)});
+  MajoranaMonomial::container_type a =
+      make_string({even(0, FermionOperator::Spin::Up), odd(0, FermionOperator::Spin::Up),
+                   even(1, FermionOperator::Spin::Up)});
+  MajoranaMonomial::container_type b =
+      make_string({even(0, FermionOperator::Spin::Down), odd(0, FermionOperator::Spin::Down),
+                   even(1, FermionOperator::Spin::Down)});
 
   auto result = multiply_strings(a, b);
 
-  MajoranaMonomial::container_type expected = make_string(
-      {even(0, Operator::Spin::Up), even(0, Operator::Spin::Down), odd(0, Operator::Spin::Up),
-       odd(0, Operator::Spin::Down), even(1, Operator::Spin::Up), even(1, Operator::Spin::Down)});
+  MajoranaMonomial::container_type expected =
+      make_string({even(0, FermionOperator::Spin::Up), even(0, FermionOperator::Spin::Down),
+                   odd(0, FermionOperator::Spin::Up), odd(0, FermionOperator::Spin::Down),
+                   even(1, FermionOperator::Spin::Up), even(1, FermionOperator::Spin::Down)});
   CHECK(result.string == expected);
   // b[0]=1 passes 2 a-elements (2,4), b[1]=3 passes 1 (4), b[2]=5 passes 0 => 3 swaps (odd)
   CHECK(result.sign == -1);
@@ -39,23 +42,26 @@ TEST_CASE("majorana_string_disjoint_multiply_concatenates") {
 
 TEST_CASE("majorana_string_disjoint_multiply_odd_sign") {
   MajoranaMonomial::container_type a =
-      make_string({even(0, Operator::Spin::Up), odd(0, Operator::Spin::Up)});
-  MajoranaMonomial::container_type b = make_string({even(0, Operator::Spin::Down)});
+      make_string({even(0, FermionOperator::Spin::Up), odd(0, FermionOperator::Spin::Up)});
+  MajoranaMonomial::container_type b = make_string({even(0, FermionOperator::Spin::Down)});
 
   auto result = multiply_strings(a, b);
 
-  MajoranaMonomial::container_type expected = make_string(
-      {even(0, Operator::Spin::Up), even(0, Operator::Spin::Down), odd(0, Operator::Spin::Up)});
+  MajoranaMonomial::container_type expected =
+      make_string({even(0, FermionOperator::Spin::Up), even(0, FermionOperator::Spin::Down),
+                   odd(0, FermionOperator::Spin::Up)});
   CHECK(result.string == expected);
   // b[0]=1 passes 1 remaining a-element (a[1]=2) => 1 swap (odd)
   CHECK(result.sign == -1);
 }
 
 TEST_CASE("majorana_string_overlap_cancellation") {
-  MajoranaMonomial::container_type a = make_string(
-      {even(0, Operator::Spin::Down), odd(0, Operator::Spin::Down), even(1, Operator::Spin::Down)});
-  MajoranaMonomial::container_type b = make_string(
-      {even(0, Operator::Spin::Down), odd(0, Operator::Spin::Down), even(1, Operator::Spin::Down)});
+  MajoranaMonomial::container_type a =
+      make_string({even(0, FermionOperator::Spin::Down), odd(0, FermionOperator::Spin::Down),
+                   even(1, FermionOperator::Spin::Down)});
+  MajoranaMonomial::container_type b =
+      make_string({even(0, FermionOperator::Spin::Down), odd(0, FermionOperator::Spin::Down),
+                   even(1, FermionOperator::Spin::Down)});
 
   auto result = multiply_strings(a, b);
 
@@ -69,14 +75,14 @@ TEST_CASE("majorana_string_overlap_cancellation") {
 
 TEST_CASE("majorana_string_partial_overlap") {
   MajoranaMonomial::container_type a =
-      make_string({even(0, Operator::Spin::Down), odd(0, Operator::Spin::Down)});
+      make_string({even(0, FermionOperator::Spin::Down), odd(0, FermionOperator::Spin::Down)});
   MajoranaMonomial::container_type b =
-      make_string({odd(0, Operator::Spin::Up), odd(0, Operator::Spin::Down)});
+      make_string({odd(0, FermionOperator::Spin::Up), odd(0, FermionOperator::Spin::Down)});
 
   auto result = multiply_strings(a, b);
 
   MajoranaMonomial::container_type expected =
-      make_string({even(0, Operator::Spin::Down), odd(0, Operator::Spin::Up)});
+      make_string({even(0, FermionOperator::Spin::Down), odd(0, FermionOperator::Spin::Up)});
   CHECK(result.string == expected);
   // Step by step:
   // a[0]=1 < b[0]=2 => push 1, i=1
@@ -86,7 +92,7 @@ TEST_CASE("majorana_string_partial_overlap") {
 }
 
 TEST_CASE("majorana_string_self_multiply_single_index") {
-  MajoranaMonomial::container_type a = make_string({odd(1, Operator::Spin::Down)});
+  MajoranaMonomial::container_type a = make_string({odd(1, FermionOperator::Spin::Down)});
 
   auto result = multiply_strings(a, a);
 
@@ -95,8 +101,9 @@ TEST_CASE("majorana_string_self_multiply_single_index") {
 }
 
 TEST_CASE("majorana_string_identity_multiply") {
-  MajoranaMonomial::container_type a = make_string(
-      {odd(0, Operator::Spin::Up), even(1, Operator::Spin::Down), even(2, Operator::Spin::Down)});
+  MajoranaMonomial::container_type a =
+      make_string({odd(0, FermionOperator::Spin::Up), even(1, FermionOperator::Spin::Down),
+                   even(2, FermionOperator::Spin::Down)});
   MajoranaMonomial::container_type empty;
 
   auto result_left = multiply_strings(empty, a);
@@ -110,8 +117,8 @@ TEST_CASE("majorana_string_identity_multiply") {
 
 TEST_CASE("majorana_string_anticommutation_sign") {
   // gamma_i * gamma_j = -gamma_j * gamma_i for i != j
-  MajoranaMonomial::container_type a = make_string({even(0, Operator::Spin::Up)});
-  MajoranaMonomial::container_type b = make_string({even(0, Operator::Spin::Down)});
+  MajoranaMonomial::container_type a = make_string({even(0, FermionOperator::Spin::Up)});
+  MajoranaMonomial::container_type b = make_string({even(0, FermionOperator::Spin::Down)});
 
   auto ab = multiply_strings(a, b);
   auto ba = multiply_strings(b, a);
@@ -123,16 +130,16 @@ TEST_CASE("majorana_string_anticommutation_sign") {
 TEST_CASE("majorana_string_three_element_anticommutation") {
   // Verify sign consistency for longer strings
   MajoranaMonomial::container_type a =
-      make_string({even(0, Operator::Spin::Up), even(0, Operator::Spin::Down)});
+      make_string({even(0, FermionOperator::Spin::Up), even(0, FermionOperator::Spin::Down)});
   MajoranaMonomial::container_type b =
-      make_string({odd(0, Operator::Spin::Up), odd(0, Operator::Spin::Down)});
+      make_string({odd(0, FermionOperator::Spin::Up), odd(0, FermionOperator::Spin::Down)});
 
   auto ab = multiply_strings(a, b);
   auto ba = multiply_strings(b, a);
 
   MajoranaMonomial::container_type expected =
-      make_string({even(0, Operator::Spin::Up), even(0, Operator::Spin::Down),
-                   odd(0, Operator::Spin::Up), odd(0, Operator::Spin::Down)});
+      make_string({even(0, FermionOperator::Spin::Up), even(0, FermionOperator::Spin::Down),
+                   odd(0, FermionOperator::Spin::Up), odd(0, FermionOperator::Spin::Down)});
   CHECK(ab.string == expected);
   CHECK(ba.string == expected);
   // ab: b passes 2 a-elements each: 2+2=4 swaps => sign +1
@@ -142,19 +149,19 @@ TEST_CASE("majorana_string_three_element_anticommutation") {
 
 TEST_CASE("majorana_string_canonicalize_unsorted_sign") {
   MajoranaMonomial::container_type str =
-      make_string({odd(0, Operator::Spin::Up), even(0, Operator::Spin::Up)});
+      make_string({odd(0, FermionOperator::Spin::Up), even(0, FermionOperator::Spin::Up)});
 
   auto result = canonicalize(str);
 
   MajoranaMonomial::container_type expected =
-      make_string({even(0, Operator::Spin::Up), odd(0, Operator::Spin::Up)});
+      make_string({even(0, FermionOperator::Spin::Up), odd(0, FermionOperator::Spin::Up)});
   CHECK(result.string == expected);
   CHECK(result.sign == -1);
 }
 
 TEST_CASE("majorana_string_canonicalize_cancels_pair") {
   MajoranaMonomial::container_type str =
-      make_string({even(1, Operator::Spin::Down), even(1, Operator::Spin::Down)});
+      make_string({even(1, FermionOperator::Spin::Down), even(1, FermionOperator::Spin::Down)});
 
   auto result = canonicalize(str);
 
@@ -163,28 +170,28 @@ TEST_CASE("majorana_string_canonicalize_cancels_pair") {
 }
 
 TEST_CASE("majorana_element_accessors") {
-  auto even_elem = MajoranaOperator::even(3, Operator::Spin::Up);
-  auto odd_elem = MajoranaOperator::odd(2, Operator::Spin::Down);
+  auto even_elem = MajoranaOperator::even(3, FermionOperator::Spin::Up);
+  auto odd_elem = MajoranaOperator::odd(2, FermionOperator::Spin::Down);
 
   CHECK(even_elem.orbital() == 3u);
-  CHECK(even_elem.spin() == Operator::Spin::Up);
+  CHECK(even_elem.spin() == FermionOperator::Spin::Up);
   CHECK(even_elem.parity() == MajoranaOperator::Parity::Even);
   CHECK(even_elem.is_even());
   CHECK(!even_elem.is_odd());
 
   CHECK(odd_elem.orbital() == 2u);
-  CHECK(odd_elem.spin() == Operator::Spin::Down);
+  CHECK(odd_elem.spin() == FermionOperator::Spin::Down);
   CHECK(odd_elem.parity() == MajoranaOperator::Parity::Odd);
   CHECK(!odd_elem.is_even());
   CHECK(odd_elem.is_odd());
 }
 
 TEST_CASE("majorana_element_ordering_by_packed_bits") {
-  auto e_u0 = MajoranaOperator::even(0, Operator::Spin::Up);
-  auto e_d0 = MajoranaOperator::even(0, Operator::Spin::Down);
-  auto o_u0 = MajoranaOperator::odd(0, Operator::Spin::Up);
-  auto o_d0 = MajoranaOperator::odd(0, Operator::Spin::Down);
-  auto e_u1 = MajoranaOperator::even(1, Operator::Spin::Up);
+  auto e_u0 = MajoranaOperator::even(0, FermionOperator::Spin::Up);
+  auto e_d0 = MajoranaOperator::even(0, FermionOperator::Spin::Down);
+  auto o_u0 = MajoranaOperator::odd(0, FermionOperator::Spin::Up);
+  auto o_d0 = MajoranaOperator::odd(0, FermionOperator::Spin::Down);
+  auto e_u1 = MajoranaOperator::even(1, FermionOperator::Spin::Up);
 
   CHECK(e_u0 < e_d0);
   CHECK(e_d0 < o_u0);

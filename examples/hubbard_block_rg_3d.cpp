@@ -89,13 +89,17 @@ CliOptions parse_cli_options(int argc, char** argv) {
 brg::BrgStepResult brg_step(double t, double U, double mu) {
   const auto geometry = brg::block_3d_2x2x2();
 
-  const Expression H = brg::build_hubbard_block_hamiltonian(geometry, t, U, mu);
+  const FermionExpression H = brg::build_hubbard_block_hamiltonian(geometry, t, U, mu);
 
   // Build sector bases using 8 orbitals (the 2x2x2 block)
-  Basis basis_N0 = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 0, 0);
-  Basis basis_N1_up = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, 1);
-  Basis basis_N1_down = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, -1);
-  Basis basis_N2 = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 2, 0);
+  FermionBasis basis_N0 =
+      FermionBasis::with_fixed_particle_number_and_spin(geometry.num_sites, 0, 0);
+  FermionBasis basis_N1_up =
+      FermionBasis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, 1);
+  FermionBasis basis_N1_down =
+      FermionBasis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, -1);
+  FermionBasis basis_N2 =
+      FermionBasis::with_fixed_particle_number_and_spin(geometry.num_sites, 2, 0);
 
   // Diagonalize each sector
   brg::SectorResult res_N0 = brg::diagonalize_sector(basis_N0, H);
@@ -135,11 +139,11 @@ brg::BrgStepResult brg_step(double t, double U, double mu) {
     const size_t site = geometry.border_sites[si];
 
     for (size_t spi = 0; spi < 2; ++spi) {
-      auto sigma = (spi == 0) ? Operator::Spin::Up : Operator::Spin::Down;
+      auto sigma = (spi == 0) ? FermionOperator::Spin::Up : FermionOperator::Spin::Down;
 
-      Expression c_dag(creation(sigma, site));
+      FermionExpression c_dag(creation(sigma, site));
 
-      const Basis& row_basis = (spi == 0) ? basis_N1_up : basis_N1_down;
+      const FermionBasis& row_basis = (spi == 0) ? basis_N1_up : basis_N1_down;
       const arma::cx_vec& psi_sigma = (spi == 0) ? psi_up : psi_down;
 
       arma::cx_mat M =
@@ -151,7 +155,7 @@ brg::BrgStepResult brg_step(double t, double U, double mu) {
       ++lambda_count;
 
       // Closure check
-      const Basis& closure_col_basis = (spi == 0) ? basis_N1_down : basis_N1_up;
+      const FermionBasis& closure_col_basis = (spi == 0) ? basis_N1_down : basis_N1_up;
       const arma::cx_vec& psi_minus_sigma = (spi == 0) ? psi_down : psi_up;
 
       arma::cx_mat M_closure =
@@ -202,12 +206,16 @@ brg::BrgStepResult brg_step(double t, double U, double mu) {
 double tune_mu_for_eighth_filling(double t, double U, bool& window_exists) {
   const auto geometry = brg::block_3d_2x2x2();
 
-  const Expression H0 = brg::build_hubbard_block_hamiltonian(geometry, t, U, 0.0);
+  const FermionExpression H0 = brg::build_hubbard_block_hamiltonian(geometry, t, U, 0.0);
 
-  Basis basis_N0 = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 0, 0);
-  Basis basis_N1_up = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, 1);
-  Basis basis_N1_down = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, -1);
-  Basis basis_N2 = Basis::with_fixed_particle_number_and_spin(geometry.num_sites, 2, 0);
+  FermionBasis basis_N0 =
+      FermionBasis::with_fixed_particle_number_and_spin(geometry.num_sites, 0, 0);
+  FermionBasis basis_N1_up =
+      FermionBasis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, 1);
+  FermionBasis basis_N1_down =
+      FermionBasis::with_fixed_particle_number_and_spin(geometry.num_sites, 1, -1);
+  FermionBasis basis_N2 =
+      FermionBasis::with_fixed_particle_number_and_spin(geometry.num_sites, 2, 0);
 
   brg::SectorResult res_N0 = brg::diagonalize_sector(basis_N0, H0);
   brg::SectorResult res_N1_up = brg::diagonalize_sector(basis_N1_up, H0);

@@ -61,7 +61,7 @@ bool is_term_contained(const FermionMonomial::container_type& small,
 }  // namespace
 
 std::vector<FermionMonomial> find_matching_terms(const FermionMonomial& term,
-                                                 const Expression& expr) {
+                                                 const FermionExpression& expr) {
   std::vector<FermionMonomial> matches;
   for (const auto& [ops, coeff] : expr.terms()) {
     FermionMonomial candidate(coeff, ops);
@@ -72,7 +72,7 @@ std::vector<FermionMonomial> find_matching_terms(const FermionMonomial& term,
   return matches;
 }
 
-DiagonalChildrenResult group_diagonal_children(const Expression& expr) {
+DiagonalChildrenResult group_diagonal_children(const FermionExpression& expr) {
   DiagonalChildrenResult result;
   std::vector<FermionMonomial> off_diagonals;
   for (const auto& [ops, coeff] : expr.terms()) {

@@ -21,8 +21,8 @@ TEST_CASE("hubbard_momentum_factorized_fixed_k_construction_1d") {
   const Index index(size);
   const Index::container_type target_momentum = {0};
 
-  Basis basis = Basis::with_fixed_particle_number_spin_momentum(sites, particles, spin, index,
-                                                                target_momentum);
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_spin_momentum(
+      sites, particles, spin, index, target_momentum);
   HubbardMomentumFactorizedFixedK H(basis, size, 1.0, 2.0, target_momentum);
 
   CHECK(H.dimension() == basis.set.size());
@@ -36,8 +36,8 @@ TEST_CASE("hubbard_momentum_factorized_fixed_k_kinetic_diagonal_1d") {
   const Index index(size);
   const Index::container_type target_momentum = {0};
 
-  Basis basis = Basis::with_fixed_particle_number_spin_momentum(sites, particles, spin, index,
-                                                                target_momentum);
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_spin_momentum(
+      sites, particles, spin, index, target_momentum);
   HubbardMomentumFactorizedFixedK H(basis, size, 1.0, 0.0, target_momentum);  // U=0, only kinetic
 
   // Apply to a basis vector and check the result
@@ -66,8 +66,8 @@ TEST_CASE("hubbard_momentum_factorized_fixed_k_kinetic_matches_dense_1d") {
   const Index index(size);
   const Index::container_type target_momentum = {1};
 
-  Basis basis = Basis::with_fixed_particle_number_spin_momentum(sites, particles, spin, index,
-                                                                target_momentum);
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_spin_momentum(
+      sites, particles, spin, index, target_momentum);
 
   // Factorized version
   HubbardMomentumFactorizedFixedK H_factorized(basis, size, t, 0.0, target_momentum);
@@ -93,8 +93,8 @@ TEST_CASE("hubbard_momentum_factorized_fixed_k_interaction_matches_dense_1d_smal
   const Index index(size);
   const Index::container_type target_momentum = {0};
 
-  Basis basis = Basis::with_fixed_particle_number_spin_momentum(sites, particles, spin, index,
-                                                                target_momentum);
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_spin_momentum(
+      sites, particles, spin, index, target_momentum);
 
   // Factorized version (t=0 to isolate interaction)
   HubbardMomentumFactorizedFixedK H_factorized(basis, size, 0.0, U, target_momentum);
@@ -121,8 +121,8 @@ TEST_CASE("hubbard_momentum_factorized_fixed_k_full_hamiltonian_matches_dense_1d
   const Index index(size);
   const Index::container_type target_momentum = {2};
 
-  Basis basis = Basis::with_fixed_particle_number_spin_momentum(sites, particles, spin, index,
-                                                                target_momentum);
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_spin_momentum(
+      sites, particles, spin, index, target_momentum);
 
   // Factorized version
   HubbardMomentumFactorizedFixedK H_factorized(basis, size, t, U, target_momentum);
@@ -153,8 +153,8 @@ TEST_CASE("hubbard_momentum_factorized_fixed_k_full_hamiltonian_matches_dense_1d
   const Index index(size);
   const Index::container_type target_momentum = {3};
 
-  Basis basis = Basis::with_fixed_particle_number_spin_momentum(sites, particles, spin, index,
-                                                                target_momentum);
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_spin_momentum(
+      sites, particles, spin, index, target_momentum);
 
   // Factorized version
   HubbardMomentumFactorizedFixedK H_factorized(basis, size, t, U, target_momentum);
@@ -185,8 +185,8 @@ TEST_CASE("hubbard_momentum_factorized_fixed_k_2d") {
   const Index index(size);
   const Index::container_type target_momentum = {1, 0};
 
-  Basis basis = Basis::with_fixed_particle_number_spin_momentum(sites, particles, spin, index,
-                                                                target_momentum);
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_spin_momentum(
+      sites, particles, spin, index, target_momentum);
 
   // Factorized version
   HubbardMomentumFactorizedFixedK H_factorized(basis, size, t, U, target_momentum);
@@ -213,8 +213,8 @@ TEST_CASE("hubbard_momentum_factorized_fixed_k_2d_nonzero_momentum") {
   const Index index(size);
   const Index::container_type target_momentum = {1, 2};
 
-  Basis basis = Basis::with_fixed_particle_number_spin_momentum(sites, particles, spin, index,
-                                                                target_momentum);
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_spin_momentum(
+      sites, particles, spin, index, target_momentum);
 
   // Factorized version
   HubbardMomentumFactorizedFixedK H_factorized(basis, size, t, U, target_momentum);
@@ -245,8 +245,8 @@ TEST_CASE("hubbard_momentum_factorized_fixed_k_hermitian") {
   const Index index(size);
   const Index::container_type target_momentum = {1};
 
-  Basis basis = Basis::with_fixed_particle_number_spin_momentum(sites, particles, spin, index,
-                                                                target_momentum);
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_spin_momentum(
+      sites, particles, spin, index, target_momentum);
   HubbardMomentumFactorizedFixedK H(basis, size, t, U, target_momentum);
 
   // Check ⟨x|H|y⟩ = ⟨y|H|x⟩* for random vectors
@@ -267,8 +267,8 @@ TEST_CASE("hubbard_momentum_factorized_fixed_k_sector_bases_correct_size") {
   const Index index(size);
   const Index::container_type target_momentum = {0};
 
-  Basis basis = Basis::with_fixed_particle_number_spin_momentum(sites, particles, spin, index,
-                                                                target_momentum);
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_spin_momentum(
+      sites, particles, spin, index, target_momentum);
   HubbardMomentumFactorizedFixedK H(basis, size, 1.0, 1.0, target_momentum);
 
   const auto& sector_bases = H.sector_bases();
@@ -286,8 +286,8 @@ TEST_CASE("hubbard_momentum_factorized_fixed_k_density_operators_rectangular") {
   const Index index(size);
   const Index::container_type target_momentum = {1};
 
-  Basis basis = Basis::with_fixed_particle_number_spin_momentum(sites, particles, spin, index,
-                                                                target_momentum);
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_spin_momentum(
+      sites, particles, spin, index, target_momentum);
   HubbardMomentumFactorizedFixedK H(basis, size, 1.0, 1.0, target_momentum);
 
   const auto& rho_up = H.rho_up();
@@ -322,8 +322,8 @@ TEST_CASE("hubbard_momentum_factorized_fixed_k_all_momentum_sectors_1d") {
   for (size_t k = 0; k < sites; ++k) {
     const Index::container_type target_momentum = {k};
 
-    Basis basis = Basis::with_fixed_particle_number_spin_momentum(sites, particles, spin, index,
-                                                                  target_momentum);
+    FermionBasis basis = FermionBasis::with_fixed_particle_number_spin_momentum(
+        sites, particles, spin, index, target_momentum);
 
     if (basis.set.empty()) {
       continue;  // Skip empty sectors
@@ -358,8 +358,8 @@ TEST_CASE("hubbard_momentum_factorized_fixed_k_all_momentum_sectors_2d") {
     for (size_t ky = 0; ky < size[1]; ++ky) {
       const Index::container_type target_momentum = {kx, ky};
 
-      Basis basis = Basis::with_fixed_particle_number_spin_momentum(sites, particles, spin, index,
-                                                                    target_momentum);
+      FermionBasis basis = FermionBasis::with_fixed_particle_number_spin_momentum(
+          sites, particles, spin, index, target_momentum);
 
       if (basis.set.empty()) {
         continue;  // Skip empty sectors

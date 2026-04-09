@@ -39,15 +39,15 @@ struct HubbardMomentumFactorized final : LinearOperator<arma::cx_vec> {
   /// @param lattice_size Lattice dimensions (e.g., {4, 4} for 2D 4x4 lattice)
   /// @param t Hopping amplitude
   /// @param U On-site interaction strength
-  HubbardMomentumFactorized(const Basis& basis, const std::vector<size_t>& lattice_size, double t,
-                            double U)
+  HubbardMomentumFactorized(const FermionBasis& basis, const std::vector<size_t>& lattice_size,
+                            double t, double U)
       : basis_(basis), index_(lattice_size), t_(t), U_(U), N_sites_(index_.size()) {
     if (lattice_size.empty()) {
       throw std::invalid_argument("HubbardMomentumFactorized requires at least one dimension.");
     }
     if (basis.orbitals != N_sites_) {
       throw std::invalid_argument(
-          "Basis orbitals must equal total number of lattice sites (momentum points).");
+          "FermionBasis orbitals must equal total number of lattice sites (momentum points).");
     }
 
     build_kinetic_diagonal();
@@ -161,17 +161,17 @@ struct HubbardMomentumFactorized final : LinearOperator<arma::cx_vec> {
         }
 
         // Apply ρ_{q,↑} = Σ_k c†_{k+q,↑} c_{k,↑}
-        apply_density_operator(state_j, j, q, k_plus_q, Operator::Spin::Up, rho_up_[q]);
+        apply_density_operator(state_j, j, q, k_plus_q, FermionOperator::Spin::Up, rho_up_[q]);
 
         // Apply ρ_{q,↓} = Σ_k c†_{k+q,↓} c_{k,↓}
-        apply_density_operator(state_j, j, q, k_plus_q, Operator::Spin::Down, rho_down_[q]);
+        apply_density_operator(state_j, j, q, k_plus_q, FermionOperator::Spin::Down, rho_down_[q]);
       }
     }
   }
 
   /// Apply density operator ρ_{q,σ} = Σ_k c†_{k+q,σ} c_{k,σ} to a basis state.
-  void apply_density_operator(const Basis::key_type& state_j, size_t j, size_t /*q*/,
-                              const std::vector<size_t>& k_plus_q, Operator::Spin spin,
+  void apply_density_operator(const FermionBasis::key_type& state_j, size_t j, size_t /*q*/,
+                              const std::vector<size_t>& k_plus_q, FermionOperator::Spin spin,
                               arma::sp_cx_mat& rho_q) {
     // For each occupied orbital k with matching spin
     for (size_t op_idx = 0; op_idx < state_j.size(); ++op_idx) {
@@ -202,9 +202,9 @@ struct HubbardMomentumFactorized final : LinearOperator<arma::cx_vec> {
         rho_q(j, j) += ScalarType(1.0, 0.0);
       } else {
         // Create the new state: copy, erase old operator, insert new one
-        Operator new_op = Operator::creation(spin, kq);
+        FermionOperator new_op = FermionOperator::creation(spin, kq);
 
-        Basis::key_type new_state = state_j;
+        FermionBasis::key_type new_state = state_j;
         new_state.erase(op_idx);
 
         // Find where new_op should be inserted to maintain sorted order
@@ -237,7 +237,7 @@ struct HubbardMomentumFactorized final : LinearOperator<arma::cx_vec> {
     }
   }
 
-  const Basis& basis_;
+  const FermionBasis& basis_;
   Index index_;
   double t_;
   double U_;

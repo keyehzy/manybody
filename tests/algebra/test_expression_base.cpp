@@ -18,7 +18,7 @@ TEST_CASE("expression_is_zero_below_tolerance") {
 
 TEST_CASE("expression_add_inserts_new_key") {
   ExpressionType expr;
-  container_type key{Operator::creation(Operator::Spin::Up, 0)};
+  container_type key{FermionOperator::creation(FermionOperator::Spin::Up, 0)};
   expr.add(key, complex_type(1.0, 0.0));
   CHECK(expr.size() == 1u);
   auto it = expr.data.find(key);
@@ -28,7 +28,7 @@ TEST_CASE("expression_add_inserts_new_key") {
 
 TEST_CASE("expression_add_combines_existing_key") {
   ExpressionType expr;
-  container_type key{Operator::creation(Operator::Spin::Up, 0)};
+  container_type key{FermionOperator::creation(FermionOperator::Spin::Up, 0)};
   expr.add(key, complex_type(1.0, 0.0));
   expr.add(key, complex_type(2.0, 0.0));
   CHECK(expr.size() == 1u);
@@ -37,7 +37,7 @@ TEST_CASE("expression_add_combines_existing_key") {
 
 TEST_CASE("expression_add_prunes_zero") {
   ExpressionType expr;
-  container_type key{Operator::creation(Operator::Spin::Up, 0)};
+  container_type key{FermionOperator::creation(FermionOperator::Spin::Up, 0)};
   expr.add(key, complex_type(1.0, 0.0));
   expr.add(key, complex_type(-1.0, 0.0));
   CHECK(expr.size() == 0u);
@@ -45,7 +45,7 @@ TEST_CASE("expression_add_prunes_zero") {
 
 TEST_CASE("expression_add_ignores_zero_coeff") {
   ExpressionType expr;
-  container_type key{Operator::creation(Operator::Spin::Up, 0)};
+  container_type key{FermionOperator::creation(FermionOperator::Spin::Up, 0)};
   expr.add(key, complex_type(0.0, 0.0));
   CHECK(expr.size() == 0u);
 }
@@ -68,7 +68,7 @@ TEST_CASE("expression_subtract_scalar") {
 
 TEST_CASE("expression_scale") {
   ExpressionType expr;
-  container_type key{Operator::creation(Operator::Spin::Up, 0)};
+  container_type key{FermionOperator::creation(FermionOperator::Spin::Up, 0)};
   expr.add(key, complex_type(2.0, 0.0));
   expr.scale(complex_type(3.0, 0.0));
   CHECK(expr.data[key] == complex_type(6.0, 0.0));
@@ -76,14 +76,15 @@ TEST_CASE("expression_scale") {
 
 TEST_CASE("expression_scale_by_zero_clears") {
   ExpressionType expr;
-  expr.add(container_type{Operator::creation(Operator::Spin::Up, 0)}, complex_type(2.0, 0.0));
+  expr.add(container_type{FermionOperator::creation(FermionOperator::Spin::Up, 0)},
+           complex_type(2.0, 0.0));
   expr.scale(complex_type(0.0, 0.0));
   CHECK(expr.empty());
 }
 
 TEST_CASE("expression_divide") {
   ExpressionType expr;
-  container_type key{Operator::creation(Operator::Spin::Up, 0)};
+  container_type key{FermionOperator::creation(FermionOperator::Spin::Up, 0)};
   expr.add(key, complex_type(6.0, 0.0));
   expr.divide(complex_type(3.0, 0.0));
   CHECK(expr.data[key] == complex_type(2.0, 0.0));
@@ -92,8 +93,8 @@ TEST_CASE("expression_divide") {
 TEST_CASE("expression_add_all") {
   ExpressionType a;
   ExpressionType b;
-  container_type k1{Operator::creation(Operator::Spin::Up, 0)};
-  container_type k2{Operator::creation(Operator::Spin::Down, 1)};
+  container_type k1{FermionOperator::creation(FermionOperator::Spin::Up, 0)};
+  container_type k2{FermionOperator::creation(FermionOperator::Spin::Down, 1)};
   a.add(k1, complex_type(1.0, 0.0));
   b.add(k1, complex_type(2.0, 0.0));
   b.add(k2, complex_type(3.0, 0.0));
@@ -106,7 +107,7 @@ TEST_CASE("expression_add_all") {
 TEST_CASE("expression_subtract_all") {
   ExpressionType a;
   ExpressionType b;
-  container_type k1{Operator::creation(Operator::Spin::Up, 0)};
+  container_type k1{FermionOperator::creation(FermionOperator::Spin::Up, 0)};
   a.add(k1, complex_type(3.0, 0.0));
   b.add(k1, complex_type(3.0, 0.0));
   a.subtract_all(b);
@@ -115,8 +116,8 @@ TEST_CASE("expression_subtract_all") {
 
 TEST_CASE("expression_truncate_by_norm") {
   ExpressionType expr;
-  container_type k1{Operator::creation(Operator::Spin::Up, 0)};
-  container_type k2{Operator::creation(Operator::Spin::Down, 1)};
+  container_type k1{FermionOperator::creation(FermionOperator::Spin::Up, 0)};
+  container_type k2{FermionOperator::creation(FermionOperator::Spin::Down, 1)};
   expr.add(k1, complex_type(0.1, 0.0));
   expr.add(k2, complex_type(2.0, 0.0));
   expr.truncate_by_norm(0.5);
@@ -141,8 +142,8 @@ TEST_CASE("expression_format_sorted_empty") {
 
 TEST_CASE("expression_format_sorted_orders_by_size_then_norm") {
   ExpressionType expr;
-  Operator a = Operator::creation(Operator::Spin::Up, 0);
-  Operator b = Operator::creation(Operator::Spin::Up, 1);
+  FermionOperator a = FermionOperator::creation(FermionOperator::Spin::Up, 0);
+  FermionOperator b = FermionOperator::creation(FermionOperator::Spin::Up, 1);
   container_type k_empty{};
   container_type k_one{a};
   container_type k_two{a, b};

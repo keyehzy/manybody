@@ -187,8 +187,8 @@ int main(int argc, char** argv) {
 
   // Build bases for momentum sectors K and K+Q
   std::cerr << "Building basis for sector K..." << std::endl;
-  Basis basis_K = Basis::with_fixed_particle_number_spin_momentum(sites, opts.particles,
-                                                                  opts.spin_projection, index, K);
+  FermionBasis basis_K = FermionBasis::with_fixed_particle_number_spin_momentum(
+      sites, opts.particles, opts.spin_projection, index, K);
   if (basis_K.set.empty()) {
     std::cerr << "No basis states for momentum sector K.\n";
     return 1;
@@ -196,8 +196,8 @@ int main(int argc, char** argv) {
   std::cerr << "  |K| = " << basis_K.set.size() << " states" << std::endl;
 
   std::cerr << "Building basis for sector K+Q..." << std::endl;
-  Basis basis_KQ = Basis::with_fixed_particle_number_spin_momentum(sites, opts.particles,
-                                                                   opts.spin_projection, index, KQ);
+  FermionBasis basis_KQ = FermionBasis::with_fixed_particle_number_spin_momentum(
+      sites, opts.particles, opts.spin_projection, index, KQ);
   if (basis_KQ.set.empty()) {
     std::cerr << "No basis states for momentum sector K+Q.\n";
     return 1;

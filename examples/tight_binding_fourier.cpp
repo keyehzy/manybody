@@ -7,8 +7,8 @@
 #include <vector>
 
 #include "algebra/fermion/expression.h"
-#include "algebra/fourier_transform.h"
 #include "algebra/fermion/term.h"
+#include "algebra/fourier_transform.h"
 #include "utils/index.h"
 
 int main() {
@@ -16,20 +16,22 @@ int main() {
   const double hopping = 1.0;
   Index index({sites});
 
-  Expression real_space;
+  FermionExpression real_space;
   const FermionMonomial::complex_type coeff(-hopping, 0.0);
   for (size_t i = 0; i < sites; ++i) {
     const size_t j = (i + 1) % sites;
-    real_space += FermionMonomial(coeff, {Operator::creation(Operator::Spin::Up, i),
-                                          Operator::annihilation(Operator::Spin::Up, j)});
-    real_space += FermionMonomial(coeff, {Operator::creation(Operator::Spin::Up, j),
-                                          Operator::annihilation(Operator::Spin::Up, i)});
+    real_space +=
+        FermionMonomial(coeff, {FermionOperator::creation(FermionOperator::Spin::Up, i),
+                                FermionOperator::annihilation(FermionOperator::Spin::Up, j)});
+    real_space +=
+        FermionMonomial(coeff, {FermionOperator::creation(FermionOperator::Spin::Up, j),
+                                FermionOperator::annihilation(FermionOperator::Spin::Up, i)});
   }
 
   std::cout << "Real-space hopping Hamiltonian:\n" << real_space.to_string() << "\n";
 
-  Expression momentum_space = transform_expression(fourier_transform_operator<Expression>,
-                                                   real_space, index, FourierMode::Direct);
+  FermionExpression momentum_space = transform_expression(
+      fourier_transform_operator<FermionExpression>, real_space, index, FourierMode::Direct);
 
   std::cout << "Momentum-space hopping Hamiltonian:\n" << momentum_space.to_string() << "\n";
   return 0;

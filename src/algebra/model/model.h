@@ -5,5 +5,5 @@
 struct Model {
   virtual ~Model() = default;
 
-  virtual Expression hamiltonian() const = 0;
+  virtual FermionExpression hamiltonian() const = 0;
 };

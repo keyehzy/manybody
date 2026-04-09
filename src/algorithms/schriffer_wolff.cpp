@@ -6,7 +6,7 @@
 #include "utils/tolerances.h"
 
 namespace {
-constexpr auto tolerance = tolerances::tolerance<Expression::complex_type::value_type>();
+constexpr auto tolerance = tolerances::tolerance<FermionExpression::complex_type::value_type>();
 }  // namespace
 
 std::pair<size_t, double> cluster_by_largest_gap(const arma::vec& vals) {
@@ -27,9 +27,10 @@ std::pair<size_t, double> cluster_by_largest_gap(const arma::vec& vals) {
   return {split_index + 1, max_gap};
 }
 
-Expression schriffer_wolff(const Expression& kinetic, const Expression& interaction,
-                           const Basis& basis, size_t iter) {
-  Expression hamiltonian = kinetic + interaction;
+FermionExpression schriffer_wolff(const FermionExpression& kinetic,
+                                  const FermionExpression& interaction, const FermionBasis& basis,
+                                  size_t iter) {
+  FermionExpression hamiltonian = kinetic + interaction;
 
   arma::cx_mat H = compute_matrix_elements<arma::cx_mat>(basis, hamiltonian);
   arma::cx_mat H_interaction = compute_matrix_elements<arma::cx_mat>(basis, interaction);
@@ -80,10 +81,10 @@ Expression schriffer_wolff(const Expression& kinetic, const Expression& interact
 
   arma::cx_mat Afinal = arma::logmat(Ufinal);
 
-  Expression Aop;
+  FermionExpression Aop;
   for (size_t i = 0; i < basis.set.size(); ++i) {
     for (size_t j = 0; j < basis.set.size(); ++j) {
-      const auto coeff = static_cast<Expression::complex_type>(Afinal(j, i));
+      const auto coeff = static_cast<FermionExpression::complex_type>(Afinal(j, i));
       if (std::norm(coeff) < tolerance * tolerance) {
         continue;
       }

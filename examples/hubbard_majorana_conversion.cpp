@@ -12,7 +12,7 @@ int main() {
   const size_t sites = 2;
 
   HubbardModel hubbard(t, u, sites);
-  const Expression hamiltonian = hubbard.hamiltonian();
+  const FermionExpression hamiltonian = hubbard.hamiltonian();
   const MajoranaExpression majorana_hamiltonian = to_majorana(hamiltonian);
 
   std::cout << "=== Hubbard Model to Majorana Example ===\n";

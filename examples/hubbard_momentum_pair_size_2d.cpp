@@ -144,7 +144,8 @@ arma::sp_cx_mat load_sparse_matrix(const std::string& path) {
 arma::sp_cx_mat load_or_compute_hamiltonian_component(const CliOptions& opts,
                                                       const std::string& component,
                                                       const std::vector<size_t>& K,
-                                                      const Basis& basis, const Expression& expr) {
+                                                      const FermionBasis& basis,
+                                                      const FermionExpression& expr) {
   const std::string path = hamiltonian_cache_path(opts, component, K);
 
   if (std::filesystem::exists(path)) {
@@ -192,20 +193,20 @@ int main(int argc, char** argv) {
 
   // Build basis
   std::cerr << "Building basis for sector K=(" << K[0] << "," << K[1] << ")..." << std::endl;
-  Basis basis = Basis::with_fixed_particle_number_spin_momentum(sites, opts.particles,
-                                                                opts.spin_projection, index, K);
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_spin_momentum(
+      sites, opts.particles, opts.spin_projection, index, K);
 
   if (basis.set.empty()) {
     std::cerr << "No basis states for the chosen particle number, spin, and momentum.\n";
     return 1;
   }
 
-  std::cerr << "Basis size: " << basis.set.size() << std::endl;
+  std::cerr << "FermionBasis size: " << basis.set.size() << std::endl;
 
   // Load or compute kinetic and interaction matrices
   std::cerr << "Building Hamiltonian matrices..." << std::endl;
-  const Expression kinetic_expr = hubbard_base.kinetic();
-  const Expression interaction_expr = hubbard_base.interaction();
+  const FermionExpression kinetic_expr = hubbard_base.kinetic();
+  const FermionExpression interaction_expr = hubbard_base.interaction();
 
   arma::sp_cx_mat kinetic =
       load_or_compute_hamiltonian_component(opts, "kinetic", K, basis, kinetic_expr);
@@ -273,7 +274,7 @@ int main(int argc, char** argv) {
     const std::vector<size_t> r = {rx, ry};
 
     // Compute correlation operator (sparse, no caching needed)
-    const Expression corr_expr = hubbard_base.opposite_spin_correlation(r);
+    const FermionExpression corr_expr = hubbard_base.opposite_spin_correlation(r);
     arma::sp_cx_mat G_op = compute_matrix_elements<arma::sp_cx_mat>(basis, corr_expr);
 
     // Compute expectation value <psi|G(r)|psi>

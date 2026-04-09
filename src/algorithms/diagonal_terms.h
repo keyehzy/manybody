@@ -12,5 +12,5 @@ struct DiagonalChildrenResult {
 };
 
 std::vector<FermionMonomial> find_matching_terms(const FermionMonomial& term,
-                                                 const Expression& expr);
-DiagonalChildrenResult group_diagonal_children(const Expression& expr);
+                                                 const FermionExpression& expr);
+DiagonalChildrenResult group_diagonal_children(const FermionExpression& expr);

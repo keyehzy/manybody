@@ -18,7 +18,7 @@ struct SectorResult {
 
 /// Diagonalize the Hamiltonian in a given symmetry sector.
 /// Returns eigenvalues (ascending) and eigenvectors.
-inline SectorResult diagonalize_sector(const Basis& basis, const Expression& H) {
+inline SectorResult diagonalize_sector(const FermionBasis& basis, const FermionExpression& H) {
   arma::cx_mat mat = compute_matrix_elements<arma::cx_mat>(basis, H);
 
   SectorResult result;
