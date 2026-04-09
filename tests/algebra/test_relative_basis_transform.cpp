@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "algebra/fermion/basis.h"
-#include "algebra/fermion/relative_basis_transform.h"
+#include "algebra/relative_basis_transform.h"
 #include "algebra/matrix_elements.h"
 #include "algebra/model/hubbard_model_momentum.h"
 #include "utils/index.h"

@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "algebra/fermion/expression.h"
-#include "algebra/fermion/fourier_transform.h"
+#include "algebra/fourier_transform.h"
 #include "algebra/fermion/term.h"
 #include "utils/index.h"
 
