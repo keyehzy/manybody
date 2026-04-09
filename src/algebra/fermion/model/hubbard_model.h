@@ -7,7 +7,7 @@
 #include "algebra/fermion/term.h"
 #include "utils/index.h"
 
-struct HubbardModel : Model {
+struct HubbardModel : FermionModel {
   HubbardModel(double t_val, double u_val, size_t size_val) : t(t_val), u(u_val), size(size_val) {}
 
   FermionExpression kinetic() const {
@@ -58,7 +58,7 @@ struct HubbardModel : Model {
   size_t size;
 };
 
-struct HubbardModel2D : Model {
+struct HubbardModel2D : FermionModel {
   HubbardModel2D(double t_val, double u_val, size_t size_x_val, size_t size_y_val)
       : t(t_val),
         u(u_val),
@@ -128,7 +128,7 @@ struct HubbardModel2D : Model {
   Index index;
 };
 
-struct HubbardModel3D : Model {
+struct HubbardModel3D : FermionModel {
   HubbardModel3D(double t_val, double u_val, size_t size_x_val, size_t size_y_val,
                  size_t size_z_val)
       : t(t_val),

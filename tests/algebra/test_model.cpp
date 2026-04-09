@@ -3,10 +3,12 @@
 #include <numbers>
 #include <type_traits>
 
+#include "algebra/boson/model/model.h"
 #include "algebra/fermion/model/hubbard_model.h"
 #include "algebra/fermion/model/hubbard_model_momentum.h"
 #include "algebra/fermion/model/hubbard_model_relative.h"
 #include "algebra/fermion/model/model.h"
+#include "algebra/model.h"
 
 namespace {
 constexpr float kTolerance = 1e-6f;
@@ -16,10 +18,27 @@ bool complex_near_model(const FermionMonomial::complex_type& lhs,
   const auto delta = lhs - rhs;
   return std::abs(delta) <= tol;
 }
+
+struct EmptyBosonModel : BosonModel {
+  BosonExpression hamiltonian() const override { return BosonExpression(); }
+};
 }  // namespace
+
+TEST_CASE("model_base_exposes_expression_type_aliases") {
+  CHECK((std::is_base_of_v<BasicModel<FermionExpression>, HubbardModel>));
+  CHECK((std::is_same_v<FermionModel::expression_type, FermionExpression>));
+  CHECK((std::is_same_v<BosonModel::expression_type, BosonExpression>));
+}
+
+TEST_CASE("model_boson_interface_supports_virtual_dispatch") {
+  EmptyBosonModel boson_model;
+  const BosonModel& model = boson_model;
+  CHECK(model.hamiltonian().empty());
+}
 
 TEST_CASE("model_hubbard_inherits_from_interface") {
   CHECK((std::is_base_of_v<Model, HubbardModel>));
+  CHECK((std::is_base_of_v<FermionModel, HubbardModel>));
 }
 
 TEST_CASE("model_hubbard_2d_inherits_from_interface") {

@@ -14,7 +14,7 @@
 // B^+_{K,p} = c^+_{p,up} c^+_{K-p,down}
 // B^+_{K,r} = (1/sqrt(N)) sum_p exp(i p r) B^+_{K,p}
 // H(K) = t_eff(K) * sum_r (B^+_{K,r} B_{K,r+1} + B^+_{K,r+1} B_{K,r}) + U B^+_{K,0} B_{K,0}
-struct HubbardModelRelative : Model {
+struct HubbardModelRelative : FermionModel {
   HubbardModelRelative(double t_val, double u_val, size_t size_val, int64_t total_momentum_val)
       : t(t_val),
         u(u_val),

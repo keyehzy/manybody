@@ -22,7 +22,7 @@
 ///
 /// Site indexing uses Index({2, num_cells}) with coordinates {sublattice, cell}
 /// where sublattice 0 = A, sublattice 1 = B
-struct SSHModel : Model {
+struct SSHModel : FermionModel {
   static constexpr size_t SUBLATTICE_A = 0;
   static constexpr size_t SUBLATTICE_B = 1;
 

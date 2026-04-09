@@ -1,9 +1,7 @@
 #pragma once
 
 #include "algebra/fermion/expression.h"
+#include "algebra/model.h"
 
-struct Model {
-  virtual ~Model() = default;
-
-  virtual FermionExpression hamiltonian() const = 0;
-};
+using FermionModel = BasicModel<FermionExpression>;
+using Model = FermionModel;

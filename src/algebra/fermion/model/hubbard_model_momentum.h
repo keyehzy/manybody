@@ -16,7 +16,7 @@
 ///   + (U/N) sum_{k1,k2,q} c†_{k1+q,↑} c†_{k2-q,↓} c_{k2,↓} c_{k1,↑}
 ///
 /// where ε(k) = -2t * sum_d cos(2π k_d / L_d)
-struct HubbardModelMomentum : Model {
+struct HubbardModelMomentum : FermionModel {
   HubbardModelMomentum(double t_val, double u_val, const std::vector<size_t>& size_val)
       : t(t_val), u(u_val), size(size_val), index(size_val) {
     if (size.empty()) {
