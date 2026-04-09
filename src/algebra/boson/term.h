@@ -1,13 +1,11 @@
 #pragma once
 
-#include <array>
 #include <complex>
 #include <cstddef>
-#include <sstream>
-#include <string>
 
-#include "algebra/operator.h"
 #include "algebra/monomial.h"
+#include "algebra/operator.h"
+#include "algebra/term_utils.h"
 
 using BosonScalar = std::complex<double>;
 
@@ -18,40 +16,6 @@ constexpr size_t boson_term_static_vector_size =
 
 using BosonMonomial =
     MonomialImpl<BosonOperator, boson_term_static_vector_size, BosonOperator::ubyte, BosonScalar>;
-
-constexpr bool is_diagonal(const BosonMonomial::container_type& operators) noexcept {
-  constexpr size_t stride = BosonOperator::kValueMask + 1;
-  std::array<int, stride * 2> balance{};
-  for (const auto& op : operators) {
-    const size_t idx = static_cast<size_t>(op.data & ~BosonOperator::kTypeBit);
-    if (op.type() == BosonOperator::Type::Creation) {
-      ++balance[idx];
-    } else {
-      --balance[idx];
-    }
-  }
-  for (int count : balance) {
-    if (count != 0) {
-      return false;
-    }
-  }
-  return true;
-}
-
-constexpr bool is_diagonal(const BosonMonomial& term) noexcept {
-  return is_diagonal(term.operators);
-}
-
-constexpr BosonMonomial adjoint(const BosonMonomial& term) noexcept {
-  BosonMonomial result(std::conj(term.c));
-  for (auto it = term.operators.rbegin(); it != term.operators.rend(); ++it) {
-    result.operators.push_back(it->adjoint());
-  }
-  return result;
-}
-
-void to_string(std::ostringstream& oss, const BosonMonomial& term);
-std::string to_string(const BosonMonomial& term);
 
 namespace boson {
 

@@ -1,14 +1,12 @@
 #pragma once
 
-#include <array>
 #include <complex>
 #include <cstddef>
 #include <cstdint>
-#include <sstream>
-#include <string>
 
-#include "algebra/operator.h"
 #include "algebra/monomial.h"
+#include "algebra/operator.h"
+#include "algebra/term_utils.h"
 
 constexpr size_t term_size = 32;
 
@@ -18,40 +16,6 @@ constexpr size_t term_static_vector_size = (term_size - sizeof(TermScalar)) / si
 
 using FermionMonomial =
     MonomialImpl<Operator, term_static_vector_size, Operator::ubyte, TermScalar>;
-
-constexpr bool is_diagonal(const FermionMonomial::container_type& operators) noexcept {
-  constexpr size_t stride = Operator::kValueMask + 1;
-  std::array<int, stride * 2> balance{};
-  for (const auto& op : operators) {
-    const size_t idx = static_cast<size_t>(op.data & ~Operator::kTypeBit);
-    if (op.type() == Operator::Type::Creation) {
-      ++balance[idx];
-    } else {
-      --balance[idx];
-    }
-  }
-  for (int count : balance) {
-    if (count != 0) {
-      return false;
-    }
-  }
-  return true;
-}
-
-constexpr bool is_diagonal(const FermionMonomial& term) noexcept {
-  return is_diagonal(term.operators);
-}
-
-constexpr FermionMonomial adjoint(const FermionMonomial& term) noexcept {
-  FermionMonomial result(std::conj(term.c));
-  for (auto it = term.operators.rbegin(); it != term.operators.rend(); ++it) {
-    result.operators.push_back(it->adjoint());
-  }
-  return result;
-}
-
-void to_string(std::ostringstream& oss, const FermionMonomial& term);
-std::string to_string(const FermionMonomial& term);
 
 inline constexpr FermionMonomial creation(Operator::Spin spin, size_t orbital) noexcept {
   return FermionMonomial({Operator::creation(spin, orbital)});
