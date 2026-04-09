@@ -159,9 +159,9 @@ int main(int argc, char** argv) {
   const Expression momentum_state = canonicalize(vector_to_expression(ground_state, basis));
 
   const Expression real_space_state = canonicalize(transform_expression(
-      fourier_transform_operator, momentum_state, index, FourierMode::Inverse));
+      fourier_transform_operator<Expression>, momentum_state, index, FourierMode::Inverse));
   const Expression round_trip = canonicalize(transform_expression(
-      fourier_transform_operator, real_space_state, index, FourierMode::Direct));
+      fourier_transform_operator<Expression>, real_space_state, index, FourierMode::Direct));
 
   const double max_error_norm = max_expression_delta_norm(round_trip, momentum_state);
   const double tol_norm = kRoundTripTolerance * kRoundTripTolerance;

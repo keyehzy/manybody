@@ -49,8 +49,8 @@ TEST_CASE("fourier_transform_operator_multidimensional_coefficients") {
   Operator annihilation = Operator::annihilation(Operator::Spin::Up, orbital);
   Operator creation = Operator::creation(Operator::Spin::Up, orbital);
 
-  Expression annihilation_expr = fourier_transform_operator(annihilation, index);
-  Expression creation_expr = fourier_transform_operator(creation, index);
+  Expression annihilation_expr = fourier_transform_operator<Expression>(annihilation, index);
+  Expression creation_expr = fourier_transform_operator<Expression>(creation, index);
 
   Expression::container_type annihilation_ops{
       Operator::annihilation(Operator::Spin::Up, momentum_orbital)};
@@ -80,8 +80,8 @@ TEST_CASE("fourier_transform_operator_inverse_multidimensional_coefficients") {
   Operator creation = Operator::creation(Operator::Spin::Up, momentum_orbital);
 
   Expression annihilation_expr =
-      fourier_transform_operator(annihilation, index, FourierMode::Inverse);
-  Expression creation_expr = fourier_transform_operator(creation, index, FourierMode::Inverse);
+      fourier_transform_operator<Expression>(annihilation, index, FourierMode::Inverse);
+  Expression creation_expr = fourier_transform_operator<Expression>(creation, index, FourierMode::Inverse);
 
   Expression::container_type annihilation_ops{Operator::annihilation(Operator::Spin::Up, orbital)};
   Expression::container_type creation_ops{Operator::creation(Operator::Spin::Up, orbital)};
@@ -107,9 +107,9 @@ TEST_CASE("fourier_transform_operator_round_trip_recovers_operator") {
   Expression expr(annihilation);
 
   Expression momentum =
-      transform_expression(fourier_transform_operator, expr, index, FourierMode::Direct);
+      transform_expression(fourier_transform_operator<Expression>, expr, index, FourierMode::Direct);
   Expression restored =
-      transform_expression(fourier_transform_operator, momentum, index, FourierMode::Inverse);
+      transform_expression(fourier_transform_operator<Expression>, momentum, index, FourierMode::Inverse);
 
   Expression::container_type ops{annihilation};
   auto it = restored.terms().find(ops);
@@ -131,7 +131,7 @@ TEST_CASE("fourier_transform_hubbard_1d_gives_momentum_space") {
 
   Expression H_real = hubbard_real.hamiltonian();
   Expression H_transformed =
-      transform_expression(fourier_transform_operator, H_real, index, FourierMode::Direct);
+      transform_expression(fourier_transform_operator<Expression>, H_real, index, FourierMode::Direct);
 
   HubbardModelMomentum hubbard_momentum(t, U, {L});
   Expression H_momentum = hubbard_momentum.hamiltonian();
@@ -160,7 +160,7 @@ TEST_CASE("fourier_transform_hubbard_2d_gives_momentum_space") {
 
   Expression H_real = hubbard_real.hamiltonian();
   Expression H_transformed =
-      transform_expression(fourier_transform_operator, H_real, index, FourierMode::Direct);
+      transform_expression(fourier_transform_operator<Expression>, H_real, index, FourierMode::Direct);
 
   HubbardModelMomentum hubbard_momentum(t, U, {Lx, Ly});
   Expression H_momentum = hubbard_momentum.hamiltonian();
@@ -189,7 +189,7 @@ TEST_CASE("fourier_transform_hubbard_3d_gives_momentum_space") {
 
   Expression H_real = hubbard_real.hamiltonian();
   Expression H_transformed =
-      transform_expression(fourier_transform_operator, H_real, index, FourierMode::Direct);
+      transform_expression(fourier_transform_operator<Expression>, H_real, index, FourierMode::Direct);
 
   HubbardModelMomentum hubbard_momentum(t, U, {Lx, Ly, Lz});
   Expression H_momentum = hubbard_momentum.hamiltonian();
