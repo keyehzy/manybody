@@ -1,7 +1,7 @@
 #include <catch2/catch.hpp>
 #include <unordered_set>
 
-#include "algebra/fermion/operator.h"
+#include "algebra/operator.h"
 
 namespace {
 constexpr std::size_t kMaxValue = Operator::max_index();

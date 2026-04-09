@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "algebra/fermion/basis.h"
-#include "algebra/fermion/operator.h"
+#include "algebra/operator.h"
 #include "algebra/fermion/term.h"
 #include "algebra/matrix_elements.h"
 #include "algebra/model/hubbard_model_momentum.h"

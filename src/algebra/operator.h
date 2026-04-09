@@ -8,10 +8,13 @@
 #include <string>
 #include <type_traits>
 
+#include "algebra/statistics.h"
+
 using OperatorStorage = std::uint8_t;
 
-template <class Storage>
+template <Statistics S, class Storage>
 struct BasicOperator {
+  static constexpr Statistics statistics = S;
   using storage_type = std::make_unsigned_t<Storage>;
   using ubyte = storage_type;
 
@@ -52,7 +55,7 @@ struct BasicOperator {
 
   void to_string(std::ostringstream& oss) const {
     const char* spin_arrow = spin() == Spin::Up ? "↑" : "↓";
-    oss << "c";
+    oss << AlgebraTraits<S>::label;
     if (type() == Type::Creation) oss << "+";
     oss << "(" << spin_arrow << ", " << value() << ")";
   }
@@ -106,13 +109,15 @@ struct BasicOperator {
   }
 };
 
-using FermionOperator = BasicOperator<OperatorStorage>;
+using FermionOperator = BasicOperator<Statistics::Fermion, OperatorStorage>;
+using BosonOperator = BasicOperator<Statistics::Boson, OperatorStorage>;
 
 static_assert(sizeof(FermionOperator) == sizeof(OperatorStorage));
+static_assert(sizeof(BosonOperator) == sizeof(OperatorStorage));
 
-template <>
-struct std::hash<FermionOperator> {
-  [[nodiscard]] constexpr std::size_t operator()(FermionOperator op) const noexcept {
+template <Statistics S, class Storage>
+struct std::hash<BasicOperator<S, Storage>> {
+  [[nodiscard]] constexpr std::size_t operator()(BasicOperator<S, Storage> op) const noexcept {
     return static_cast<std::size_t>(op.data);
   }
 };

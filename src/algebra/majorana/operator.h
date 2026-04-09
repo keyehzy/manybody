@@ -8,7 +8,7 @@
 #include <string>
 #include <type_traits>
 
-#include "algebra/fermion/operator.h"
+#include "algebra/operator.h"
 
 namespace majorana {
 

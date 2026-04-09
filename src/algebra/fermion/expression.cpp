@@ -5,6 +5,7 @@
 #include <sstream>
 #include <utility>
 
+#include "algebra/canonicalize.h"
 #include "utils/tolerances.h"
 
 FermionExpression adjoint(const FermionExpression& expr) {
@@ -46,76 +47,15 @@ std::string FermionExpression::to_string() const {
       });
 }
 
-using complex_type = FermionMonomial::complex_type;
-using container_type = FermionMonomial::container_type;
-
-constexpr auto tolerance = tolerances::tolerance<Expression::complex_type::value_type>();
-
-namespace {
-Expression canonicalize_recursive(container_type ops);
-Expression handle_non_commuting(container_type ops, size_t index);
-
-Expression canonicalize_recursive(container_type ops) {
-  if (ops.size() < 2) {
-    return Expression(ops);
-  }
-
-  if (has_consecutive_elements(ops)) {
-    return {};
-  }
-
-  complex_type phase{1.0, 0.0};
-
-  for (size_t i = 1; i < ops.size(); ++i) {
-    size_t j = i;
-    while (j > 0 && ops[j] < ops[j - 1]) {
-      if (ops[j].commutes(ops[j - 1])) {
-        std::swap(ops[j], ops[j - 1]);
-        phase = -phase;
-        --j;
-      } else {
-        Expression result = handle_non_commuting(std::move(ops), j - 1);
-        result *= phase;
-        return result;
-      }
-    }
-  }
-
-  if (has_consecutive_elements(ops)) {
-    return {};
-  }
-
-  return Expression(phase, std::move(ops));
-}
-
-Expression handle_non_commuting(container_type ops, size_t index) {
-  container_type contracted;
-  contracted.append_range(ops.begin(), ops.begin() + index);
-  contracted.append_range(ops.begin() + index + 2, ops.end());
-  std::swap(ops[index], ops[index + 1]);
-  Expression lhs = canonicalize_recursive(std::move(contracted));
-  lhs -= canonicalize_recursive(std::move(ops));
-  return lhs;
-}
-}  // namespace
-
-Expression canonicalize(const complex_type& c, const container_type& ops) {
-  if (std::norm(c) < tolerance * tolerance) {
-    return {};
-  }
-  Expression result = canonicalize_recursive(ops);
-  result *= c;
-  return result;
+Expression canonicalize(const FermionMonomial::complex_type& c,
+                        const FermionMonomial::container_type& ops) {
+  return canonicalize_generic<Expression>(c, ops);
 }
 
 Expression canonicalize(const FermionMonomial& term) {
-  return canonicalize(term.c, term.operators);
+  return canonicalize_generic<Expression>(term.c, term.operators);
 }
 
 Expression canonicalize(const Expression& expr) {
-  Expression result;
-  for (const auto& [ops, c] : expr.terms()) {
-    result += canonicalize(c, ops);
-  }
-  return result;
+  return canonicalize_generic<Expression>(expr);
 }

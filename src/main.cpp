@@ -1,3 +1,3 @@
-#include "algebra/fermion/operator.h"
+#include "algebra/operator.h"
 
 int main() { return 0; }

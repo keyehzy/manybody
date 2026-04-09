@@ -7,7 +7,7 @@
 #include <sstream>
 #include <string>
 
-#include "algebra/fermion/operator.h"
+#include "algebra/operator.h"
 #include "algebra/monomial.h"
 
 constexpr size_t term_size = 32;
