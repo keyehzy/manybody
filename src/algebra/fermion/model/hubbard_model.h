@@ -3,8 +3,8 @@
 #include <cstddef>
 #include <vector>
 
+#include "algebra/fermion/model/model.h"
 #include "algebra/fermion/term.h"
-#include "algebra/model/model.h"
 #include "utils/index.h"
 
 struct HubbardModel : Model {

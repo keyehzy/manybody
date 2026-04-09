@@ -3,7 +3,7 @@
 #include <cmath>
 #include <numbers>
 
-#include "algebra/model/ssh_model.h"
+#include "algebra/fermion/model/ssh_model.h"
 #include "numerics/topological_marker.h"
 
 namespace test_topological_marker {

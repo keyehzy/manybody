@@ -3,7 +3,7 @@
 #include <cmath>
 #include <numbers>
 
-#include "algebra/model/ssh_model.h"
+#include "algebra/fermion/model/ssh_model.h"
 #include "utils/index.h"
 
 namespace test_ssh_model {

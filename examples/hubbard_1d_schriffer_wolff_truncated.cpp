@@ -4,8 +4,8 @@
 #include <vector>
 
 #include "algebra/fermion/basis.h"
+#include "algebra/fermion/model/hubbard_model.h"
 #include "algebra/matrix_elements.h"
-#include "algebra/model/hubbard_model.h"
 #include "algorithms/schriffer_wolff.h"
 
 arma::vec unique_eigenvalues(const arma::vec& values) {

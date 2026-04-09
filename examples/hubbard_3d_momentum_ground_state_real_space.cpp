@@ -8,9 +8,9 @@
 #include <vector>
 
 #include "algebra/fermion/basis.h"
+#include "algebra/fermion/model/hubbard_model_momentum.h"
 #include "algebra/fourier_transform.h"
 #include "algebra/matrix_elements.h"
-#include "algebra/model/hubbard_model_momentum.h"
 #include "cxxopts.hpp"
 
 namespace {

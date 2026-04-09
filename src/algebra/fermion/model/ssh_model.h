@@ -6,7 +6,7 @@
 #include <numbers>
 
 #include "algebra/fermion/expression.h"
-#include "algebra/model/model.h"
+#include "algebra/fermion/model/model.h"
 #include "utils/index.h"
 
 /// SSH (Su-Schrieffer-Heeger) model for 1D topological insulator.

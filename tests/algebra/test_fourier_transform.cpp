@@ -3,9 +3,9 @@
 #include <complex>
 #include <numbers>
 
+#include "algebra/fermion/model/hubbard_model.h"
+#include "algebra/fermion/model/hubbard_model_momentum.h"
 #include "algebra/fourier_transform.h"
-#include "algebra/model/hubbard_model.h"
-#include "algebra/model/hubbard_model_momentum.h"
 #include "utils/index.h"
 
 namespace {

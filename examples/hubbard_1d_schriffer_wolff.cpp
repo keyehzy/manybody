@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "algebra/fermion/basis.h"
-#include "algebra/model/hubbard_model.h"
+#include "algebra/fermion/model/hubbard_model.h"
 #include "algorithms/diagonal_terms.h"
 #include "algorithms/schriffer_wolff.h"
 

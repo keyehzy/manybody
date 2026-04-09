@@ -5,8 +5,8 @@
 #include <vector>
 
 #include "algebra/fermion/basis.h"
+#include "algebra/fermion/model/hubbard_model_momentum.h"
 #include "algebra/matrix_elements.h"
-#include "algebra/model/hubbard_model_momentum.h"
 #include "cxxopts.hpp"
 #include "numerics/lanczos.h"
 #include "numerics/linear_operator.h"
