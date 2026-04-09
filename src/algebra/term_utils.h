@@ -2,8 +2,61 @@
 
 #include <array>
 #include <complex>
+#include <cstddef>
 #include <sstream>
 #include <string>
+
+namespace detail {
+
+template <typename Monomial, typename... Operators>
+inline constexpr Monomial make_monomial(Operators... operators) noexcept {
+  return Monomial({operators...});
+}
+
+template <typename Monomial>
+inline constexpr Monomial make_creation_monomial(typename Monomial::operator_type::Spin spin,
+                                                 size_t orbital) noexcept {
+  using operator_type = typename Monomial::operator_type;
+  return make_monomial<Monomial>(operator_type::creation(spin, orbital));
+}
+
+template <typename Monomial>
+inline constexpr Monomial make_annihilation_monomial(typename Monomial::operator_type::Spin spin,
+                                                     size_t orbital) noexcept {
+  using operator_type = typename Monomial::operator_type;
+  return make_monomial<Monomial>(operator_type::annihilation(spin, orbital));
+}
+
+template <typename Monomial>
+inline constexpr Monomial make_one_body_monomial(typename Monomial::operator_type::Spin s1,
+                                                 size_t o1,
+                                                 typename Monomial::operator_type::Spin s2,
+                                                 size_t o2) noexcept {
+  using operator_type = typename Monomial::operator_type;
+  return make_monomial<Monomial>(operator_type::creation(s1, o1),
+                                 operator_type::annihilation(s2, o2));
+}
+
+template <typename Monomial>
+inline constexpr Monomial make_two_body_monomial(
+    typename Monomial::operator_type::Spin s1, size_t o1, typename Monomial::operator_type::Spin s2,
+    size_t o2, typename Monomial::operator_type::Spin s3, size_t o3,
+    typename Monomial::operator_type::Spin s4, size_t o4) noexcept {
+  using operator_type = typename Monomial::operator_type;
+  return make_monomial<Monomial>(operator_type::creation(s1, o1), operator_type::creation(s2, o2),
+                                 operator_type::annihilation(s3, o3),
+                                 operator_type::annihilation(s4, o4));
+}
+
+template <typename Monomial>
+inline constexpr Monomial make_number_monomial(typename Monomial::operator_type::Spin spin,
+                                               size_t orbital) noexcept {
+  using operator_type = typename Monomial::operator_type;
+  return make_monomial<Monomial>(operator_type::creation(spin, orbital),
+                                 operator_type::annihilation(spin, orbital));
+}
+
+}  // namespace detail
 
 template <typename Monomial>
 constexpr bool is_diagonal(const Monomial& term) noexcept {

@@ -1,5 +1,6 @@
 #include <catch2/catch.hpp>
 
+#include "algebra/boson/term.h"
 #include "algebra/fermion/term.h"
 
 TEST_CASE("term_default_is_identity") {
@@ -228,4 +229,48 @@ TEST_CASE("term_is_diagonal_mismatched_pair_is_false") {
 TEST_CASE("term_is_diagonal_multiple_pairs_is_true") {
   FermionMonomial term = density_density(Operator::Spin::Up, 1, Operator::Spin::Down, 2);
   CHECK(is_diagonal(term));
+}
+
+TEST_CASE("boson_term_single_operator_helpers") {
+  BosonMonomial create = boson::creation(BosonOperator::Spin::Up, 3);
+  BosonMonomial destroy = boson::annihilation(BosonOperator::Spin::Down, 5);
+
+  CHECK((create.c) == (BosonMonomial::complex_type(1.0, 0.0)));
+  CHECK((create.size()) == (1u));
+  CHECK((*create.operators.begin()) == (BosonOperator::creation(BosonOperator::Spin::Up, 3)));
+
+  CHECK((destroy.c) == (BosonMonomial::complex_type(1.0, 0.0)));
+  CHECK((destroy.size()) == (1u));
+  CHECK((*destroy.operators.begin()) ==
+        (BosonOperator::annihilation(BosonOperator::Spin::Down, 5)));
+}
+
+TEST_CASE("boson_term_many_body_helpers") {
+  BosonMonomial one_body_term =
+      boson::one_body(BosonOperator::Spin::Up, 1, BosonOperator::Spin::Down, 2);
+  BosonMonomial two_body_term =
+      boson::two_body(BosonOperator::Spin::Up, 1, BosonOperator::Spin::Down, 2,
+                      BosonOperator::Spin::Up, 3, BosonOperator::Spin::Down, 4);
+
+  CHECK((one_body_term.size()) == (2u));
+  CHECK((one_body_term.operators[0]) == (BosonOperator::creation(BosonOperator::Spin::Up, 1)));
+  CHECK((one_body_term.operators[1]) ==
+        (BosonOperator::annihilation(BosonOperator::Spin::Down, 2)));
+
+  CHECK((two_body_term.size()) == (4u));
+  CHECK((two_body_term.operators[0]) == (BosonOperator::creation(BosonOperator::Spin::Up, 1)));
+  CHECK((two_body_term.operators[1]) == (BosonOperator::creation(BosonOperator::Spin::Down, 2)));
+  CHECK((two_body_term.operators[2]) == (BosonOperator::annihilation(BosonOperator::Spin::Up, 3)));
+  CHECK((two_body_term.operators[3]) ==
+        (BosonOperator::annihilation(BosonOperator::Spin::Down, 4)));
+}
+
+TEST_CASE("boson_term_number_operator_helper") {
+  BosonMonomial number = boson::number_op(BosonOperator::Spin::Down, 7);
+
+  CHECK((number.c) == (BosonMonomial::complex_type(1.0, 0.0)));
+  CHECK((number.size()) == (2u));
+  CHECK((number.operators[0]) == (BosonOperator::creation(BosonOperator::Spin::Down, 7)));
+  CHECK((number.operators[1]) == (BosonOperator::annihilation(BosonOperator::Spin::Down, 7)));
+  CHECK(is_diagonal(number));
 }
