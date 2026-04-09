@@ -46,52 +46,6 @@ size_t ground_state_degeneracy(const arma::vec& eigenvalues, double tolerance) {
   return degeneracy;
 }
 
-double boson_basis_state_norm(const BosonBasis::key_type& state) {
-  if (state.empty()) {
-    return 1.0;
-  }
-
-  double norm = 1.0;
-  size_t multiplicity = 1;
-  for (size_t i = 1; i < state.size(); ++i) {
-    if (state[i] == state[i - 1]) {
-      ++multiplicity;
-      continue;
-    }
-    norm *= std::tgamma(static_cast<double>(multiplicity + 1));
-    multiplicity = 1;
-  }
-  norm *= std::tgamma(static_cast<double>(multiplicity + 1));
-  return norm;
-}
-
-std::vector<double> boson_basis_norms(const BosonBasis& basis) {
-  std::vector<double> norms;
-  norms.reserve(basis.set.size());
-  for (const auto& state : basis.set) {
-    norms.push_back(boson_basis_state_norm(state));
-  }
-  return norms;
-}
-
-arma::cx_mat normalize_boson_matrix(const arma::cx_mat& matrix, const std::vector<double>& norms) {
-  arma::cx_mat result = matrix;
-  for (size_t row = 0; row < result.n_rows; ++row) {
-    for (size_t col = 0; col < result.n_cols; ++col) {
-      result(row, col) *= std::sqrt(norms[row] / norms[col]);
-    }
-  }
-  return result;
-}
-
-arma::cx_vec normalize_boson_vector(const arma::cx_vec& vector, const std::vector<double>& norms) {
-  arma::cx_vec result = vector;
-  for (size_t i = 0; i < result.n_elem; ++i) {
-    result(i) *= std::sqrt(norms[i]);
-  }
-  return result;
-}
-
 }  // namespace
 
 TEST_CASE("sawtooth flatband exact diagonalization one particle", "[sawtooth][flatband][ed]") {
@@ -131,16 +85,13 @@ TEST_CASE("sawtooth flatband two bosons ground-state degeneracy matches non-over
   const BosonBasis one_particle_basis =
       BosonBasis::with_fixed_particle_number_and_spin(model.num_sites, 1, 1);
   const BosonBasis basis = BosonBasis::with_fixed_particle_number_and_spin(model.num_sites, 2, 2);
-  const auto basis_norms = boson_basis_norms(basis);
 
   const arma::cx_mat one_particle_hamiltonian =
       compute_matrix_elements<arma::cx_mat>(one_particle_basis, model.kinetic());
-  const arma::cx_mat hamiltonian_coordinates =
+  const arma::cx_mat hamiltonian =
       compute_matrix_elements<arma::cx_mat>(basis, model.hamiltonian());
-  const arma::cx_mat interaction_coordinates =
+  const arma::cx_mat interaction =
       compute_matrix_elements<arma::cx_mat>(basis, model.interaction());
-  const arma::cx_mat hamiltonian = normalize_boson_matrix(hamiltonian_coordinates, basis_norms);
-  const arma::cx_mat interaction = normalize_boson_matrix(interaction_coordinates, basis_norms);
 
   arma::vec one_particle_eigenvalues;
   arma::vec eigenvalues;
@@ -161,8 +112,7 @@ TEST_CASE("sawtooth flatband two bosons ground-state degeneracy matches non-over
     const auto& [left, right] = cls_pairs[column];
     const BosonExpression state =
         canonicalize(v_state_creation(model, left) * v_state_creation(model, right));
-    arma::cx_vec vector =
-        normalize_boson_vector(compute_vector_elements<arma::cx_vec>(basis, state), basis_norms);
+    arma::cx_vec vector = compute_vector_elements<arma::cx_vec>(basis, state);
     const double norm = arma::norm(vector);
 
     REQUIRE(norm > kTolerance);

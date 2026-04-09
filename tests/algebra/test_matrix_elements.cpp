@@ -1,7 +1,11 @@
 #include <armadillo>
 #include <catch2/catch.hpp>
+#include <cmath>
 #include <vector>
 
+#include "algebra/boson/basis.h"
+#include "algebra/boson/expression.h"
+#include "algebra/boson/term.h"
 #include "algebra/fermion/basis.h"
 #include "algebra/fermion/model/hubbard_model_momentum.h"
 #include "algebra/fermion/term.h"
@@ -30,6 +34,21 @@ TEST_CASE("matrix_elements_vector_parallel_matches_serial") {
   CHECK((parallel.n_elem) == (serial.n_elem));
   CHECK((parallel(0)) == (serial(0)));
   CHECK((parallel(1)) == (serial(1)));
+}
+
+TEST_CASE("boson_vector_elements_use_normalized_fock_states") {
+  BosonBasis basis = BosonBasis::with_fixed_particle_number(1, 2);
+  BosonExpression state(BosonMonomial({BosonOperator::creation(BosonOperator::Spin::Up, 0),
+                                       BosonOperator::creation(BosonOperator::Spin::Up, 0)}));
+
+  arma::cx_vec vec = compute_vector_elements_serial<arma::cx_vec>(basis, state);
+
+  const BosonBasis::key_type repeated_up{BosonOperator::creation(BosonOperator::Spin::Up, 0),
+                                         BosonOperator::creation(BosonOperator::Spin::Up, 0)};
+  const size_t repeated_up_index = basis.set.index_of(repeated_up);
+
+  CHECK(vec(repeated_up_index).real() == Approx(std::sqrt(2.0)));
+  CHECK(vec(repeated_up_index).imag() == Approx(0.0));
 }
 
 TEST_CASE("matrix_elements_matrix_serial_density") {
@@ -63,6 +82,44 @@ TEST_CASE("matrix_elements_matrix_parallel_matches_serial") {
   CHECK((parallel(0, 1)) == (serial(0, 1)));
   CHECK((parallel(1, 0)) == (serial(1, 0)));
   CHECK((parallel(1, 1)) == (serial(1, 1)));
+}
+
+TEST_CASE("boson_matrix_elements_use_normalized_fock_states") {
+  BosonBasis basis = BosonBasis::with_fixed_particle_number(1, 2);
+  BosonExpression A(BosonMonomial({BosonOperator::creation(BosonOperator::Spin::Down, 0),
+                                   BosonOperator::annihilation(BosonOperator::Spin::Up, 0)}));
+
+  arma::cx_mat mat = compute_matrix_elements_serial<arma::cx_mat>(basis, A);
+
+  const BosonBasis::key_type repeated_up{BosonOperator::creation(BosonOperator::Spin::Up, 0),
+                                         BosonOperator::creation(BosonOperator::Spin::Up, 0)};
+  const BosonBasis::key_type mixed_state{BosonOperator::creation(BosonOperator::Spin::Up, 0),
+                                         BosonOperator::creation(BosonOperator::Spin::Down, 0)};
+
+  const size_t source_index = basis.set.index_of(repeated_up);
+  const size_t target_index = basis.set.index_of(mixed_state);
+
+  CHECK(mat(target_index, source_index).real() == Approx(std::sqrt(2.0)));
+  CHECK(mat(target_index, source_index).imag() == Approx(0.0));
+}
+
+TEST_CASE("boson_rectangular_matrix_elements_use_normalized_fock_states") {
+  BosonBasis row_basis = BosonBasis::with_fixed_particle_number(1, 1);
+  BosonBasis col_basis = BosonBasis::with_fixed_particle_number(1, 2);
+  BosonExpression A(BosonOperator::annihilation(BosonOperator::Spin::Up, 0));
+
+  arma::cx_mat mat =
+      compute_rectangular_matrix_elements_serial<arma::cx_mat>(row_basis, col_basis, A);
+
+  const BosonBasis::key_type repeated_up{BosonOperator::creation(BosonOperator::Spin::Up, 0),
+                                         BosonOperator::creation(BosonOperator::Spin::Up, 0)};
+  const BosonBasis::key_type single_up{BosonOperator::creation(BosonOperator::Spin::Up, 0)};
+
+  const size_t source_index = col_basis.set.index_of(repeated_up);
+  const size_t target_index = row_basis.set.index_of(single_up);
+
+  CHECK(mat(target_index, source_index).real() == Approx(std::sqrt(2.0)));
+  CHECK(mat(target_index, source_index).imag() == Approx(0.0));
 }
 
 TEST_CASE("rectangular_matrix_elements_serial_current_operator") {
