@@ -9,7 +9,7 @@
 #include "algebra/boson/term.h"
 #include "algebra/fermion/term.h"
 
-constexpr uint64_t choose(uint64_t n, uint64_t m) noexcept {
+static constexpr uint64_t choose(uint64_t n, uint64_t m) noexcept {
   if (m > n) return 0;
   if (m == 0 || m == n) return 1;
 
