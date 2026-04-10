@@ -42,6 +42,11 @@ inline constexpr BosonMonomial number_op(BosonOperator::Spin s, size_t o) noexce
   return detail::make_number_monomial<BosonMonomial>(s, o);
 }
 
+inline constexpr BosonMonomial density_density(BosonOperator::Spin s1, size_t i,
+                                               BosonOperator::Spin s2, size_t j) noexcept {
+  return number_op(s1, i) * number_op(s2, j);
+}
+
 }  // namespace boson
 
 static_assert(sizeof(BosonMonomial) == boson_term_size);

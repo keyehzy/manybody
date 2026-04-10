@@ -15,6 +15,9 @@
 /// The on-site interaction is the standard Bose-Hubbard term
 ///   (U / 2) * sum_i n_i (n_i - 1)
 /// written in normal-ordered form as (U / 2) * b_i^+ b_i^+ b_i b_i.
+///
+/// This is a single-component (spinless) model. The spin degree of freedom is
+/// repurposed as a species label, with all particles using Spin::Up.
 struct SawtoothHubbardModel : BasicModel<BosonExpression> {
   static constexpr size_t SUBLATTICE_BASE = 0;
   static constexpr size_t SUBLATTICE_APEX = 1;
@@ -85,8 +88,7 @@ struct SawtoothHubbardModel : BasicModel<BosonExpression> {
   }
 
   static BosonExpression onsite_interaction(size_t orbital) {
-    return BosonExpression(
-        boson::two_body(species, orbital, species, orbital, species, orbital, species, orbital));
+    return BosonExpression(boson::density_density(species, orbital, species, orbital));
   }
 
   double t_base;
