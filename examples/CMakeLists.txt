@@ -34,3 +34,4 @@ add_example(example_relative_basis_transform relative_basis_transform_example.cp
 add_example(example_tight_binding_fourier tight_binding_fourier.cpp)
 add_example(test_current_adjoint test_current_adjoint.cpp)
 add_example(example_sawtooth_cls_l1 sawtooth_cls_l1.cpp)
+add_example(example_hofstadter_localized_state hofstadter_localized_state.cpp)
