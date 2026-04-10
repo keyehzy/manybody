@@ -5,6 +5,11 @@
 #include <utility>
 #include <vector>
 
+// Normalization factors convert between the raw operator product basis and
+// normalized Fock states.  For fermions state_normalization() is always 1
+// (Pauli exclusion prevents repeated occupancy), so the factors below are
+// trivially the identity in the fermionic case.
+
 template <typename VectorType, typename Basis, typename Expression>
 VectorType compute_vector_elements_serial(const Basis& basis, const Expression& A) {
   using complex_type = typename Expression::complex_type;
