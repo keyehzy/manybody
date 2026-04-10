@@ -87,8 +87,11 @@ struct SawtoothHubbardModel : BasicModel<BosonExpression> {
     return result;
   }
 
+  /// On-site Hubbard interaction n_i(n_i - 1) = n_i^2 - n_i.
+  /// density_density gives n_i^2, so we subtract n_i.
   static BosonExpression onsite_interaction(size_t orbital) {
-    return BosonExpression(boson::density_density(species, orbital, species, orbital));
+    return BosonExpression(boson::density_density(species, orbital, species, orbital)) -
+           BosonExpression(boson::number_op(species, orbital));
   }
 
   double t_base;

@@ -48,8 +48,8 @@ TEST_CASE("sawtooth_model_term_counts_match_geometry") {
   const BosonExpression hamiltonian = model.hamiltonian();
 
   CHECK(kinetic.size() == 18u);
-  CHECK(interaction.size() == 6u);
-  CHECK(hamiltonian.size() == 24u);
+  CHECK(interaction.size() == 12u);  // 6 sites * (n_i^2 + (-n_i)) = 12 terms
+  CHECK(hamiltonian.size() == 30u);
 }
 
 TEST_CASE("sawtooth_model_hamiltonian_contains_expected_terms") {
@@ -72,16 +72,27 @@ TEST_CASE("sawtooth_model_hamiltonian_contains_expected_terms") {
       BosonOperator::creation(SawtoothHubbardModel::species, model.site_base(1)),
       BosonOperator::annihilation(SawtoothHubbardModel::species, model.site_apex(0)),
   };
+  // The interaction n_i(n_i-1) is stored as n_i^2 - n_i, where n_i^2 keeps
+  // the density_density monomial form {c†, a, c†, a}.
   BosonExpression::container_type onsite_base{
       BosonOperator::creation(SawtoothHubbardModel::species, model.site_base(0)),
-      BosonOperator::creation(SawtoothHubbardModel::species, model.site_base(0)),
       BosonOperator::annihilation(SawtoothHubbardModel::species, model.site_base(0)),
+      BosonOperator::creation(SawtoothHubbardModel::species, model.site_base(0)),
       BosonOperator::annihilation(SawtoothHubbardModel::species, model.site_base(0)),
   };
   BosonExpression::container_type onsite_apex{
       BosonOperator::creation(SawtoothHubbardModel::species, model.site_apex(0)),
+      BosonOperator::annihilation(SawtoothHubbardModel::species, model.site_apex(0)),
       BosonOperator::creation(SawtoothHubbardModel::species, model.site_apex(0)),
       BosonOperator::annihilation(SawtoothHubbardModel::species, model.site_apex(0)),
+  };
+  // The -n_i terms contribute a number operator with coefficient -(U/2)
+  BosonExpression::container_type number_base{
+      BosonOperator::creation(SawtoothHubbardModel::species, model.site_base(0)),
+      BosonOperator::annihilation(SawtoothHubbardModel::species, model.site_base(0)),
+  };
+  BosonExpression::container_type number_apex{
+      BosonOperator::creation(SawtoothHubbardModel::species, model.site_apex(0)),
       BosonOperator::annihilation(SawtoothHubbardModel::species, model.site_apex(0)),
   };
 
@@ -91,6 +102,8 @@ TEST_CASE("sawtooth_model_hamiltonian_contains_expected_terms") {
   const auto right_tooth_it = hamiltonian.terms().find(right_tooth);
   const auto onsite_base_it = hamiltonian.terms().find(onsite_base);
   const auto onsite_apex_it = hamiltonian.terms().find(onsite_apex);
+  const auto number_base_it = hamiltonian.terms().find(number_base);
+  const auto number_apex_it = hamiltonian.terms().find(number_apex);
 
   REQUIRE(base_forward_it != hamiltonian.terms().end());
   REQUIRE(base_backward_it != hamiltonian.terms().end());
@@ -98,6 +111,8 @@ TEST_CASE("sawtooth_model_hamiltonian_contains_expected_terms") {
   REQUIRE(right_tooth_it != hamiltonian.terms().end());
   REQUIRE(onsite_base_it != hamiltonian.terms().end());
   REQUIRE(onsite_apex_it != hamiltonian.terms().end());
+  REQUIRE(number_base_it != hamiltonian.terms().end());
+  REQUIRE(number_apex_it != hamiltonian.terms().end());
 
   CHECK(complex_near(base_forward_it->second, BosonMonomial::complex_type(-1.25, 0.0)));
   CHECK(complex_near(base_backward_it->second, BosonMonomial::complex_type(-1.25, 0.0)));
@@ -105,4 +120,6 @@ TEST_CASE("sawtooth_model_hamiltonian_contains_expected_terms") {
   CHECK(complex_near(right_tooth_it->second, BosonMonomial::complex_type(-2.0, 0.0)));
   CHECK(complex_near(onsite_base_it->second, BosonMonomial::complex_type(3.0, 0.0)));
   CHECK(complex_near(onsite_apex_it->second, BosonMonomial::complex_type(3.0, 0.0)));
+  CHECK(complex_near(number_base_it->second, BosonMonomial::complex_type(-3.0, 0.0)));
+  CHECK(complex_near(number_apex_it->second, BosonMonomial::complex_type(-3.0, 0.0)));
 }
