@@ -30,7 +30,7 @@ int main() {
 
   // Run CLS diagnostic
   l1_cls::IrlsParams params;
-  auto result = l1_cls::cls_rank_diagnostic(H, E_fb, params);
+  auto result = l1_cls::cls_rank_diagnostic<double>(H, E_fb, params);
 
   std::printf("Diagnostic:\n");
   std::printf("  Nullspace dim       = %zu\n", result.nullspace_dim);
