@@ -390,3 +390,14 @@ struct ExpressionBase {
     return canonicalize(result);
   }
 };
+
+template <typename ExpressionType>
+ExpressionType hopping_generic(const typename ExpressionType::complex_type& coeff, size_t from,
+                               size_t to, typename ExpressionType::operator_type::Spin spin) {
+  using Monomial = typename ExpressionType::monomial_type;
+  using Op = typename ExpressionType::operator_type;
+  ExpressionType result(Monomial(coeff, {Op::creation(spin, from), Op::annihilation(spin, to)}));
+  result +=
+      ExpressionType(Monomial(std::conj(coeff), {Op::creation(spin, to), Op::annihilation(spin, from)}));
+  return result;
+}
