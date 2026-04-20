@@ -1,7 +1,6 @@
+#include <armadillo>
 #include <cstddef>
 #include <cstdio>
-
-#include <armadillo>
 
 #include "algebra/fermion/basis.h"
 #include "algebra/matrix_elements.h"
@@ -17,8 +16,7 @@ int main() {
   HofstadterTightBindingModel model(t, Nx, Ny, alpha);
 
   // Build single-particle Hamiltonian via many-body machinery
-  auto basis =
-      FermionBasis::with_fixed_particle_number_and_spin(model.num_sites, 1, 1);
+  auto basis = FermionBasis::with_fixed_particle_number_and_spin(model.num_sites, 1, 1);
   arma::cx_mat H = compute_matrix_elements<arma::cx_mat>(basis, model.hamiltonian());
 
   auto [p, q] = model.flux_fraction();
@@ -35,8 +33,8 @@ int main() {
 
   double bandwidth = band_evals(band_evals.n_elem - 1) - band_evals(0);
   double gap = evals(band_size) - band_evals(band_evals.n_elem - 1);
-  std::printf("  Lowest band: [%.6f, %.6f]  bandwidth=%.2e  gap=%.6f\n\n",
-              band_evals(0), band_evals(band_evals.n_elem - 1), bandwidth, gap);
+  std::printf("  Lowest band: [%.6f, %.6f]  bandwidth=%.2e  gap=%.6f\n\n", band_evals(0),
+              band_evals(band_evals.n_elem - 1), bandwidth, gap);
 
   // Run IRLS to find the most localized state in this subband
   l1_cls::IrlsParams params;
@@ -55,8 +53,7 @@ int main() {
     double ipr = arma::dot(density, density);
     double l1 = arma::accu(arma::abs(psi));
 
-    std::printf("State %zu:  support=%llu  L1=%.4f  IPR=%.6f\n", i,
-                support.n_elem, l1, ipr);
+    std::printf("State %zu:  support=%llu  L1=%.4f  IPR=%.6f\n", i, support.n_elem, l1, ipr);
 
     // Check it lives in the subband
     arma::cx_vec projected = Z * (Z.t() * psi);

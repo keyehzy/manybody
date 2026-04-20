@@ -48,8 +48,7 @@ namespace detail {
 /// `reference`.  For real vectors this is a sign flip; for complex
 /// vectors it is a full U(1) rotation.
 template <typename T>
-inline arma::Col<T> align_phase(const arma::Col<T>& candidate,
-                                const arma::Col<T>& reference) {
+inline arma::Col<T> align_phase(const arma::Col<T>& candidate, const arma::Col<T>& reference) {
   if constexpr (std::is_same_v<T, double>) {
     if (arma::dot(reference, candidate) < 0.0) {
       return -candidate;
@@ -148,9 +147,9 @@ inline arma::Mat<T> compute_nullspace(const arma::Mat<T>& H, double E_target,
 ///
 /// Returns {all_eigenvalues, band_eigenvalues, Z}.
 template <typename T>
-inline std::tuple<arma::vec, arma::vec, arma::Mat<T>>
-extract_subband(const arma::Mat<T>& H, size_t band_size,
-                size_t band_index = 0) {
+inline std::tuple<arma::vec, arma::vec, arma::Mat<T>> extract_subband(const arma::Mat<T>& H,
+                                                                      size_t band_size,
+                                                                      size_t band_index = 0) {
   arma::vec evals;
   arma::Mat<T> evecs;
   arma::eig_sym(evals, evecs, H);
@@ -175,11 +174,10 @@ extract_subband(const arma::Mat<T>& H, size_t band_size,
 /// ||c|| = 1, by iteratively solving a weighted eigenvalue problem.
 /// Returns {c, total_iterations}.
 template <typename T>
-inline std::pair<arma::Col<T>, size_t> irls_annealed(const arma::Mat<T>& Z,
-                                                     arma::Col<T> c,
+inline std::pair<arma::Col<T>, size_t> irls_annealed(const arma::Mat<T>& Z, arma::Col<T> c,
                                                      const IrlsParams& p) {
-  const arma::vec eps_schedule = arma::logspace(
-      std::log10(p.eps_start), std::log10(p.eps_end), p.n_eps_stages);
+  const arma::vec eps_schedule =
+      arma::logspace(std::log10(p.eps_start), std::log10(p.eps_end), p.n_eps_stages);
   size_t total_iter = 0;
 
   for (size_t stage = 0; stage < p.n_eps_stages; ++stage) {
@@ -190,8 +188,7 @@ inline std::pair<arma::Col<T>, size_t> irls_annealed(const arma::Mat<T>& Z,
       const arma::Col<T> psi = Z * c;
 
       // Reweighting: w_i = 1 / sqrt(|psi_i|^2 + eps^2)
-      const arma::vec w =
-          1.0 / arma::sqrt(arma::square(arma::abs(psi)) + eps_sq);
+      const arma::vec w = 1.0 / arma::sqrt(arma::square(arma::abs(psi)) + eps_sq);
 
       // Weighted Gram matrix: G = Z^H diag(w) Z  (Hermitian)
       arma::Mat<T> G = Z.t() * arma::diagmat(w) * Z;
@@ -226,8 +223,7 @@ inline std::pair<arma::Col<T>, size_t> irls_annealed(const arma::Mat<T>& Z,
 /// are deduplicated by their support set (the set of site indices with
 /// nonzero amplitude).
 template <typename T>
-inline std::vector<arma::Col<T>> find_all_cls(const arma::Mat<T>& Z,
-                                              const IrlsParams& p) {
+inline std::vector<arma::Col<T>> find_all_cls(const arma::Mat<T>& Z, const IrlsParams& p) {
   const size_t n_sites = Z.n_rows;
 
   std::set<std::vector<arma::uword>> seen_supports;
@@ -254,8 +250,7 @@ inline std::vector<arma::Col<T>> find_all_cls(const arma::Mat<T>& Z,
       continue;
     }
 
-    std::vector<arma::uword> support_key(support_idx.begin(),
-                                         support_idx.end());
+    std::vector<arma::uword> support_key(support_idx.begin(), support_idx.end());
     if (seen_supports.insert(support_key).second) {
       cls_list.push_back(psi);
     }
@@ -270,8 +265,7 @@ inline std::vector<arma::Col<T>> find_all_cls(const arma::Mat<T>& Z,
 /// rank/dimension/gap diagnostics.  An incompleteness_gap > 0 indicates
 /// that the CLS set does not span the full flat-band subspace.
 template <typename T>
-inline DiagnosticResult<T> cls_rank_diagnostic(const arma::Mat<T>& H,
-                                               double E_target,
+inline DiagnosticResult<T> cls_rank_diagnostic(const arma::Mat<T>& H, double E_target,
                                                const IrlsParams& p = {}) {
   const arma::Mat<T> Z = compute_nullspace(H, E_target, p.svd_tol);
   const size_t nullspace_dim = Z.n_cols;
@@ -290,8 +284,7 @@ inline DiagnosticResult<T> cls_rank_diagnostic(const arma::Mat<T>& H,
   const arma::Mat<T> A = Z.t() * C;
   const size_t cls_rank = arma::rank(A, 1e-10);
 
-  return {nullspace_dim, cls_list.size(), cls_rank, nullspace_dim - cls_rank,
-          std::move(cls_list)};
+  return {nullspace_dim, cls_list.size(), cls_rank, nullspace_dim - cls_rank, std::move(cls_list)};
 }
 
 }  // namespace l1_cls

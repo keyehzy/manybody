@@ -25,8 +25,7 @@
 struct HofstadterTightBindingModel : FermionModel {
   static constexpr auto spin = FermionOperator::Spin::Up;
 
-  HofstadterTightBindingModel(double t_val, size_t nx_val, size_t ny_val,
-                              double alpha_val)
+  HofstadterTightBindingModel(double t_val, size_t nx_val, size_t ny_val, double alpha_val)
       : t(t_val),
         nx(nx_val),
         ny(ny_val),
@@ -63,8 +62,7 @@ struct HofstadterTightBindingModel : FermionModel {
       }
     }
     if (best_err > tol) {
-      throw std::invalid_argument(
-          "alpha is not close to a rational with small denominator");
+      throw std::invalid_argument("alpha is not close to a rational with small denominator");
     }
     size_t g = std::gcd(best_p, best_q);
     return {best_p / g, best_q / g};
