@@ -10,7 +10,7 @@
 
 #include "algebra/statistics.h"
 
-using OperatorStorage = std::uint8_t;
+using OperatorStorage = std::uint16_t;
 
 template <Statistics S, class Storage>
 struct BasicOperator {
