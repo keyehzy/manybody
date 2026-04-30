@@ -8,6 +8,7 @@
 
 #include "algebra/boson/term.h"
 #include "algebra/fermion/term.h"
+#include "algebra/hardcore_boson/term.h"
 
 static constexpr uint64_t choose(uint64_t n, uint64_t m) noexcept {
   if (m > n) return 0;
@@ -356,3 +357,4 @@ void BasisImpl<MonomialType>::generate_restrict_combinations_with_spin_momentum(
 
 template struct BasisImpl<FermionMonomial>;
 template struct BasisImpl<BosonMonomial>;
+template struct BasisImpl<HardcoreBosonMonomial>;

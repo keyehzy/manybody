@@ -111,9 +111,11 @@ struct BasicOperator {
 
 using FermionOperator = BasicOperator<Statistics::Fermion, OperatorStorage>;
 using BosonOperator = BasicOperator<Statistics::Boson, OperatorStorage>;
+using HardcoreBosonOperator = BasicOperator<Statistics::HardcoreBoson, OperatorStorage>;
 
 static_assert(sizeof(FermionOperator) == sizeof(OperatorStorage));
 static_assert(sizeof(BosonOperator) == sizeof(OperatorStorage));
+static_assert(sizeof(HardcoreBosonOperator) == sizeof(OperatorStorage));
 
 template <Statistics S, class Storage>
 struct std::hash<BasicOperator<S, Storage>> {
