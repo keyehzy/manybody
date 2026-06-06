@@ -306,3 +306,92 @@ TEST_CASE("general_reference_four_point_wick_with_off_diagonal_rho") {
   const complex_type expected = alpha * std::conj(alpha) + complex_type{n0 * (1.0 - n1), 0.0};
   CHECK(approx_equal(value, expected));
 }
+
+TEST_CASE("nambu_reference_zero_kappa_matches_general") {
+  const std::size_t n_sites = 4;
+  const double n_val = 0.3;
+  DiagonalFermionReference diag = make_diagonal_reference(n_sites, n_val, 0.0);
+  GeneralFermionReference gen(n_sites, diag.n);
+  NambuFermionReference nambu(gen);
+
+  FermionMonomial term(
+      complex_type{1.0, 0.0},
+      {FermionOperator::creation(Spin::Up, 1), FermionOperator::annihilation(Spin::Up, 1),
+       FermionOperator::creation(Spin::Down, 2), FermionOperator::annihilation(Spin::Down, 2)});
+
+  complex_type gen_value = wick_expectation(term, gen);
+  complex_type nambu_value = wick_expectation(term, nambu);
+  CHECK(approx_equal(nambu_value, gen_value));
+}
+
+TEST_CASE("nambu_pair_amplitude_from_kappa") {
+  const std::size_t n_sites = 1;
+  NambuFermionReference nambu(n_sites);
+  const complex_type alpha{0.4, 0.2};
+  nambu.set_pair_amplitude(Spin::Up, 0, Spin::Down, 0, alpha);
+
+  FermionOperator c_up = FermionOperator::annihilation(Spin::Up, 0);
+  FermionOperator c_dn = FermionOperator::annihilation(Spin::Down, 0);
+  FermionOperator cd_up = FermionOperator::creation(Spin::Up, 0);
+  FermionOperator cd_dn = FermionOperator::creation(Spin::Down, 0);
+
+  CHECK(approx_equal(nambu.contract_plain_then_plain(c_up, c_dn), alpha));
+  CHECK(approx_equal(nambu.contract_dagger_then_dagger(cd_up, cd_dn), -std::conj(alpha)));
+  CHECK(approx_equal(nambu.contract_dagger_then_dagger(cd_dn, cd_up), std::conj(alpha)));
+}
+
+TEST_CASE("nambu_kappa_antisymmetry") {
+  const std::size_t n_sites = 1;
+  NambuFermionReference nambu(n_sites);
+  const complex_type alpha{0.5, -0.3};
+  nambu.set_pair_amplitude(Spin::Up, 0, Spin::Down, 0, alpha);
+
+  FermionOperator c_up = FermionOperator::annihilation(Spin::Up, 0);
+  FermionOperator c_dn = FermionOperator::annihilation(Spin::Down, 0);
+
+  CHECK(approx_equal(nambu.contract_plain_then_plain(c_up, c_dn), alpha));
+  CHECK(approx_equal(nambu.contract_plain_then_plain(c_dn, c_up), -alpha));
+}
+
+TEST_CASE("nambu_bcs_four_point_expectation") {
+  // <c+_up c+_dn c_dn c_up> in a BCS-like reference with diagonal densities
+  // n_up, n_dn and on-site singlet pair amplitude alpha = <c_up c_dn>.
+  //   Full pairings:
+  //     (0,1) c+_up c+_dn paired, (2,3) c_dn c_up paired ->
+  //         <c+_up c+_dn> * <c_dn c_up> = (-alpha*) * (-alpha) = |alpha|^2
+  //     (0,3) c+_up c_up paired, (1,2) c+_dn c_dn paired ->
+  //         <c+_up c_up> * <c+_dn c_dn> = n_up * n_dn
+  //     (0,2) c+_up c_dn ->  0 (different spins, diagonal rho).
+  const std::size_t n_sites = 1;
+  NambuFermionReference nambu(n_sites);
+  const double n_up = 0.6;
+  const double n_dn = 0.4;
+  const complex_type alpha{0.3, 0.0};
+  nambu.set_density(Spin::Up, 0, complex_type{n_up, 0.0});
+  nambu.set_density(Spin::Down, 0, complex_type{n_dn, 0.0});
+  nambu.set_pair_amplitude(Spin::Up, 0, Spin::Down, 0, alpha);
+
+  FermionMonomial term(
+      complex_type{1.0, 0.0},
+      {FermionOperator::creation(Spin::Up, 0), FermionOperator::creation(Spin::Down, 0),
+       FermionOperator::annihilation(Spin::Down, 0), FermionOperator::annihilation(Spin::Up, 0)});
+
+  complex_type value = wick_expectation(term, nambu);
+  const complex_type expected = complex_type{n_up * n_dn, 0.0} + alpha * std::conj(alpha);
+  CHECK(approx_equal(value, expected));
+}
+
+TEST_CASE("vacuum_and_diagonal_anomalous_contractions_are_zero") {
+  VacuumFermionReference vac;
+  DiagonalFermionReference diag = make_diagonal_reference(2, 0.5, 0.1);
+
+  FermionOperator c_up = FermionOperator::annihilation(Spin::Up, 0);
+  FermionOperator c_dn = FermionOperator::annihilation(Spin::Down, 0);
+  FermionOperator cd_up = FermionOperator::creation(Spin::Up, 0);
+  FermionOperator cd_dn = FermionOperator::creation(Spin::Down, 0);
+
+  CHECK(approx_equal(vac.contract_plain_then_plain(c_up, c_dn), complex_type{0.0, 0.0}));
+  CHECK(approx_equal(vac.contract_dagger_then_dagger(cd_up, cd_dn), complex_type{0.0, 0.0}));
+  CHECK(approx_equal(diag.contract_plain_then_plain(c_up, c_dn), complex_type{0.0, 0.0}));
+  CHECK(approx_equal(diag.contract_dagger_then_dagger(cd_up, cd_dn), complex_type{0.0, 0.0}));
+}
