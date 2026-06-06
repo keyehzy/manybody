@@ -106,8 +106,10 @@ FermionExpression wick_decouple_recursive(const FermionMonomial::container_type&
       contraction = ref.contract_dagger_then_plain(a, b);
     } else if (a.type() == Type::Annihilation && b.type() == Type::Creation) {
       contraction = ref.contract_plain_then_dagger(a, b);
+    } else if (a.type() == Type::Annihilation && b.type() == Type::Annihilation) {
+      contraction = ref.contract_plain_then_plain(a, b);
     } else {
-      continue;
+      contraction = ref.contract_dagger_then_dagger(a, b);
     }
 
     if (FermionExpression::is_zero(contraction)) {
