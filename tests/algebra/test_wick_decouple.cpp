@@ -226,3 +226,83 @@ TEST_CASE("wick_expectation_distributes_over_expression") {
   complex_type value = wick_expectation(e, ref);
   CHECK(approx_equal(value, complex_type{2.0 * 0.25 - 1.0 * 0.25, 0.0}));
 }
+
+TEST_CASE("general_reference_with_diagonal_rho_matches_diagonal_reference") {
+  const std::size_t n_sites = 4;
+  const double n_val = 0.3;
+
+  DiagonalFermionReference diag = make_diagonal_reference(n_sites, n_val, 0.0);
+  GeneralFermionReference gen(n_sites, diag.n);
+
+  FermionMonomial term(
+      complex_type{1.0, 0.0},
+      {FermionOperator::creation(Spin::Up, 1), FermionOperator::annihilation(Spin::Up, 1),
+       FermionOperator::creation(Spin::Down, 2), FermionOperator::annihilation(Spin::Down, 2)});
+
+  complex_type diag_value = wick_expectation(term, diag);
+  complex_type gen_value = wick_expectation(term, gen);
+  CHECK(approx_equal(gen_value, diag_value));
+}
+
+TEST_CASE("general_reference_off_diagonal_density_gives_off_diagonal_expectation") {
+  const std::size_t n_sites = 2;
+  GeneralFermionReference gen(n_sites);
+  const complex_type alpha{0.4, 0.2};
+  const std::size_t i0 = gen.flat_index(Spin::Up, 0);
+  const std::size_t i1 = gen.flat_index(Spin::Up, 1);
+  gen.rho_at(i0, i1) = alpha;
+  gen.rho_at(i1, i0) = std::conj(alpha);
+
+  FermionMonomial term(complex_type{1.0, 0.0}, {FermionOperator::creation(Spin::Up, 0),
+                                                FermionOperator::annihilation(Spin::Up, 1)});
+
+  complex_type value = wick_expectation(term, gen);
+  CHECK(approx_equal(value, alpha));
+}
+
+TEST_CASE("general_reference_particle_hole_identity") {
+  const std::size_t n_sites = 2;
+  GeneralFermionReference gen(n_sites);
+  gen.rho_at(gen.flat_index(Spin::Up, 0), gen.flat_index(Spin::Up, 0)) = complex_type{0.6, 0.0};
+  gen.rho_at(gen.flat_index(Spin::Up, 1), gen.flat_index(Spin::Up, 1)) = complex_type{0.2, 0.0};
+  const complex_type alpha{0.3, -0.1};
+  gen.rho_at(gen.flat_index(Spin::Up, 0), gen.flat_index(Spin::Up, 1)) = alpha;
+  gen.rho_at(gen.flat_index(Spin::Up, 1), gen.flat_index(Spin::Up, 0)) = std::conj(alpha);
+
+  FermionOperator a = FermionOperator::annihilation(Spin::Up, 0);
+  FermionOperator b_dag = FermionOperator::creation(Spin::Up, 1);
+  complex_type cd_dag = gen.contract_plain_then_dagger(a, b_dag);
+  // <c_a c+_b> = delta_{ab} - rho_{b,a} = 0 - conj(alpha)
+  CHECK(approx_equal(cd_dag, -std::conj(alpha)));
+
+  FermionOperator c = FermionOperator::annihilation(Spin::Up, 0);
+  FermionOperator c_dag = FermionOperator::creation(Spin::Up, 0);
+  complex_type same = gen.contract_plain_then_dagger(c, c_dag);
+  // <c_a c+_a> = 1 - rho_{a,a}
+  CHECK(approx_equal(same, complex_type{1.0 - 0.6, 0.0}));
+}
+
+TEST_CASE("general_reference_four_point_wick_with_off_diagonal_rho") {
+  const std::size_t n_sites = 2;
+  GeneralFermionReference gen(n_sites);
+  const double n0 = 0.7;
+  const double n1 = 0.3;
+  const complex_type alpha{0.25, 0.0};
+  gen.rho_at(gen.flat_index(Spin::Up, 0), gen.flat_index(Spin::Up, 0)) = complex_type{n0, 0.0};
+  gen.rho_at(gen.flat_index(Spin::Up, 1), gen.flat_index(Spin::Up, 1)) = complex_type{n1, 0.0};
+  gen.rho_at(gen.flat_index(Spin::Up, 0), gen.flat_index(Spin::Up, 1)) = alpha;
+  gen.rho_at(gen.flat_index(Spin::Up, 1), gen.flat_index(Spin::Up, 0)) = std::conj(alpha);
+
+  // <c+_0 c_1 c+_1 c_0> with ops at positions 0..3 being (c+_0, c_1, c+_1, c_0).
+  // Same-spin full pairings (c+, c) and their contributions:
+  //   pair (0,1) and (2,3): rho_{0,1} * rho_{1,0} = |alpha|^2 (both signs +1)
+  //   pair (0,3) and (1,2): rho_{0,0} * <c_1 c+_1> = n_0 * (1 - n_1) (both signs +1)
+  FermionMonomial term(
+      complex_type{1.0, 0.0},
+      {FermionOperator::creation(Spin::Up, 0), FermionOperator::annihilation(Spin::Up, 1),
+       FermionOperator::creation(Spin::Up, 1), FermionOperator::annihilation(Spin::Up, 0)});
+
+  complex_type value = wick_expectation(term, gen);
+  const complex_type expected = alpha * std::conj(alpha) + complex_type{n0 * (1.0 - n1), 0.0};
+  CHECK(approx_equal(value, expected));
+}
