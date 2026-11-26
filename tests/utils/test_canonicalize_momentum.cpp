@@ -43,3 +43,11 @@ TEST_CASE("canonicalize_momentum_vector_empty") {
 
   CHECK(result.empty());
 }
+
+TEST_CASE("canonicalize_momentum_vector_dimension_mismatch_throws") {
+  const std::vector<size_t> size = {4, 3};
+  CHECK_THROWS_AS(utils::canonicalize_momentum(std::vector<int64_t>{1, 2, 3}, size),
+                  std::invalid_argument);
+  CHECK_THROWS_AS(utils::canonicalize_momentum(std::vector<int64_t>{1}, size),
+                  std::invalid_argument);
+}

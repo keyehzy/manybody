@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <stdexcept>
 #include <vector>
 
 namespace utils {
@@ -20,6 +21,10 @@ inline size_t canonicalize_momentum(int64_t value, size_t lattice_size) {
 
 inline std::vector<size_t> canonicalize_momentum(const std::vector<int64_t>& momentum,
                                                  const std::vector<size_t>& size) {
+  if (momentum.size() != size.size()) {
+    throw std::invalid_argument(
+        "canonicalize_momentum: momentum and lattice size must have the same dimension.");
+  }
   std::vector<size_t> result(momentum.size());
   for (size_t d = 0; d < momentum.size(); ++d) {
     result[d] = canonicalize_momentum(momentum[d], size[d]);
