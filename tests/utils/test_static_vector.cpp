@@ -91,6 +91,19 @@ TEST_CASE("static_vector_at_access") {
   CHECK((const_vec.at(2)) == (33));
 }
 
+TEST_CASE("static_vector_at_out_of_range_throws") {
+  // Index 3 is within capacity (N = 4) but past size(), so it must still throw.
+  static_vector<int, 4> vec({10, 20, 30});
+  CHECK_THROWS_AS(vec.at(3), std::out_of_range);
+  CHECK_THROWS_AS(vec.at(4), std::out_of_range);
+
+  const static_vector<int, 4> const_vec({11, 22, 33});
+  CHECK_THROWS_AS(const_vec.at(3), std::out_of_range);
+
+  const static_vector<int, 4> empty_vec;
+  CHECK_THROWS_AS(empty_vec.at(0), std::out_of_range);
+}
+
 TEST_CASE("static_vector_equality") {
   FermionOperator a = FermionOperator::creation(FermionOperator::Spin::Up, 1);
   FermionOperator b = FermionOperator::annihilation(FermionOperator::Spin::Down, 2);

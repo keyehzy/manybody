@@ -7,6 +7,7 @@
 #include <functional>
 #include <initializer_list>
 #include <iterator>
+#include <stdexcept>
 #include <type_traits>
 
 #include "xxhash.h"
@@ -41,12 +42,16 @@ struct static_vector {
     return data[index];
   }
 
-  constexpr T& at(size_t index) noexcept {
-    assert(index < size());
+  constexpr T& at(size_t index) {
+    if (index >= size()) {
+      throw std::out_of_range("static_vector::at: index out of range");
+    }
     return data[index];
   }
-  constexpr const T& at(size_t index) const noexcept {
-    assert(index < size());
+  constexpr const T& at(size_t index) const {
+    if (index >= size()) {
+      throw std::out_of_range("static_vector::at: index out of range");
+    }
     return data[index];
   }
 
