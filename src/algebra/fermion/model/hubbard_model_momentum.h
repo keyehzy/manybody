@@ -142,25 +142,14 @@ struct HubbardModelMomentum : FermionModel {
     FermionExpression interaction_term;
     const size_t N = index.size();
     const auto u_coeff = FermionExpression::complex_type(u / static_cast<double>(N), 0.0);
+    const auto [plus, minus] = momentum_shift_tables();
 
     // (U/N) sum_{k1,k2,q} c†_{k1+q,↑} c†_{k2-q,↓} c_{k2,↓} c_{k1,↑}
     for (size_t k1 = 0; k1 < N; ++k1) {
       for (size_t k2 = 0; k2 < N; ++k2) {
         for (size_t q = 0; q < N; ++q) {
-          // Compute k1+q and k2-q with periodic boundary conditions
-          const auto k1_coords = index(k1);
-          const auto k2_coords = index(k2);
-          const auto q_coords = index(q);
-
-          std::vector<size_t> k1_plus_q(size.size());
-          std::vector<size_t> k2_minus_q(size.size());
-          for (size_t d = 0; d < size.size(); ++d) {
-            k1_plus_q[d] = (k1_coords[d] + q_coords[d]) % size[d];
-            k2_minus_q[d] = (k2_coords[d] + size[d] - q_coords[d]) % size[d];
-          }
-
-          const size_t k1_plus_q_idx = index(k1_plus_q);
-          const size_t k2_minus_q_idx = index(k2_minus_q);
+          const size_t k1_plus_q_idx = plus[k1 * N + q];
+          const size_t k2_minus_q_idx = minus[k2 * N + q];
 
           interaction_term += FermionExpression(FermionMonomial(
               u_coeff, {FermionOperator::creation(FermionOperator::Spin::Up, k1_plus_q_idx),
@@ -193,41 +182,33 @@ struct HubbardModelMomentum : FermionModel {
 
     FermionExpression result;
     const size_t N = index.size();
+    const auto [plus, minus] = momentum_shift_tables();
+
+    // Phase e^{-iq·r} / N² depends only on q, where q·r = Σ_d (2π q_d / L_d) * r_d
+    std::vector<FermionExpression::complex_type> q_coeffs(N);
+    for (size_t q = 0; q < N; ++q) {
+      const auto q_coords = index(q);
+      double phase = 0.0;
+      for (size_t d = 0; d < size.size(); ++d) {
+        phase += 2.0 * std::numbers::pi_v<double> * static_cast<double>(q_coords[d]) *
+                 static_cast<double>(r[d]) / static_cast<double>(size[d]);
+      }
+      q_coeffs[q] = FermionExpression::complex_type(std::cos(phase) / static_cast<double>(N * N),
+                                                    -std::sin(phase) / static_cast<double>(N * N));
+    }
 
     for (size_t k1 = 0; k1 < N; ++k1) {
       for (size_t q = 0; q < N; ++q) {
         for (size_t k2 = 0; k2 < N; ++k2) {
-          // Compute k1+q and k2-q with periodic boundary conditions
-          const auto k1_coords = index(k1);
-          const auto q_coords = index(q);
-          const auto k2_coords = index(k2);
-
-          std::vector<size_t> k1_plus_q(size.size());
-          std::vector<size_t> k2_minus_q(size.size());
-          for (size_t d = 0; d < size.size(); ++d) {
-            k1_plus_q[d] = (k1_coords[d] + q_coords[d]) % size[d];
-            k2_minus_q[d] = (k2_coords[d] + size[d] - q_coords[d]) % size[d];
-          }
-
-          const size_t k1_plus_q_idx = index(k1_plus_q);
-          const size_t k2_minus_q_idx = index(k2_minus_q);
-
-          // Compute phase e^{-iq·r} where q·r = Σ_d (2π q_d / L_d) * r_d
-          double phase = 0.0;
-          for (size_t d = 0; d < size.size(); ++d) {
-            phase += 2.0 * std::numbers::pi_v<double> * static_cast<double>(q_coords[d]) *
-                     static_cast<double>(r[d]) / static_cast<double>(size[d]);
-          }
-
-          const auto coeff =
-              FermionExpression::complex_type(std::cos(phase) / static_cast<double>(N * N),
-                                              -std::sin(phase) / static_cast<double>(N * N));
+          const size_t k1_plus_q_idx = plus[k1 * N + q];
+          const size_t k2_minus_q_idx = minus[k2 * N + q];
 
           result += FermionExpression(FermionMonomial(
-              coeff, {FermionOperator::creation(FermionOperator::Spin::Up, k1),
-                      FermionOperator::annihilation(FermionOperator::Spin::Up, k1_plus_q_idx),
-                      FermionOperator::creation(FermionOperator::Spin::Down, k2),
-                      FermionOperator::annihilation(FermionOperator::Spin::Down, k2_minus_q_idx)}));
+              q_coeffs[q],
+              {FermionOperator::creation(FermionOperator::Spin::Up, k1),
+               FermionOperator::annihilation(FermionOperator::Spin::Up, k1_plus_q_idx),
+               FermionOperator::creation(FermionOperator::Spin::Down, k2),
+               FermionOperator::annihilation(FermionOperator::Spin::Down, k2_minus_q_idx)}));
         }
       }
     }
@@ -238,4 +219,36 @@ struct HubbardModelMomentum : FermionModel {
   double u;
   std::vector<size_t> size;
   Index index;
+
+ private:
+  /// Flattened N×N lookup tables of momentum indices with periodic boundary conditions:
+  /// plus[k * N + q] = index(k + q) and minus[k * N + q] = index(k - q).
+  /// Built once so the O(N³) loops do no coordinate conversions or allocations.
+  struct MomentumShiftTables {
+    std::vector<size_t> plus;
+    std::vector<size_t> minus;
+  };
+
+  MomentumShiftTables momentum_shift_tables() const {
+    const size_t N = index.size();
+    std::vector<Index::container_type> coords(N);
+    for (size_t k = 0; k < N; ++k) {
+      coords[k] = index(k);
+    }
+
+    MomentumShiftTables tables{std::vector<size_t>(N * N), std::vector<size_t>(N * N)};
+    Index::container_type k_plus_q(size.size());
+    Index::container_type k_minus_q(size.size());
+    for (size_t k = 0; k < N; ++k) {
+      for (size_t q = 0; q < N; ++q) {
+        for (size_t d = 0; d < size.size(); ++d) {
+          k_plus_q[d] = (coords[k][d] + coords[q][d]) % size[d];
+          k_minus_q[d] = (coords[k][d] + size[d] - coords[q][d]) % size[d];
+        }
+        tables.plus[k * N + q] = index(k_plus_q);
+        tables.minus[k * N + q] = index(k_minus_q);
+      }
+    }
+    return tables;
+  }
 };

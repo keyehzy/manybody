@@ -212,3 +212,37 @@ TEST_CASE("fourier_transform_hubbard_3d_gives_momentum_space") {
     CHECK(complex_near(it->second, coeff, kTolerance));
   }
 }
+
+TEST_CASE("fourier_transform_opposite_spin_correlation_gives_momentum_space") {
+  // G_{↑↓}(r) = (1/N) Σ_i n_{i,↑} n_{i+r,↓} on an anisotropic lattice, so that
+  // k+q / k-q wrapping is exercised differently along each dimension.
+  constexpr size_t Lx = 3;
+  constexpr size_t Ly = 2;
+  const std::vector<size_t> r = {1, 1};
+  Index index({Lx, Ly});
+  const size_t N = index.size();
+
+  FermionExpression G_real;
+  const auto coeff = FermionExpression::complex_type(1.0 / static_cast<double>(N), 0.0);
+  for (size_t i = 0; i < N; ++i) {
+    const auto coords = index(i);
+    const size_t j = index({(coords[0] + r[0]) % Lx, (coords[1] + r[1]) % Ly});
+    G_real += FermionExpression(
+        FermionMonomial(coeff, {FermionOperator::creation(FermionOperator::Spin::Up, i),
+                                FermionOperator::annihilation(FermionOperator::Spin::Up, i),
+                                FermionOperator::creation(FermionOperator::Spin::Down, j),
+                                FermionOperator::annihilation(FermionOperator::Spin::Down, j)}));
+  }
+
+  FermionExpression G_transformed = canonicalize(transform_expression(
+      fourier_transform_operator<FermionExpression>, G_real, index, FourierMode::Direct));
+  FermionExpression G_momentum =
+      canonicalize(HubbardModelMomentum(1.0, 0.0, {Lx, Ly}).opposite_spin_correlation(r));
+
+  CHECK(G_transformed.terms().size() == G_momentum.terms().size());
+  for (const auto& [ops, value] : G_momentum.terms()) {
+    auto it = G_transformed.terms().find(ops);
+    REQUIRE(it != G_transformed.terms().end());
+    CHECK(complex_near(it->second, value, kTolerance));
+  }
+}
