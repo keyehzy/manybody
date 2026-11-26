@@ -149,3 +149,31 @@ TEST_CASE("hubbard_relative_current_matches_momentum_current") {
     }
   }
 }
+
+TEST_CASE("current_relative_q_matches_momentum_current_between_sectors") {
+  // J(Q) maps sector K to the canonical sector (K + Q) mod L, including when K + Q wraps.
+  const double t = 0.8;
+  for (const auto& size : kLattices) {
+    for (size_t direction = 0; direction < size.size(); ++direction) {
+      for (const auto& Q : all_momenta(size)) {
+        const FermionExpression J = bond_current(size, t, Q, direction);
+        for (const auto& K : all_momenta(size)) {
+          CAPTURE(size, K, Q, direction);
+          const auto KQ = add_momenta(K, Q, size);
+          const FermionBasis col_basis = momentum_sector(size, K);
+          const FermionBasis row_basis = momentum_sector(size, KQ);
+          const arma::cx_mat J_mom =
+              compute_rectangular_matrix_elements<arma::cx_mat>(row_basis, col_basis, J);
+          const CurrentRelative_Q j_q(size, t, to_signed(K), to_signed(Q), direction);
+          const CurrentRelative_Q_Adjoint j_q_adj(size, t, to_signed(K), to_signed(Q), direction);
+          const arma::cx_mat J_rel = to_matrix(j_q);
+
+          const arma::cx_mat U_col = relative_from_momentum(size, K, col_basis);
+          const arma::cx_mat U_row = relative_from_momentum(size, KQ, row_basis);
+          CHECK(arma::norm(U_row.t() * J_rel * U_col - J_mom, "inf") < kTolerance);
+          CHECK(arma::norm(to_matrix(j_q_adj) - J_rel.t(), "inf") < kTolerance);
+        }
+      }
+    }
+  }
+}

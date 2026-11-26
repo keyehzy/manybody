@@ -23,6 +23,23 @@ inline double relative_hop_sign(size_t coord, int offset, size_t length, double 
 }
 
 /// (-1)^{K_d} for each dimension, from canonicalized total momentum.
+/// A transfer Q takes sector K to K + Q. When K_d + Q_d >= L_d (with K, Q canonicalized), the
+/// symmetric gauge of K + Q differs from that of the canonical sector (K + Q) mod L by
+/// (-1)^{r_d}; returns that factor so that J(Q) lands in the canonical target sector, which is
+/// what HubbardRelative(size, K + Q) builds.
+inline double relative_target_gauge_sign(const std::vector<size_t>& coords,
+                                         const std::vector<size_t>& total_momentum,
+                                         const std::vector<size_t>& transfer_momentum,
+                                         const std::vector<size_t>& size) {
+  double sign = 1.0;
+  for (size_t d = 0; d < size.size(); ++d) {
+    if (total_momentum[d] + transfer_momentum[d] >= size[d] && coords[d] % 2 == 1) {
+      sign = -sign;
+    }
+  }
+  return sign;
+}
+
 inline std::vector<double> relative_boundary_signs(const std::vector<size_t>& total_momentum) {
   std::vector<double> signs(total_momentum.size());
   for (size_t d = 0; d < total_momentum.size(); ++d) {
@@ -230,6 +247,7 @@ struct CurrentRelative_Q final : LinearOperator<arma::cx_vec> {
       half_total_momentum_[d] = total_phase / 2.0;
       half_transfer_momentum_[d] = transfer_phase / 2.0;
     }
+    boundary_sign_ = relative_boundary_signs(total_momentum_)[direction_];
   }
 
   size_t dimension() const override { return index_.size(); }
@@ -258,10 +276,16 @@ struct CurrentRelative_Q final : LinearOperator<arma::cx_vec> {
       const auto j_plus = index_(coords, offsets);
       offsets[direction_] = 0;
 
+      const size_t c = coords[direction_];
+      const size_t L = size_[direction_];
+      const double gauge =
+          relative_target_gauge_sign(coords, total_momentum_, transfer_momentum_, size_);
       const ScalarType weight_left =
-          static_cast<ScalarType>(-2.0 * t_ * std::sin((theta - hqd) - hKd));
+          static_cast<ScalarType>(gauge * relative_hop_sign(c, -1, L, boundary_sign_) * -2.0 * t_ *
+                                  std::sin((theta - hqd) - hKd));
       const ScalarType weight_right =
-          static_cast<ScalarType>(2.0 * t_ * std::sin((theta + hqd) + hKd));
+          static_cast<ScalarType>(gauge * relative_hop_sign(c, 1, L, boundary_sign_) * 2.0 * t_ *
+                                  std::sin((theta + hqd) + hKd));
 
       w(orbital) += weight_left * v(j_minus);
       w(orbital) += weight_right * v(j_plus);
@@ -279,6 +303,7 @@ struct CurrentRelative_Q final : LinearOperator<arma::cx_vec> {
   Index index_;
   std::vector<double> half_total_momentum_;
   std::vector<double> half_transfer_momentum_;
+  double boundary_sign_{1.0};
 };
 
 /// Adjoint of CurrentRelative_Q: computes J(q)† correctly.
@@ -330,6 +355,7 @@ struct CurrentRelative_Q_Adjoint final : LinearOperator<arma::cx_vec> {
       half_total_momentum_[d] = total_phase / 2.0;
       half_transfer_momentum_[d] = transfer_phase / 2.0;
     }
+    boundary_sign_ = relative_boundary_signs(total_momentum_)[direction_];
   }
 
   size_t dimension() const override { return index_.size(); }
@@ -367,13 +393,19 @@ struct CurrentRelative_Q_Adjoint final : LinearOperator<arma::cx_vec> {
 
       // For adjoint: (J†)_{r,r-1} = conj(J_{r-1,r}) = 2t·sin(θ_{r-1} + hqd + hKd)
       // This is the "right" formula evaluated at the left neighbor
-      const ScalarType weight_left =
-          static_cast<ScalarType>(2.0 * t_ * std::sin(theta_minus + hqd + hKd));
+      const size_t c = coords[direction_];
+      const size_t L = size_[direction_];
+      const ScalarType weight_left = static_cast<ScalarType>(
+          relative_target_gauge_sign(coords_minus, total_momentum_, transfer_momentum_, size_) *
+          relative_hop_sign(c, -1, L, boundary_sign_) * 2.0 * t_ *
+          std::sin(theta_minus + hqd + hKd));
 
       // For adjoint: (J†)_{r,r+1} = conj(J_{r+1,r}) = -2t·sin(θ_{r+1} - hqd - hKd)
       // This is the "left" formula evaluated at the right neighbor
-      const ScalarType weight_right =
-          static_cast<ScalarType>(-2.0 * t_ * std::sin(theta_plus - hqd - hKd));
+      const ScalarType weight_right = static_cast<ScalarType>(
+          relative_target_gauge_sign(coords_plus, total_momentum_, transfer_momentum_, size_) *
+          relative_hop_sign(c, 1, L, boundary_sign_) * -2.0 * t_ *
+          std::sin(theta_plus - hqd - hKd));
 
       w(orbital) += weight_left * v(j_minus);
       w(orbital) += weight_right * v(j_plus);
@@ -391,4 +423,5 @@ struct CurrentRelative_Q_Adjoint final : LinearOperator<arma::cx_vec> {
   Index index_;
   std::vector<double> half_total_momentum_;
   std::vector<double> half_transfer_momentum_;
+  double boundary_sign_{1.0};
 };
