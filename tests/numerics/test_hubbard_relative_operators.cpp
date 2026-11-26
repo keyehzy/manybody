@@ -70,7 +70,8 @@ TEST_CASE("hubbard_relative_current_matches_neighbor_sum") {
   const double k_phase = 2.0 * std::numbers::pi_v<double> * 1.0 / 4.0;
   const arma::cx_double expected(2.0 * t * std::sin(0.5 * k_phase), 0.0);
   CHECK(std::abs(w(1) - expected) < kTolerance);
-  CHECK(std::abs(w(3) - expected) < kTolerance);
+  // r = 3 <-> r = 0 crosses the boundary; odd K makes the relative coordinate antiperiodic.
+  CHECK(std::abs(w(3) + expected) < kTolerance);
   CHECK(std::abs(w(0)) < kTolerance);
   CHECK(std::abs(w(2)) < kTolerance);
 }

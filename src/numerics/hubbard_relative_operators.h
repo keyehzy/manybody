@@ -12,6 +12,25 @@
 #include "utils/canonicalize_momentum.h"
 #include "utils/index.h"
 
+/// Two-particle relative coordinates use the symmetric gauge
+///   Psi(x_up, x_down) = exp(i K . (x_up + x_down) / 2) phi(x_up - x_down),
+/// in which every hop has a real amplitude but periodicity in x_up imposes the twisted boundary
+/// condition phi(r + L_d e_d) = (-1)^{K_d} phi(r). A hop from `coord` by `offset` (+-1) along a
+/// dimension of length `length` therefore picks up `boundary_sign` when it wraps around.
+inline double relative_hop_sign(size_t coord, int offset, size_t length, double boundary_sign) {
+  const bool wraps = (offset < 0 && coord == 0) || (offset > 0 && coord + 1 == length);
+  return wraps ? boundary_sign : 1.0;
+}
+
+/// (-1)^{K_d} for each dimension, from canonicalized total momentum.
+inline std::vector<double> relative_boundary_signs(const std::vector<size_t>& total_momentum) {
+  std::vector<double> signs(total_momentum.size());
+  for (size_t d = 0; d < total_momentum.size(); ++d) {
+    signs[d] = (total_momentum[d] % 2 == 0) ? 1.0 : -1.0;
+  }
+  return signs;
+}
+
 struct HubbardRelativeInteraction final : LinearOperator<arma::cx_vec> {
   using VectorType = arma::cx_vec;
   using ScalarType = std::complex<double>;
@@ -58,6 +77,7 @@ struct HubbardRelativeKinetic final : LinearOperator<arma::cx_vec> {
                              static_cast<double>(size_[d]);
       t_eff_[d] = -2.0 * std::cos(0.5 * k_phase);
     }
+    boundary_sign_ = relative_boundary_signs(total_momentum_);
   }
 
   size_t dimension() const override { return index_.size(); }
@@ -76,10 +96,11 @@ struct HubbardRelativeKinetic final : LinearOperator<arma::cx_vec> {
     for (size_t orbital = 0; orbital < dimension(); ++orbital) {
       const auto coords = index_(orbital);
       for (size_t d = 0; d < dims; ++d) {
-        offsets[d] = -1;
-        w(orbital) += t_eff_[d] * v(index_(coords, offsets));
-        offsets[d] = 1;
-        w(orbital) += t_eff_[d] * v(index_(coords, offsets));
+        for (const int step : {-1, 1}) {
+          offsets[d] = step;
+          const double sign = relative_hop_sign(coords[d], step, size_[d], boundary_sign_[d]);
+          w(orbital) += sign * t_eff_[d] * v(index_(coords, offsets));
+        }
         offsets[d] = 0;
       }
     }
@@ -90,6 +111,7 @@ struct HubbardRelativeKinetic final : LinearOperator<arma::cx_vec> {
   std::vector<size_t> total_momentum_;
   Index index_;
   std::vector<ScalarType> t_eff_{};
+  std::vector<double> boundary_sign_{};
 };
 
 struct HubbardRelative final : LinearOperator<arma::cx_vec> {
@@ -136,6 +158,7 @@ struct HubbardRelativeCurrent final : LinearOperator<arma::cx_vec> {
                            static_cast<double>(size_[direction]);
     current_coeff_ = ScalarType(2.0 * t * std::sin(0.5 * k_phase));
     direction_ = direction;
+    boundary_sign_ = relative_boundary_signs(total_momentum_)[direction];
   }
 
   size_t dimension() const override { return index_.size(); }
@@ -148,10 +171,12 @@ struct HubbardRelativeCurrent final : LinearOperator<arma::cx_vec> {
     for (size_t orbital = 0; orbital < dimension(); ++orbital) {
       const auto coords = index_(orbital);
 
-      offsets[direction_] = -1;
-      w(orbital) += current_coeff_ * v(index_(coords, offsets));
-      offsets[direction_] = 1;
-      w(orbital) += current_coeff_ * v(index_(coords, offsets));
+      for (const int step : {-1, 1}) {
+        offsets[direction_] = step;
+        const double sign =
+            relative_hop_sign(coords[direction_], step, size_[direction_], boundary_sign_);
+        w(orbital) += sign * current_coeff_ * v(index_(coords, offsets));
+      }
       offsets[direction_] = 0;
     }
 
@@ -162,6 +187,7 @@ struct HubbardRelativeCurrent final : LinearOperator<arma::cx_vec> {
   std::vector<size_t> total_momentum_;
   ScalarType current_coeff_{};
   size_t direction_{0};
+  double boundary_sign_{1.0};
   Index index_;
 };
 
