@@ -49,7 +49,7 @@ int main() {
   FermionExpression interaction_term = hubbard.interaction();
   FermionExpression hamiltonian = kinetic + interaction_term;
 
-  FermionExpression generator = schriffer_wolff(kinetic, interaction_term, sw_basis, iterations);
+  FermionExpression generator = schrieffer_wolff(kinetic, interaction_term, sw_basis, iterations);
   FermionExpression effective_hamiltonian = BCH(generator, hamiltonian, 1.0, iterations);
 
   for (size_t truncatation = 2; truncatation <= max_particles; ++truncatation) {

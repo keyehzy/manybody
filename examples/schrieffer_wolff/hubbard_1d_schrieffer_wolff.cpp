@@ -20,7 +20,7 @@ int main() {
   FermionExpression interaction_term = hubbard.interaction();
   FermionExpression hamiltonian = kinetic + interaction_term;
 
-  FermionExpression generator = schriffer_wolff(kinetic, interaction_term, basis, iterations);
+  FermionExpression generator = schrieffer_wolff(kinetic, interaction_term, basis, iterations);
   FermionExpression effective_hamiltonian = BCH(generator, hamiltonian, 1.0, iterations);
 
   auto diagonal_terms = group_diagonal_children(effective_hamiltonian);

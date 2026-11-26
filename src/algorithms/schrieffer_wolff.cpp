@@ -27,9 +27,9 @@ std::pair<size_t, double> cluster_by_largest_gap(const arma::vec& vals) {
   return {split_index + 1, max_gap};
 }
 
-FermionExpression schriffer_wolff(const FermionExpression& kinetic,
-                                  const FermionExpression& interaction, const FermionBasis& basis,
-                                  size_t iter) {
+FermionExpression schrieffer_wolff(const FermionExpression& kinetic,
+                                   const FermionExpression& interaction, const FermionBasis& basis,
+                                   size_t iter) {
   FermionExpression hamiltonian = kinetic + interaction;
 
   arma::cx_mat H = compute_matrix_elements<arma::cx_mat>(basis, hamiltonian);
