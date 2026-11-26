@@ -1,7 +1,5 @@
 #pragma once
 
-#include <omp.h>
-
 #include <utility>
 #include <vector>
 
@@ -93,6 +91,8 @@ MatrixType compute_matrix_elements(const Basis& basis, const Expression& A) {
           coefficients.emplace_back(i, term.second * right_normalization / left_normalization);
         }
       }
+      // Keep this critical section: MatrixType may be arma::sp_cx_mat, whose element
+      // insertion reallocates shared storage, so writes to distinct columns still race.
 #pragma omp critical
       {
         for (const auto& [i, val] : coefficients) {
@@ -155,6 +155,8 @@ MatrixType compute_rectangular_matrix_elements(const BasisRow& row_basis, const 
           coefficients.emplace_back(i, term.second * right_normalization / left_normalization);
         }
       }
+      // Keep this critical section: MatrixType may be arma::sp_cx_mat, whose element
+      // insertion reallocates shared storage, so writes to distinct columns still race.
 #pragma omp critical
       {
         for (const auto& [i, val] : coefficients) {
