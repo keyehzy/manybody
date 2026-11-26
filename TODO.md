@@ -24,12 +24,6 @@ Refactor ideas discovered during codebase skim:
   Fourier superposition of momentum-space terms with phase coefficients, rather than using a
   transformation matrix approach. This would allow working directly in the relative coordinate
   representation without needing to transform Hamiltonians.
-- Investigate HubbardRelative/HubbardModelRelative eigenvalue discrepancy: The `HubbardRelative`
-  (LinearOperator) and `HubbardModelRelative` (symbolic) models give different eigenvalues than
-  `HubbardModelMomentum` for the same 2-particle system with fixed total momentum. The effective
-  model uses `t_eff = -2t*cos(K/2)` with uniform nearest-neighbor hopping, while the standard
-  Hubbard model transformed to relative coordinates has a different kinetic structure. Determine
-  which formulation correctly represents the 2-particle Hubbard physics.
 - Release-build safety (remaining): `hubbard_momentum_factorized*.h` and
   `current_operator_fixed_k.h` still assert-only check the vector size in `apply()`; switch them
   to `require_vector_dimension` from `src/numerics/linear_operator.h`.
