@@ -1,7 +1,6 @@
 #pragma once
 
 #include <armadillo>
-#include <cassert>
 #include <cmath>
 #include <cstddef>
 #include <numbers>
@@ -9,6 +8,7 @@
 #include <vector>
 
 #include "algebra/fermion/basis.h"
+#include "numerics/linear_operator.h"
 #include "utils/index.h"
 
 /// Matrix-free current operator for fixed momentum sectors.
@@ -69,7 +69,7 @@ struct CurrentOperatorFixedK {
 
   /// Apply J_d(Q) to a vector: sector K → sector K+Q.
   VectorType apply(const VectorType& v) const {
-    assert(static_cast<size_t>(v.n_elem) == source_dimension());
+    require_vector_dimension(v, source_dimension(), "CurrentOperatorFixedK");
 
     VectorType w(target_dimension(), arma::fill::zeros);
 
@@ -90,7 +90,7 @@ struct CurrentOperatorFixedK {
 
   /// Apply J†_d(Q) to a vector: sector K+Q → sector K.
   VectorType adjoint_apply(const VectorType& v) const {
-    assert(static_cast<size_t>(v.n_elem) == target_dimension());
+    require_vector_dimension(v, target_dimension(), "CurrentOperatorFixedK::adjoint");
 
     VectorType w(source_dimension(), arma::fill::zeros);
 

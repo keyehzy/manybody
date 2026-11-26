@@ -1,7 +1,6 @@
 #pragma once
 
 #include <armadillo>
-#include <cassert>
 #include <cmath>
 #include <cstddef>
 #include <numbers>
@@ -84,7 +83,7 @@ struct HubbardMomentumFactorizedFixedK final : LinearOperator<arma::cx_vec> {
   size_t dimension() const override { return basis_.set.size(); }
 
   VectorType apply(const VectorType& v) const override {
-    assert(static_cast<size_t>(v.n_elem) == dimension());
+    require_vector_dimension(v, dimension(), "HubbardMomentumFactorizedFixedK");
 
     // Start with kinetic term: H_kin |v⟩ = t × diag(ε) |v⟩
     VectorType w = t_ * (kinetic_diagonal_ % v);

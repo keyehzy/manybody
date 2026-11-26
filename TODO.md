@@ -24,6 +24,3 @@ Refactor ideas discovered during codebase skim:
   Fourier superposition of momentum-space terms with phase coefficients, rather than using a
   transformation matrix approach. This would allow working directly in the relative coordinate
   representation without needing to transform Hamiltonians.
-- Release-build safety (remaining): `hubbard_momentum_factorized*.h` and
-  `current_operator_fixed_k.h` still assert-only check the vector size in `apply()`; switch them
-  to `require_vector_dimension` from `src/numerics/linear_operator.h`.

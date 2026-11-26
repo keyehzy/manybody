@@ -229,3 +229,11 @@ TEST_CASE("hubbard_momentum_factorized_density_operators_sparse") {
     CHECK(avg_nnz_down <= static_cast<double>(particles + 1));
   }
 }
+
+TEST_CASE("hubbard_momentum_factorized_rejects_wrong_vector_size") {
+  const std::vector<size_t> size = {4};
+  FermionBasis basis = FermionBasis::with_fixed_particle_number_and_spin(4, 2, 0);
+  HubbardMomentumFactorized H(basis, size, 1.0, 2.0);
+  const arma::cx_vec wrong(H.dimension() + 1, arma::fill::ones);
+  CHECK_THROWS_AS(H.apply(wrong), std::invalid_argument);
+}

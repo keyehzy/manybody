@@ -300,3 +300,18 @@ TEST_CASE("CurrentOperatorFixedK velocity values", "[current][fixed-k]") {
   REQUIRE(std::abs(velocities[2] - 0.0) < kTolerance);
   REQUIRE(std::abs(velocities[3] - factor * (-1.0)) < kTolerance);
 }
+
+TEST_CASE("current_operator_fixed_k_rejects_wrong_vector_size") {
+  const std::vector<size_t> size = {4};
+  Index index(size);
+  FermionBasis basis_K =
+      FermionBasis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, {0});
+  FermionBasis basis_KQ =
+      FermionBasis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, {1});
+  CurrentOperatorFixedK J(basis_K, basis_KQ, size, 1.0, index(std::vector<size_t>{1}), 0);
+
+  const arma::cx_vec wrong_source(J.source_dimension() + 1, arma::fill::ones);
+  const arma::cx_vec wrong_target(J.target_dimension() + 1, arma::fill::ones);
+  CHECK_THROWS_AS(J.apply(wrong_source), std::invalid_argument);
+  CHECK_THROWS_AS(J.adjoint_apply(wrong_target), std::invalid_argument);
+}

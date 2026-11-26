@@ -378,3 +378,14 @@ TEST_CASE("hubbard_momentum_factorized_fixed_k_all_momentum_sectors_2d") {
     }
   }
 }
+
+TEST_CASE("hubbard_momentum_factorized_fixed_k_rejects_wrong_vector_size") {
+  const std::vector<size_t> size = {4};
+  const Index index(size);
+  const Index::container_type target_momentum = {0};
+  FermionBasis basis =
+      FermionBasis::with_fixed_particle_number_spin_momentum(4, 2, 0, index, target_momentum);
+  HubbardMomentumFactorizedFixedK H(basis, size, 1.0, 2.0, target_momentum);
+  const arma::cx_vec wrong(H.dimension() + 1, arma::fill::ones);
+  CHECK_THROWS_AS(H.apply(wrong), std::invalid_argument);
+}
