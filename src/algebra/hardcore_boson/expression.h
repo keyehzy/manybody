@@ -11,8 +11,7 @@ struct HardcoreBosonExpression : ExpressionBase<HardcoreBosonExpression, Hardcor
 
 HardcoreBosonExpression hopping(const HardcoreBosonExpression::complex_type& coeff, size_t from,
                                 size_t to, HardcoreBosonOperator::Spin spin) noexcept;
-HardcoreBosonExpression hopping(size_t from, size_t to,
-                                HardcoreBosonOperator::Spin spin) noexcept;
+HardcoreBosonExpression hopping(size_t from, size_t to, HardcoreBosonOperator::Spin spin) noexcept;
 
 inline HardcoreBosonExpression canonicalize(const HardcoreBosonMonomial::complex_type& c,
                                             const HardcoreBosonMonomial::container_type& ops) {

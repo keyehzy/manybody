@@ -41,8 +41,7 @@ TEST_CASE("integrate_adaptive_linear_decay_matches_exact") {
   AdaptiveOptions opts;
   opts.atol = 1e-10;
   opts.rtol = 1e-10;
-  const double result =
-      integrate_adaptive(LinearDecay{}, 1.0, 0.0, 1.0, 0.1, opts);
+  const double result = integrate_adaptive(LinearDecay{}, 1.0, 0.0, 1.0, 0.1, opts);
   CHECK(std::abs(result - std::exp(-1.0)) < 1e-8);
 }
 
@@ -56,10 +55,8 @@ TEST_CASE("integrate_adaptive_tolerance_tightening_reduces_error") {
 
   const double y0 = 1.0;
   const double y_exact = std::exp(-5.0);
-  const double y_loose =
-      integrate_adaptive(LinearDecay{}, y0, 0.0, 5.0, 0.1, loose);
-  const double y_tight =
-      integrate_adaptive(LinearDecay{}, y0, 0.0, 5.0, 0.1, tight);
+  const double y_loose = integrate_adaptive(LinearDecay{}, y0, 0.0, 5.0, 0.1, loose);
+  const double y_tight = integrate_adaptive(LinearDecay{}, y0, 0.0, 5.0, 0.1, tight);
 
   const double err_loose = std::abs(y_loose - y_exact);
   const double err_tight = std::abs(y_tight - y_exact);
@@ -84,8 +81,8 @@ TEST_CASE("integrate_adaptive_rejects_oversized_initial_step_for_stiff_problem")
       return -k * y;
     }
   };
-  const double y_final = integrate_adaptive(Counted{&rhs_calls, 100.0}, 1.0, 0.0, 0.1,
-                                            0.05, opts, DefaultStateNorm{}, callback);
+  const double y_final = integrate_adaptive(Counted{&rhs_calls, 100.0}, 1.0, 0.0, 0.1, 0.05, opts,
+                                            DefaultStateNorm{}, callback);
   // exp(-10) ~ 4.5e-5
   CHECK(std::abs(y_final - std::exp(-10.0)) < 1e-6);
   // Some rejection should have occurred relative to a hypothetical single step.
@@ -99,8 +96,7 @@ TEST_CASE("integrate_adaptive_hits_t1_exactly") {
   AdaptiveOptions opts;
   std::vector<double> times;
   auto callback = [&](double t, double) { times.push_back(t); };
-  integrate_adaptive(LinearDecay{}, 1.0, 0.0, 0.7, 0.1, opts, DefaultStateNorm{},
-                     callback);
+  integrate_adaptive(LinearDecay{}, 1.0, 0.0, 0.7, 0.1, opts, DefaultStateNorm{}, callback);
   REQUIRE(!times.empty());
   CHECK(times.front() == Approx(0.0));
   CHECK(times.back() == Approx(0.7));
@@ -118,9 +114,7 @@ TEST_CASE("integrate_adaptive_throws_when_max_rejected_exceeded") {
   opts.rtol = 1e-16;
   opts.dt_min = 1e-20;
   opts.max_rejected = 5;
-  CHECK_THROWS_AS(
-      integrate_adaptive(Blowup{}, 1.0, 0.0, 1.0, 1e-3, opts),
-      std::runtime_error);
+  CHECK_THROWS_AS(integrate_adaptive(Blowup{}, 1.0, 0.0, 1.0, 1e-3, opts), std::runtime_error);
 }
 
 TEST_CASE("integrate_adaptive_vector_harmonic_oscillator") {
@@ -132,8 +126,8 @@ TEST_CASE("integrate_adaptive_vector_harmonic_oscillator") {
   s0(0) = 1.0;
   s0(1) = 0.0;
   const double t_final = 3.14159265358979323846;  // half period at omega=2
-  arma::vec s_final = integrate_adaptive(HarmonicOscillator{omega2}, s0, 0.0, t_final,
-                                         0.05, opts, ArmaVecNorm{});
+  arma::vec s_final =
+      integrate_adaptive(HarmonicOscillator{omega2}, s0, 0.0, t_final, 0.05, opts, ArmaVecNorm{});
   // x(pi) = cos(2 pi) = 1, v(pi) = -2 sin(2 pi) = 0.
   CHECK(std::abs(s_final(0) - 1.0) < 1e-6);
   CHECK(std::abs(s_final(1)) < 1e-6);
@@ -150,8 +144,7 @@ TEST_CASE("integrate_adaptive_respects_dt_max_cap") {
     max_dt_observed = std::max(max_dt_observed, t - prev_t);
     prev_t = t;
   };
-  integrate_adaptive(ScaledDecay{0.01}, 1.0, 0.0, 1.0, 0.01, opts, DefaultStateNorm{},
-                     callback);
+  integrate_adaptive(ScaledDecay{0.01}, 1.0, 0.0, 1.0, 0.01, opts, DefaultStateNorm{}, callback);
   // dt is allowed to clamp down to t1 - t on the final step, so we just
   // require the cap was never exceeded by more than a tiny epsilon.
   CHECK(max_dt_observed <= 0.05 + 1e-12);

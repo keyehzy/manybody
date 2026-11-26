@@ -171,32 +171,28 @@ struct DormandPrinceStep {
 };
 
 template <typename System, typename State>
-DormandPrinceStep<System, State> dormand_prince_step(const System& system, double t,
-                                                     double dt, const State& y,
-                                                     const State& k1) {
+DormandPrinceStep<System, State> dormand_prince_step(const System& system, double t, double dt,
+                                                     const State& y, const State& k1) {
   using namespace detail;
   const State k2 = system(t + kDpC2 * dt, y + (dt * kDpA21) * k1);
   const State k3 = system(t + kDpC3 * dt, y + (dt * kDpA31) * k1 + (dt * kDpA32) * k2);
-  const State k4 = system(t + kDpC4 * dt,
-                          y + (dt * kDpA41) * k1 + (dt * kDpA42) * k2 + (dt * kDpA43) * k3);
+  const State k4 =
+      system(t + kDpC4 * dt, y + (dt * kDpA41) * k1 + (dt * kDpA42) * k2 + (dt * kDpA43) * k3);
   const State k5 = system(t + kDpC5 * dt, y + (dt * kDpA51) * k1 + (dt * kDpA52) * k2 +
                                               (dt * kDpA53) * k3 + (dt * kDpA54) * k4);
-  const State k6 = system(t + dt, y + (dt * kDpA61) * k1 + (dt * kDpA62) * k2 +
-                                      (dt * kDpA63) * k3 + (dt * kDpA64) * k4 +
-                                      (dt * kDpA65) * k5);
-  State y_next = y + (dt * kDpB1) * k1 + (dt * kDpB3) * k3 + (dt * kDpB4) * k4 +
-                 (dt * kDpB5) * k5 + (dt * kDpB6) * k6;
+  const State k6 = system(t + dt, y + (dt * kDpA61) * k1 + (dt * kDpA62) * k2 + (dt * kDpA63) * k3 +
+                                      (dt * kDpA64) * k4 + (dt * kDpA65) * k5);
+  State y_next = y + (dt * kDpB1) * k1 + (dt * kDpB3) * k3 + (dt * kDpB4) * k4 + (dt * kDpB5) * k5 +
+                 (dt * kDpB6) * k6;
   const State k7 = system(t + dt, y_next);
-  State error = (dt * kDpE1) * k1 + (dt * kDpE3) * k3 + (dt * kDpE4) * k4 +
-                (dt * kDpE5) * k5 + (dt * kDpE6) * k6 + (dt * kDpE7) * k7;
-  return DormandPrinceStep<System, State>{std::move(y_next), std::move(k7),
-                                          std::move(error)};
+  State error = (dt * kDpE1) * k1 + (dt * kDpE3) * k3 + (dt * kDpE4) * k4 + (dt * kDpE5) * k5 +
+                (dt * kDpE6) * k6 + (dt * kDpE7) * k7;
+  return DormandPrinceStep<System, State>{std::move(y_next), std::move(k7), std::move(error)};
 }
 
 template <typename System, typename State, typename Norm, typename Callback>
-State integrate_adaptive(const System& system, State state, double t0, double t1,
-                         double dt_init, const AdaptiveOptions& opts, Norm norm,
-                         Callback callback) {
+State integrate_adaptive(const System& system, State state, double t0, double t1, double dt_init,
+                         const AdaptiveOptions& opts, Norm norm, Callback callback) {
   if (t1 <= t0) {
     callback(t0, state);
     return state;
@@ -251,8 +247,7 @@ State integrate_adaptive(const System& system, State state, double t0, double t1
       // it is still f(t, state), which is what the retry needs.
       ++rejected;
       if (rejected > opts.max_rejected) {
-        throw std::runtime_error(
-            "integrate_adaptive: too many consecutive step rejections");
+        throw std::runtime_error("integrate_adaptive: too many consecutive step rejections");
       }
       double factor = opts.safety * std::pow(err, -0.2);
       factor = std::max(opts.dt_shrink, factor);
@@ -263,22 +258,21 @@ State integrate_adaptive(const System& system, State state, double t0, double t1
 }
 
 template <typename System, typename State, typename Norm>
-State integrate_adaptive(const System& system, State state, double t0, double t1,
-                         double dt_init, const AdaptiveOptions& opts, Norm norm) {
-  return integrate_adaptive(system, std::move(state), t0, t1, dt_init, opts,
-                            std::move(norm), NoopCallback{});
+State integrate_adaptive(const System& system, State state, double t0, double t1, double dt_init,
+                         const AdaptiveOptions& opts, Norm norm) {
+  return integrate_adaptive(system, std::move(state), t0, t1, dt_init, opts, std::move(norm),
+                            NoopCallback{});
 }
 
 template <typename System, typename State>
-State integrate_adaptive(const System& system, State state, double t0, double t1,
-                         double dt_init, const AdaptiveOptions& opts) {
-  return integrate_adaptive(system, std::move(state), t0, t1, dt_init, opts,
+State integrate_adaptive(const System& system, State state, double t0, double t1, double dt_init,
+                         const AdaptiveOptions& opts) {
+  return integrate_adaptive(system, std::move(state), t0, t1, dt_init, opts, DefaultStateNorm{},
+                            NoopCallback{});
+}
+
+template <typename System, typename State>
+State integrate_adaptive(const System& system, State state, double t0, double t1, double dt_init) {
+  return integrate_adaptive(system, std::move(state), t0, t1, dt_init, AdaptiveOptions{},
                             DefaultStateNorm{}, NoopCallback{});
-}
-
-template <typename System, typename State>
-State integrate_adaptive(const System& system, State state, double t0, double t1,
-                         double dt_init) {
-  return integrate_adaptive(system, std::move(state), t0, t1, dt_init,
-                            AdaptiveOptions{}, DefaultStateNorm{}, NoopCallback{});
 }

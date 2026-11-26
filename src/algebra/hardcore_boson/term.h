@@ -44,8 +44,7 @@ inline constexpr HardcoreBosonMonomial two_body(HardcoreBosonOperator::Spin s1, 
   return detail::make_two_body_monomial<HardcoreBosonMonomial>(s1, o1, s2, o2, s3, o3, s4, o4);
 }
 
-inline constexpr HardcoreBosonMonomial number_op(HardcoreBosonOperator::Spin s,
-                                                 size_t o) noexcept {
+inline constexpr HardcoreBosonMonomial number_op(HardcoreBosonOperator::Spin s, size_t o) noexcept {
   return detail::make_number_monomial<HardcoreBosonMonomial>(s, o);
 }
 

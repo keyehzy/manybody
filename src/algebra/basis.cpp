@@ -131,8 +131,8 @@ BasisImpl<MonomialType> BasisImpl<MonomialType>::with_fixed_particle_number(size
   BasisImpl basis;
   basis.orbitals = orbitals;
   basis.particles = particles;
-  validate_orbitals_and_particles<statistics, operator_type, key_type>("with_fixed_particle_number", orbitals,
-                                                                     particles);
+  validate_orbitals_and_particles<statistics, operator_type, key_type>("with_fixed_particle_number",
+                                                                       orbitals, particles);
 
   size_t basis_size = compute_basis_size<statistics>(orbitals, particles);
   std::vector<key_type> acc;
@@ -149,11 +149,11 @@ BasisImpl<MonomialType> BasisImpl<MonomialType>::with_fixed_particle_number_and_
   BasisImpl basis;
   basis.orbitals = orbitals;
   basis.particles = particles;
-  validate_orbitals_and_particles<statistics, operator_type, key_type>("with_fixed_particle_number_and_spin", orbitals,
-                                                                     particles);
+  validate_orbitals_and_particles<statistics, operator_type, key_type>(
+      "with_fixed_particle_number_and_spin", orbitals, particles);
 
-  const auto [up, down] = split_by_spin<statistics>("with_fixed_particle_number_and_spin",
-                                                    orbitals, particles, spin_projection);
+  const auto [up, down] = split_by_spin<statistics>("with_fixed_particle_number_and_spin", orbitals,
+                                                    particles, spin_projection);
 
   size_t basis_size = compute_basis_size_spin<statistics>(orbitals, up, down);
   std::vector<key_type> acc;
@@ -172,8 +172,8 @@ BasisImpl<MonomialType> BasisImpl<MonomialType>::with_fixed_particle_number_spin
   basis.orbitals = orbitals;
   basis.particles = particles;
 
-  validate_orbitals_and_particles<statistics, operator_type, key_type>("with_fixed_particle_number_spin_momentum", orbitals,
-                                                                     particles);
+  validate_orbitals_and_particles<statistics, operator_type, key_type>(
+      "with_fixed_particle_number_spin_momentum", orbitals, particles);
   constexpr const char* factory = "with_fixed_particle_number_spin_momentum";
   if (index.size() != orbitals) {
     throw_invalid(factory, "index size (" + std::to_string(index.size()) +
@@ -183,19 +183,19 @@ BasisImpl<MonomialType> BasisImpl<MonomialType>::with_fixed_particle_number_spin
   const auto& dims = index.dimensions();
   if (momentum.size() != dims.size()) {
     throw_invalid(factory, "momentum has " + std::to_string(momentum.size()) +
-                               " components but the lattice has " +
-                               std::to_string(dims.size()) + " dimensions.");
+                               " components but the lattice has " + std::to_string(dims.size()) +
+                               " dimensions.");
   }
   for (size_t d = 0; d < dims.size(); ++d) {
     if (momentum[d] >= dims[d]) {
-      throw_invalid(factory, "momentum[" + std::to_string(d) + "] = " +
-                                 std::to_string(momentum[d]) + " is not in [0, " +
+      throw_invalid(factory, "momentum[" + std::to_string(d) +
+                                 "] = " + std::to_string(momentum[d]) + " is not in [0, " +
                                  std::to_string(dims[d]) + ").");
     }
   }
 
-  const auto [up, down] = split_by_spin<statistics>(
-      "with_fixed_particle_number_spin_momentum", orbitals, particles, spin_projection);
+  const auto [up, down] = split_by_spin<statistics>("with_fixed_particle_number_spin_momentum",
+                                                    orbitals, particles, spin_projection);
 
   std::vector<Index::container_type> orbital_coords;
   orbital_coords.reserve(orbitals);
@@ -223,8 +223,8 @@ BasisImpl<MonomialType> BasisImpl<MonomialType>::with_all_particle_number(size_t
   BasisImpl basis;
   basis.orbitals = orbitals;
   basis.particles = particles;
-  validate_orbitals_and_particles<statistics, operator_type, key_type>("with_all_particle_number", orbitals,
-                                                                     particles);
+  validate_orbitals_and_particles<statistics, operator_type, key_type>("with_all_particle_number",
+                                                                       orbitals, particles);
 
   size_t basis_size = 0;
   for (size_t i = 1; i <= particles; ++i) {
