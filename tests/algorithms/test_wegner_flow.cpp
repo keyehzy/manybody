@@ -91,3 +91,49 @@ TEST_CASE("block_wegner_flow_reduces_off_block_coupling") {
   arma::eig_sym(vals1, H_final);
   CHECK(arma::norm(vals0 - vals1, 2) < 1e-6);
 }
+
+namespace {
+arma::cx_mat coupled_test_matrix() {
+  arma::cx_mat H0(4, 4, arma::fill::zeros);
+  H0(0, 0) = 1.0;
+  H0(1, 1) = 1.5;
+  H0(2, 2) = 3.0;
+  H0(3, 3) = 3.5;
+  H0(0, 2) = H0(2, 0) = 0.3;
+  H0(1, 3) = H0(3, 1) = 0.4;
+  H0(0, 1) = H0(1, 0) = 0.2;
+  H0(2, 3) = H0(3, 2) = 0.1;
+  return H0;
+}
+}  // namespace
+
+TEST_CASE("block_wegner_flow_degenerate_p_dim_returns_input") {
+  const arma::cx_mat H0 = coupled_test_matrix();
+  const size_t p_dim = GENERATE(0u, 4u, 5u);  // empty P space, empty Q space, out of range
+
+  CHECK(arma::approx_equal(block_wegner_flow(H0, p_dim, 5.0, 0.01), H0, "absdiff", 0.0));
+
+  size_t callback_calls = 0;
+  const arma::cx_mat H_cb = block_wegner_flow(
+      H0, p_dim, 5.0, 0.01, [&](double, const arma::cx_mat&) { ++callback_calls; });
+  CHECK(arma::approx_equal(H_cb, H0, "absdiff", 0.0));
+  CHECK(callback_calls == 0u);
+}
+
+TEST_CASE("block_wegner_flow_boundary_p_dim_decouples") {
+  // Smallest and largest non-trivial partitions: a single state against the rest.
+  // Both partitions have a level gap of ~0.5 across the cut, so off-block coupling decays
+  // slowly (~exp(-dE^2 l)); lmax = 40 brings it to ~1e-7.
+  const arma::cx_mat H0 = coupled_test_matrix();
+  const size_t p_dim = GENERATE(1u, 3u);
+
+  const arma::cx_mat H_final = block_wegner_flow(H0, p_dim, 40.0, 0.01);
+  CHECK(off_block_norm(H0, p_dim) > 0.1);
+  CHECK(off_block_norm(H_final, p_dim) < 1e-4);
+
+  arma::vec vals0;
+  arma::vec vals1;
+  arma::eig_sym(vals0, H0);
+  arma::eig_sym(vals1, H_final);
+  CHECK(arma::norm(vals0 - vals1, 2) < 1e-6);
+}
