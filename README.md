@@ -29,7 +29,16 @@ cmake --build build
 
 ## Examples
 
-After building, run any executable under `build/examples/`.
+After building, run any executable under `build/examples/`. Sources are grouped by topic:
+
+- `exact_diagonalization/`: real-space Hubbard ED, sparse lowest states, Majorana conversion.
+- `momentum_space/`: momentum-space Hubbard ground states, Lanczos, pair size.
+- `optical_conductivity/`: momentum-space optical conductivity (full and factorized).
+- `relative_coordinates/`: two- and three-particle Hubbard in relative coordinates.
+- `block_rg/`: block renormalization group, zero and finite temperature.
+- `schrieffer_wolff/`: Schrieffer-Wolff transformation of the 1D Hubbard model.
+- `single_particle/`: tight binding, flat-band compact localized states, Hofstadter, SSH marker.
+- `bose_hubbard/`: Bose-Hubbard current susceptibility.
 
 ## Tests
 
