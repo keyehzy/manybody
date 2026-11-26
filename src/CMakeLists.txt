@@ -27,14 +27,8 @@ else()
     target_link_libraries(manybody PUBLIC ${ARMADILLO_LIBRARIES})
 endif()
 
-if(TARGET OpenBLAS::OpenBLAS)
-    target_link_libraries(manybody PUBLIC OpenBLAS::OpenBLAS)
-else()
-    target_include_directories(manybody PUBLIC ${OpenBLAS_INCLUDE_DIRS})
-    target_link_libraries(manybody PUBLIC ${OpenBLAS_LIBRARIES})
-endif()
-
 target_link_libraries(manybody PUBLIC
+     PkgConfig::OpenBLAS
      PkgConfig::FFTW3
      PkgConfig::ARPACK
      PkgConfig::SuperLU
