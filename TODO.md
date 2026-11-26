@@ -10,8 +10,6 @@ Refactor ideas discovered during codebase skim:
   in `src/algebra/matrix_elements.h`.
 - Merge duplicate initialization paths in `IndexedHashSet` (range vs moved vector) into a
   single helper to simplify `src/utils/indexed_hash_set.h`.
-- Unify `Expression::add_to_map` overloads via forwarding and centralize repeated multiply
-  and append logic in the per-algebra `expression.cpp`/`expression.h` files.
 - Implement total momentum/relative position hamiltonians for Hubbard Model. 
 - LinearOperator perf: avoid temporaries by adding in-place apply(out, in) and use in Sum/Difference/Composed.
 - LinearOperator perf: store operands by reference/pointer or use forwarding to avoid heavy operator copies in compositions.
