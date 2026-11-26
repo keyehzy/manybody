@@ -13,7 +13,7 @@
 #include <iostream>
 #include <numbers>
 
-#include "algebra/model/ssh_model.h"
+#include "algebra/fermion/model/ssh_model.h"
 #include "cxxopts.hpp"
 #include "numerics/topological_marker.h"
 
