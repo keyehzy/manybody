@@ -177,3 +177,19 @@ TEST_CASE("current_relative_q_matches_momentum_current_between_sectors") {
     }
   }
 }
+
+TEST_CASE("hubbard_model_relative_matches_momentum_model_for_every_total_momentum") {
+  const double t = 0.8;
+  const double U = 3.0;
+  for (size_t L = 2; L <= 6; ++L) {
+    const FermionExpression H_mom_expr = HubbardModelMomentum(t, U, {L}).hamiltonian();
+    for (size_t K = 0; K < L; ++K) {
+      CAPTURE(L, K);
+      const FermionBasis basis = momentum_sector({L}, {K});
+      const arma::cx_mat H_mom = compute_matrix_elements<arma::cx_mat>(basis, H_mom_expr);
+      const arma::cx_mat H_rel = compute_matrix_elements<arma::cx_mat>(
+          basis, HubbardModelRelative(t, U, L, static_cast<int64_t>(K)).hamiltonian());
+      CHECK(arma::norm(H_rel - H_mom, "inf") < kTolerance);
+    }
+  }
+}

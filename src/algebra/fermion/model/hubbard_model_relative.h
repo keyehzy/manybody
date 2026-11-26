@@ -13,7 +13,11 @@
 // Two-particle Hubbard model in the relative coordinate basis with fixed total momentum K.
 // B^+_{K,p} = c^+_{p,up} c^+_{K-p,down}
 // B^+_{K,r} = (1/sqrt(N)) sum_p exp(i p r) B^+_{K,p}
-// H(K) = t_eff(K) * sum_r (B^+_{K,r} B_{K,r+1} + B^+_{K,r+1} B_{K,r}) + U B^+_{K,0} B_{K,0}
+// H(K) = t_eff(K) * sum_r (e^{ik/2} B^+_{K,r} B_{K,r+1} + e^{-ik/2} B^+_{K,r+1} B_{K,r})
+//        + U B^+_{K,0} B_{K,0},   k = 2 pi K / N.
+// The phase reproduces the exact pair dispersion eps(p) + eps(K-p) = 2 t_eff cos(p - k/2) in
+// this (periodic) gauge; without it the spectrum is wrong for every K with t_eff != 0 and
+// k/2 not a multiple of 2 pi / N.
 struct HubbardModelRelative : FermionModel {
   HubbardModelRelative(double t_val, double u_val, size_t size_val, int64_t total_momentum_val)
       : t(t_val),
@@ -48,12 +52,15 @@ struct HubbardModelRelative : FermionModel {
 
   FermionExpression kinetic() const {
     FermionExpression kinetic_term;
-    const double t_eff = effective_hopping();
-    const auto t_coeff = FermionExpression::complex_type(t_eff, 0.0);
+    const double half_k = std::numbers::pi_v<double> * static_cast<double>(total_momentum) /
+                          static_cast<double>(size);
+    const std::complex<double> forward = effective_hopping() * std::polar(1.0, half_k);
+    const auto forward_coeff = FermionExpression::complex_type(forward.real(), forward.imag());
+    const auto backward_coeff = FermionExpression::complex_type(forward.real(), -forward.imag());
     for (size_t r = 0; r < size; ++r) {
       const size_t next = (r + 1) % size;
-      kinetic_term += t_coeff * (pair_creation(r) * pair_annihilation(next));
-      kinetic_term += t_coeff * (pair_creation(next) * pair_annihilation(r));
+      kinetic_term += forward_coeff * (pair_creation(r) * pair_annihilation(next));
+      kinetic_term += backward_coeff * (pair_creation(next) * pair_annihilation(r));
     }
     return kinetic_term;
   }
