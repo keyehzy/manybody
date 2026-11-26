@@ -1,7 +1,6 @@
 #pragma once
 
 #include <armadillo>
-#include <cassert>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -27,7 +26,7 @@ struct HubbardRelativeInteraction final : LinearOperator<arma::cx_vec> {
   size_t dimension() const override { return index_.size(); }
 
   VectorType apply(const VectorType& v) const override {
-    assert(v.n_elem == dimension());
+    require_vector_dimension(v, dimension(), "HubbardRelativeInteraction");
     VectorType w(v.n_elem, arma::fill::zeros);
     w(0) = v(0);
     return w;
@@ -63,12 +62,14 @@ struct HubbardRelativeKinetic final : LinearOperator<arma::cx_vec> {
 
   size_t dimension() const override { return index_.size(); }
   ScalarType effective_hopping(size_t dim) const {
-    assert(dim < t_eff_.size());
+    if (dim >= t_eff_.size()) {
+      throw std::out_of_range("HubbardRelativeKinetic::effective_hopping: dimension out of range.");
+    }
     return t_eff_[dim];
   }
 
   VectorType apply(const VectorType& v) const override {
-    assert(v.n_elem == dimension());
+    require_vector_dimension(v, dimension(), "HubbardRelativeKinetic");
     VectorType w(v.n_elem, arma::fill::zeros);
     const size_t dims = size_.size();
     Index::offset_type offsets(dims, 0);
@@ -102,7 +103,7 @@ struct HubbardRelative final : LinearOperator<arma::cx_vec> {
   size_t dimension() const override { return kinetic_.dimension(); }
 
   VectorType apply(const VectorType& v) const override {
-    assert(v.n_elem == dimension());
+    require_vector_dimension(v, dimension(), "HubbardRelative");
     return t_ * kinetic_.apply(v) + U_ * interaction_.apply(v);
   }
 
@@ -140,7 +141,7 @@ struct HubbardRelativeCurrent final : LinearOperator<arma::cx_vec> {
   size_t dimension() const override { return index_.size(); }
 
   VectorType apply(const VectorType& v) const override {
-    assert(v.n_elem == dimension());
+    require_vector_dimension(v, dimension(), "HubbardRelativeCurrent");
     VectorType w(v.n_elem, arma::fill::zeros);
 
     Index::offset_type offsets(size_.size(), 0);
@@ -208,7 +209,7 @@ struct CurrentRelative_Q final : LinearOperator<arma::cx_vec> {
   size_t dimension() const override { return index_.size(); }
 
   VectorType apply(const VectorType& v) const override {
-    assert(static_cast<size_t>(v.n_elem) == dimension());
+    require_vector_dimension(v, dimension(), "CurrentRelative_Q");
     VectorType w(v.n_elem, arma::fill::zeros);
 
     const size_t dims = size_.size();
@@ -308,7 +309,7 @@ struct CurrentRelative_Q_Adjoint final : LinearOperator<arma::cx_vec> {
   size_t dimension() const override { return index_.size(); }
 
   VectorType apply(const VectorType& v) const override {
-    assert(static_cast<size_t>(v.n_elem) == dimension());
+    require_vector_dimension(v, dimension(), "CurrentRelative_Q_Adjoint");
     VectorType w(v.n_elem, arma::fill::zeros);
 
     const size_t dims = size_.size();

@@ -4,6 +4,8 @@
 #include <cassert>
 #include <cstdint>
 #include <cstdlib>
+#include <stdexcept>
+#include <string>
 #include <vector>
 
 #include "algebra/boson/term.h"
@@ -50,6 +52,63 @@ constexpr uint64_t compute_basis_size_spin(uint64_t orbitals, uint64_t up, uint6
 }
 
 namespace {
+[[noreturn]] inline void throw_invalid(const char* factory, const std::string& message) {
+  throw std::invalid_argument(std::string("Basis::") + factory + ": " + message);
+}
+
+/// Validate the orbital and particle counts shared by every Basis factory.
+template <Statistics S, typename OperatorType, typename KeyType>
+void validate_orbitals_and_particles(const char* factory, size_t orbitals, size_t particles) {
+  if (orbitals > OperatorType::max_index()) {
+    throw_invalid(factory, "orbitals (" + std::to_string(orbitals) +
+                               ") exceeds the operator index limit (" +
+                               std::to_string(OperatorType::max_index()) + ").");
+  }
+  if constexpr (AlgebraTraits<S>::pauli_exclusion) {
+    if (particles > 2 * orbitals) {
+      throw_invalid(factory, "particles (" + std::to_string(particles) +
+                                 ") exceeds the number of spin-orbitals (" +
+                                 std::to_string(2 * orbitals) + ").");
+    }
+  }
+  if (particles > KeyType::max_size()) {
+    throw_invalid(factory, "particles (" + std::to_string(particles) +
+                               ") exceeds the term capacity (" +
+                               std::to_string(KeyType::max_size()) + ").");
+  }
+}
+
+struct SpinSplit {
+  size_t up;
+  size_t down;
+};
+
+/// Split a particle number into spin-up / spin-down counts for a given 2*S_z.
+template <Statistics S>
+SpinSplit split_by_spin(const char* factory, size_t orbitals, size_t particles,
+                        int spin_projection) {
+  const int64_t particles_signed = static_cast<int64_t>(particles);
+  const int64_t spin = static_cast<int64_t>(spin_projection);
+  if (std::abs(spin) > particles_signed) {
+    throw_invalid(factory, "|spin_projection| (" + std::to_string(std::abs(spin)) +
+                               ") exceeds particles (" + std::to_string(particles) + ").");
+  }
+  if ((particles_signed + spin) % 2 != 0) {
+    throw_invalid(factory, "particles and spin_projection must have the same parity.");
+  }
+
+  const size_t up = static_cast<size_t>((particles_signed + spin) / 2);
+  const size_t down = particles - up;
+  if constexpr (AlgebraTraits<S>::pauli_exclusion) {
+    if (up > orbitals || down > orbitals) {
+      throw_invalid(factory, "spin sector (up=" + std::to_string(up) +
+                                 ", down=" + std::to_string(down) + ") exceeds orbitals (" +
+                                 std::to_string(orbitals) + ").");
+    }
+  }
+  return {up, down};
+}
+
 inline void add_momentum(Index::container_type& total, const Index::container_type& add,
                          const std::vector<size_t>& dims) {
   for (size_t d = 0; d < dims.size(); ++d) {
@@ -72,12 +131,8 @@ BasisImpl<MonomialType> BasisImpl<MonomialType>::with_fixed_particle_number(size
   BasisImpl basis;
   basis.orbitals = orbitals;
   basis.particles = particles;
-  assert(orbitals <= operator_type::max_index());
-  if constexpr (AlgebraTraits<statistics>::pauli_exclusion) {
-    assert(particles <= 2 * orbitals);
-  } else {
-    assert(particles <= key_type::max_size());
-  }
+  validate_orbitals_and_particles<statistics, operator_type, key_type>("with_fixed_particle_number", orbitals,
+                                                                     particles);
 
   size_t basis_size = compute_basis_size<statistics>(orbitals, particles);
   std::vector<key_type> acc;
@@ -94,27 +149,11 @@ BasisImpl<MonomialType> BasisImpl<MonomialType>::with_fixed_particle_number_and_
   BasisImpl basis;
   basis.orbitals = orbitals;
   basis.particles = particles;
-  assert(orbitals <= operator_type::max_index());
-  if constexpr (AlgebraTraits<statistics>::pauli_exclusion) {
-    assert(particles <= 2 * orbitals);
-  } else {
-    assert(particles <= key_type::max_size());
-  }
+  validate_orbitals_and_particles<statistics, operator_type, key_type>("with_fixed_particle_number_and_spin", orbitals,
+                                                                     particles);
 
-  const int64_t particles_signed = static_cast<int64_t>(particles);
-  const int64_t spin = static_cast<int64_t>(spin_projection);
-  assert(std::abs(spin) <= particles_signed);
-  assert((particles_signed + spin) % 2 == 0);
-
-  const int64_t up_signed = (particles_signed + spin) / 2;
-  const int64_t down_signed = particles_signed - up_signed;
-  assert(up_signed >= 0 && down_signed >= 0);
-  const size_t up = static_cast<size_t>(up_signed);
-  const size_t down = static_cast<size_t>(down_signed);
-  if constexpr (AlgebraTraits<statistics>::pauli_exclusion) {
-    assert(up <= orbitals);
-    assert(down <= orbitals);
-  }
+  const auto [up, down] = split_by_spin<statistics>("with_fixed_particle_number_and_spin",
+                                                    orbitals, particles, spin_projection);
 
   size_t basis_size = compute_basis_size_spin<statistics>(orbitals, up, down);
   std::vector<key_type> acc;
@@ -133,36 +172,30 @@ BasisImpl<MonomialType> BasisImpl<MonomialType>::with_fixed_particle_number_spin
   basis.orbitals = orbitals;
   basis.particles = particles;
 
-  assert(orbitals <= operator_type::max_index());
-  if constexpr (AlgebraTraits<statistics>::pauli_exclusion) {
-    assert(particles <= 2 * orbitals);
-  } else {
-    assert(particles <= key_type::max_size());
+  validate_orbitals_and_particles<statistics, operator_type, key_type>("with_fixed_particle_number_spin_momentum", orbitals,
+                                                                     particles);
+  constexpr const char* factory = "with_fixed_particle_number_spin_momentum";
+  if (index.size() != orbitals) {
+    throw_invalid(factory, "index size (" + std::to_string(index.size()) +
+                               ") does not match orbitals (" + std::to_string(orbitals) + ").");
   }
-  assert(index.size() == orbitals);
 
   const auto& dims = index.dimensions();
-  assert(momentum.size() == dims.size());
+  if (momentum.size() != dims.size()) {
+    throw_invalid(factory, "momentum has " + std::to_string(momentum.size()) +
+                               " components but the lattice has " +
+                               std::to_string(dims.size()) + " dimensions.");
+  }
   for (size_t d = 0; d < dims.size(); ++d) {
-    assert(dims[d] > 0);
-    assert(momentum[d] < dims[d]);
+    if (momentum[d] >= dims[d]) {
+      throw_invalid(factory, "momentum[" + std::to_string(d) + "] = " +
+                                 std::to_string(momentum[d]) + " is not in [0, " +
+                                 std::to_string(dims[d]) + ").");
+    }
   }
 
-  const int64_t particles_signed = static_cast<int64_t>(particles);
-  const int64_t spin = static_cast<int64_t>(spin_projection);
-  assert(std::abs(spin) <= particles_signed);
-  assert((particles_signed + spin) % 2 == 0);
-
-  const int64_t up_signed = (particles_signed + spin) / 2;
-  const int64_t down_signed = particles_signed - up_signed;
-  assert(up_signed >= 0 && down_signed >= 0);
-
-  const size_t up = static_cast<size_t>(up_signed);
-  const size_t down = static_cast<size_t>(down_signed);
-  if constexpr (AlgebraTraits<statistics>::pauli_exclusion) {
-    assert(up <= orbitals);
-    assert(down <= orbitals);
-  }
+  const auto [up, down] = split_by_spin<statistics>(
+      "with_fixed_particle_number_spin_momentum", orbitals, particles, spin_projection);
 
   std::vector<Index::container_type> orbital_coords;
   orbital_coords.reserve(orbitals);
@@ -190,12 +223,8 @@ BasisImpl<MonomialType> BasisImpl<MonomialType>::with_all_particle_number(size_t
   BasisImpl basis;
   basis.orbitals = orbitals;
   basis.particles = particles;
-  assert(orbitals <= operator_type::max_index());
-  if constexpr (AlgebraTraits<statistics>::pauli_exclusion) {
-    assert(particles <= 2 * orbitals);
-  } else {
-    assert(particles <= key_type::max_size());
-  }
+  validate_orbitals_and_particles<statistics, operator_type, key_type>("with_all_particle_number", orbitals,
+                                                                     particles);
 
   size_t basis_size = 0;
   for (size_t i = 1; i <= particles; ++i) {

@@ -79,3 +79,36 @@ TEST_CASE("basis_fixed_spin_momentum_2d_single_particle") {
   CHECK((basis.set.size()) == (1u));
   CHECK(basis.set.contains({FermionOperator::creation(FermionOperator::Spin::Up, orbital)}));
 }
+
+TEST_CASE("basis_factories_reject_invalid_arguments") {
+  // These checks used to be assert-only and were silently skipped in release builds.
+  SECTION("too many particles for the spin-orbitals") {
+    CHECK_THROWS_AS(FermionBasis::with_fixed_particle_number(2, 5), std::invalid_argument);
+    CHECK_THROWS_AS(FermionBasis::with_all_particle_number(2, 5), std::invalid_argument);
+  }
+  SECTION("more particles than a term can hold") {
+    const size_t too_many = FermionBasis::key_type::max_size() + 1;
+    CHECK_THROWS_AS(FermionBasis::with_fixed_particle_number(too_many, too_many),
+                    std::invalid_argument);
+  }
+  SECTION("spin projection inconsistent with particle number") {
+    CHECK_THROWS_AS(FermionBasis::with_fixed_particle_number_and_spin(4, 2, 4),
+                    std::invalid_argument);  // |2Sz| > N
+    CHECK_THROWS_AS(FermionBasis::with_fixed_particle_number_and_spin(4, 3, 0),
+                    std::invalid_argument);  // parity mismatch
+    CHECK_THROWS_AS(FermionBasis::with_fixed_particle_number_and_spin(2, 4, 2),
+                    std::invalid_argument);  // 3 up electrons on 2 orbitals
+  }
+  SECTION("momentum sector inconsistent with the lattice") {
+    Index index({4});
+    CHECK_THROWS_AS(FermionBasis::with_fixed_particle_number_spin_momentum(
+                        4, 2, 0, index, Index::container_type{4}),
+                    std::invalid_argument);  // momentum out of range
+    CHECK_THROWS_AS(FermionBasis::with_fixed_particle_number_spin_momentum(
+                        4, 2, 0, index, Index::container_type{1, 0}),
+                    std::invalid_argument);  // wrong number of components
+    CHECK_THROWS_AS(FermionBasis::with_fixed_particle_number_spin_momentum(
+                        5, 2, 0, index, Index::container_type{1}),
+                    std::invalid_argument);  // index size != orbitals
+  }
+}

@@ -357,3 +357,17 @@ TEST_CASE("hubbard_relative3_kinetic_hop_count_per_orbital") {
 }
 
 }  // namespace test_hubbard_relative3
+
+namespace test_hubbard_relative3 {
+TEST_CASE("hubbard_relative3_rejects_invalid_arguments") {
+  const std::vector<size_t> size = {3};
+  const arma::cx_vec wrong(4, arma::fill::ones);  // dimension is 3*3 = 9
+
+  CHECK_THROWS_AS(HubbardRelative3Interaction(size).apply(wrong), std::invalid_argument);
+  CHECK_THROWS_AS(HubbardRelative3Kinetic(size, {0}).apply(wrong), std::invalid_argument);
+  CHECK_THROWS_AS(HubbardRelative3(size, {0}, 1.0, 4.0).apply(wrong), std::invalid_argument);
+
+  // Momentum with more components than the lattice used to read size[1] out of bounds.
+  CHECK_THROWS_AS(HubbardRelative3Kinetic(size, {0, 1}), std::invalid_argument);
+}
+}  // namespace test_hubbard_relative3

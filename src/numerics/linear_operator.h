@@ -6,6 +6,8 @@
 #include <complex>
 #include <cstddef>
 #include <limits>
+#include <stdexcept>
+#include <string>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -29,6 +31,17 @@ typename Op::VectorType make_seed_vector(const Op& op) {
 
   VectorType seed(op.dimension(), arma::fill::randu);
   return seed;
+}
+
+/// Throw if `v` does not have the dimension an operator expects. Used in apply() so that a
+/// size mismatch fails loudly in release builds instead of reading out of bounds.
+template <typename VectorType>
+void require_vector_dimension(const VectorType& v, size_t expected, const char* op_name) {
+  if (static_cast<size_t>(v.n_elem) != expected) {
+    throw std::invalid_argument(std::string(op_name) + "::apply: vector has " +
+                                std::to_string(v.n_elem) + " elements, expected " +
+                                std::to_string(expected) + ".");
+  }
 }
 
 template <typename Vector>

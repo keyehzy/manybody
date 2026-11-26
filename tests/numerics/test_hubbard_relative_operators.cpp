@@ -96,3 +96,13 @@ TEST_CASE("current_relative_q_adjoint_matches_inner_product") {
 
   CHECK(std::abs(left - right) < kTolerance);
 }
+
+TEST_CASE("hubbard_relative_operators_reject_wrong_vector_size") {
+  const std::vector<size_t> size = {4};
+  const std::vector<int64_t> K = {1};
+  const arma::cx_vec wrong(3, arma::fill::ones);
+
+  CHECK_THROWS_AS(HubbardRelativeInteraction(size).apply(wrong), std::invalid_argument);
+  CHECK_THROWS_AS(HubbardRelativeKinetic(size, K).apply(wrong), std::invalid_argument);
+  CHECK_THROWS_AS(HubbardRelativeKinetic(size, K).effective_hopping(1), std::out_of_range);
+}

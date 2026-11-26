@@ -1,7 +1,6 @@
 #pragma once
 
 #include <armadillo>
-#include <cassert>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -75,7 +74,7 @@ struct HubbardRelative3Interaction final : LinearOperator<arma::cx_vec> {
   size_t dimension() const override { return index_.size(); }
 
   VectorType apply(const VectorType& v) const override {
-    assert(static_cast<size_t>(v.n_elem) == dimension());
+    require_vector_dimension(v, dimension(), "HubbardRelative3Interaction");
     VectorType w(v.n_elem, arma::fill::zeros);
 
     for (size_t orbital = 0; orbital < dimension(); ++orbital) {
@@ -133,7 +132,7 @@ struct HubbardRelative3Kinetic final : LinearOperator<arma::cx_vec> {
   size_t dimension() const override { return index_.size(); }
 
   VectorType apply(const VectorType& v) const override {
-    assert(static_cast<size_t>(v.n_elem) == dimension());
+    require_vector_dimension(v, dimension(), "HubbardRelative3Kinetic");
     VectorType w(v.n_elem, arma::fill::zeros);
 
     const size_t rel_dims = 2 * dims_;
@@ -213,7 +212,7 @@ struct HubbardRelative3 final : LinearOperator<arma::cx_vec> {
   size_t dimension() const override { return kinetic_.dimension(); }
 
   VectorType apply(const VectorType& v) const override {
-    assert(static_cast<size_t>(v.n_elem) == dimension());
+    require_vector_dimension(v, dimension(), "HubbardRelative3");
     return -t_ * kinetic_.apply(v) + U_ * interaction_.apply(v);
   }
 
