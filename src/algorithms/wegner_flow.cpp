@@ -2,8 +2,6 @@
 
 namespace {
 
-arma::cx_mat diagonal_part(const arma::cx_mat& H) { return arma::diagmat(H.diag()); }
-
 arma::cx_mat block_diagonal_part(const arma::cx_mat& H, size_t p_dim) {
   arma::cx_mat Hd(H.n_rows, H.n_cols, arma::fill::zeros);
   if (p_dim == 0 || p_dim >= H.n_rows) {
@@ -19,7 +17,7 @@ arma::cx_mat block_diagonal_part(const arma::cx_mat& H, size_t p_dim) {
 
 struct WegnerFlowSystem {
   arma::cx_mat operator()(double /*l*/, const arma::cx_mat& H) const {
-    const arma::cx_mat diag = diagonal_part(H);
+    const arma::cx_mat diag = arma::diagmat(H.diag());
     const arma::cx_mat eta = diag * H - H * diag;
     return eta * H - H * eta;
   }
