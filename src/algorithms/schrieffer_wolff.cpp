@@ -1,4 +1,4 @@
-#include "algorithms/schriffer_wolff.h"
+#include "algorithms/schrieffer_wolff.h"
 
 #include <complex>
 

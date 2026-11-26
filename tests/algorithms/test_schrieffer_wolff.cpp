@@ -5,7 +5,7 @@
 #include "algebra/fermion/basis.h"
 #include "algebra/fermion/model/hubbard_model.h"
 #include "algebra/matrix_elements.h"
-#include "algorithms/schriffer_wolff.h"
+#include "algorithms/schrieffer_wolff.h"
 
 TEST_CASE("schriffer_wolff_cluster_by_largest_gap") {
   arma::vec vals = {0.0, 0.5, 0.8, 2.0};

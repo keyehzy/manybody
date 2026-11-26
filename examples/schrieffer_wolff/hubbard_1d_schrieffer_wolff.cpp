@@ -3,7 +3,7 @@
 #include "algebra/fermion/basis.h"
 #include "algebra/fermion/model/hubbard_model.h"
 #include "algorithms/diagonal_terms.h"
-#include "algorithms/schriffer_wolff.h"
+#include "algorithms/schrieffer_wolff.h"
 
 int main() {
   const size_t lattice_size = 4;
